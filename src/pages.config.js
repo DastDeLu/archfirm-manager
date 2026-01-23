@@ -7,6 +7,9 @@ import Expenses from './pages/Expenses';
 import Forecast from './pages/Forecast';
 import Earnings from './pages/Earnings';
 import Chapters from './pages/Chapters';
+import Fees from './pages/Fees';
+import Marketing from './pages/Marketing';
+import SettingsPage from './pages/SettingsPage';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +23,9 @@ export const PAGES = {
     "Forecast": Forecast,
     "Earnings": Earnings,
     "Chapters": Chapters,
+    "Fees": Fees,
+    "Marketing": Marketing,
+    "SettingsPage": SettingsPage,
 }
 
 export const pagesConfig = {
