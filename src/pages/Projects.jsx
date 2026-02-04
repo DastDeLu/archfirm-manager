@@ -30,8 +30,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, MoreHorizontal, Pencil, Trash2, FolderKanban, Calendar, Euro, GitBranch } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, FolderKanban, Calendar, Euro, GitBranch, FileText } from 'lucide-react';
 import { format } from 'date-fns';
+import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
+import ProjectDocuments from '../components/project/ProjectDocuments';
 
 export default function Projects() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -213,13 +215,17 @@ export default function Projects() {
       header: '',
       headerClassName: 'w-12',
       cell: (row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+        <ContextMenuWrapper
+          onEdit={() => openDialog(row)}
+          onDelete={() => deleteMutation.mutate(row.id)}
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
               <Link to={createPageUrl(`WBS?projectId=${row.id}`)}>
                 <GitBranch className="h-4 w-4 mr-2" />
@@ -230,6 +236,13 @@ export default function Projects() {
               <Pencil className="h-4 w-4 mr-2" />
               Edit
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => {
+              setSelectedProject(row);
+              setDocumentsDialogOpen(true);
+            }}>
+              <FileText className="h-4 w-4 mr-2" />
+              Documents
+            </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={() => deleteMutation.mutate(row.id)}
               className="text-red-600"
@@ -239,6 +252,7 @@ export default function Projects() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </ContextMenuWrapper>
       ),
     },
   ];
