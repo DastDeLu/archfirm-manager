@@ -274,7 +274,7 @@ export default function Projects() {
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingProject ? 'Edit Project' : 'Create New Project'}
@@ -389,6 +389,14 @@ export default function Projects() {
                 </div>
               </div>
             </div>
+            
+            {editingProject && (
+              <div className="border-t pt-4 mt-4">
+                <h3 className="text-sm font-semibold mb-3">Project Documents</h3>
+                <ProjectDocuments projectId={editingProject.id} />
+              </div>
+            )}
+            
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
                 Cancel
