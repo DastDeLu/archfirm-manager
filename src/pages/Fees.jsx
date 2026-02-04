@@ -37,6 +37,8 @@ import {
 } from 'lucide-react';
 import { format, isAfter, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
+import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
+import QuickAddProject from '../components/forms/QuickAddProject';
 
 const statusColors = {
   draft: 'bg-slate-100 text-slate-700',
@@ -68,55 +70,59 @@ function FeeCard({ fee, installments, onEdit, onDelete, onManageInstallments }) 
   );
 
   return (
-    <Card className={cn(
-      "transition-all",
-      overdueInstallments.length > 0 && "border-red-200 bg-red-50/30"
-    )}>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              "p-2.5 rounded-xl",
-              overdueInstallments.length > 0 ? "bg-red-100" : "bg-amber-50"
-            )}>
-              <Receipt className={cn(
-                "h-5 w-5",
-                overdueInstallments.length > 0 ? "text-red-600" : "text-amber-600"
-              )} />
+    <ContextMenuWrapper
+      onEdit={() => onEdit(fee)}
+      onDelete={() => onDelete(fee.id)}
+    >
+      <Card className={cn(
+        "transition-all cursor-pointer",
+        overdueInstallments.length > 0 && "border-red-200 bg-red-50/30"
+      )}>
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "p-2.5 rounded-xl",
+                overdueInstallments.length > 0 ? "bg-red-100" : "bg-amber-50"
+              )}>
+                <Receipt className={cn(
+                  "h-5 w-5",
+                  overdueInstallments.length > 0 ? "text-red-600" : "text-amber-600"
+                )} />
+              </div>
+              <div>
+                <CardTitle className="text-base font-semibold">{fee.project_name || 'Untitled'}</CardTitle>
+                <p className="text-sm text-slate-500">{fee.client_name || 'No client'}</p>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-base font-semibold">{fee.project_name || 'Untitled'}</CardTitle>
-              <p className="text-sm text-slate-500">{fee.client_name || 'No client'}</p>
+            <div className="flex items-center gap-2">
+              <Badge className={statusColors[fee.status || 'draft']}>
+                {fee.status || 'draft'}
+              </Badge>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEdit(fee)}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onManageInstallments(fee)}>
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Manage Installments
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDelete(fee.id)} className="text-red-600">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge className={statusColors[fee.status || 'draft']}>
-              {fee.status || 'draft'}
-            </Badge>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEdit(fee)}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onManageInstallments(fee)}>
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Manage Installments
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDelete(fee.id)} className="text-red-600">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -213,12 +219,14 @@ function FeeCard({ fee, installments, onEdit, onDelete, onManageInstallments }) 
           </div>
         )}
       </CardContent>
-    </Card>
+      </Card>
+    </ContextMenuWrapper>
   );
 }
 
 export default function Fees() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false);
   const [editingFee, setEditingFee] = useState(null);
   const [selectedFee, setSelectedFee] = useState(null);
@@ -502,18 +510,28 @@ export default function Fees() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="project">Project *</Label>
-                <Select value={formData.project_id} onValueChange={handleProjectChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select project" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map(project => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name} ({project.client_name || 'No client'})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select value={formData.project_id} onValueChange={handleProjectChange}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projects.map(project => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name} ({project.client_name || 'No client'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuickAddOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -659,6 +677,20 @@ export default function Fees() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <QuickAddProject
+        open={quickAddOpen}
+        onOpenChange={setQuickAddOpen}
+        onProjectCreated={(project) => {
+          queryClient.invalidateQueries({ queryKey: ['projects'] });
+          setFormData({
+            ...formData,
+            project_id: project.id,
+            project_name: project.name,
+            client_name: project.client_name || ''
+          });
+        }}
+      />
     </div>
   );
 }

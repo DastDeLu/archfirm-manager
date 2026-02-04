@@ -59,6 +59,7 @@ import Projects from './pages/Projects';
 import Revenues from './pages/Revenues';
 import SettingsPage from './pages/SettingsPage';
 import WBS from './pages/WBS';
+import Baselines from './pages/Baselines';
 import __Layout from './Layout.jsx';
 
 
@@ -75,6 +76,7 @@ export const PAGES = {
     "Revenues": Revenues,
     "SettingsPage": SettingsPage,
     "WBS": WBS,
+    "Baselines": Baselines,
 }
 
 export const pagesConfig = {

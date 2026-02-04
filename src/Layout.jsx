@@ -37,6 +37,7 @@ const navItems = [
       { name: 'Forecast', path: 'Forecast' },
       { name: 'Earnings', path: 'Earnings' },
       { name: 'Chapters', path: 'Chapters' },
+      { name: 'Baselines', path: 'Baselines' },
     ]
   },
   { 

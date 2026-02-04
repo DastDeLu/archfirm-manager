@@ -35,6 +35,8 @@ import { format } from 'date-fns';
 
 export default function Projects() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [documentsDialogOpen, setDocumentsDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -382,6 +384,22 @@ export default function Projects() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={documentsDialogOpen} onOpenChange={setDocumentsDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Documents - {selectedProject?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {selectedProject && <ProjectDocuments projectId={selectedProject.id} />}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDocumentsDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
