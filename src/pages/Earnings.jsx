@@ -11,6 +11,8 @@ import {
   TrendingUp, TrendingDown, Percent, Euro, Target, BarChart3, PieChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import CashFlowLineChart from '../components/charts/CashFlowLineChart';
+import RevExpBarChart from '../components/charts/RevExpBarChart';
 
 export default function Earnings() {
   const { data: revenues = [] } = useQuery({
@@ -26,6 +28,16 @@ export default function Earnings() {
   const { data: forecasts = [] } = useQuery({
     queryKey: ['forecasts'],
     queryFn: () => base44.entities.Forecast.list(),
+  });
+
+  const { data: bankCashEntries = [] } = useQuery({
+    queryKey: ['bankCash'],
+    queryFn: () => base44.entities.BankCash.list(),
+  });
+
+  const { data: pettyCashEntries = [] } = useQuery({
+    queryKey: ['pettyCash'],
+    queryFn: () => base44.entities.PettyCash.list(),
   });
 
   // Calculate KPIs
@@ -225,7 +237,21 @@ export default function Earnings() {
         </Card>
       </div>
 
-      {/* Charts */}
+      {/* Advanced Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <CashFlowLineChart 
+          bankCashEntries={bankCashEntries}
+          pettyCashEntries={pettyCashEntries}
+          revenues={revenues}
+          expenses={expenses}
+        />
+        <RevExpBarChart 
+          revenues={revenues}
+          expenses={expenses}
+        />
+      </div>
+
+      {/* Secondary Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <Card>
           <CardHeader>
