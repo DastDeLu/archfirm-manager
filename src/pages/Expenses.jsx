@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '../components/ui/PageHeader';
@@ -29,8 +29,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MoreHorizontal, Pencil, Trash2, TrendingDown, Filter } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, TrendingDown, Filter, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 
 const TAGS = ['Fixed', 'Collab', 'Salary', 'Var', 'Tax', 'Other'];
 
@@ -52,6 +53,9 @@ export default function Expenses() {
     date: format(new Date(), 'yyyy-MM-dd'),
     description: '',
     tag: 'Fixed',
+    expense_type: 'variable',
+    nature: '',
+    payment_frequency: 'monthly',
     chapter_id: '',
     chapter_name: ''
   });
@@ -99,6 +103,9 @@ export default function Expenses() {
         date: expense.date || format(new Date(), 'yyyy-MM-dd'),
         description: expense.description || '',
         tag: expense.tag || 'Fixed',
+        expense_type: expense.expense_type || 'variable',
+        nature: expense.nature || '',
+        payment_frequency: expense.payment_frequency || 'monthly',
         chapter_id: expense.chapter_id || '',
         chapter_name: expense.chapter_name || ''
       });
@@ -109,6 +116,9 @@ export default function Expenses() {
         date: format(new Date(), 'yyyy-MM-dd'),
         description: '',
         tag: 'Fixed',
+        expense_type: 'variable',
+        nature: '',
+        payment_frequency: 'monthly',
         chapter_id: '',
         chapter_name: ''
       });
@@ -147,6 +157,21 @@ export default function Expenses() {
     ? expenses 
     : expenses.filter(e => e.tag === activeTag);
 
+  const currentYear = new Date().getFullYear();
+  const previousYear = currentYear - 1;
+
+  const yearlyData = useMemo(() => {
+    const currentYearExpenses = expenses.filter(e => e.date?.startsWith(String(currentYear)));
+    const previousYearExpenses = expenses.filter(e => e.date?.startsWith(String(previousYear)));
+    
+    const currentTotal = currentYearExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const previousTotal = previousYearExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const delta = currentTotal - previousTotal;
+    const deltaPercent = previousTotal > 0 ? ((delta / previousTotal) * 100).toFixed(1) : 0;
+
+    return { currentTotal, previousTotal, delta, deltaPercent };
+  }, [expenses, currentYear, previousYear]);
+
   const totalAmount = filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
 
   const columns = [
@@ -163,6 +188,14 @@ export default function Expenses() {
       cell: (row) => (
         <div>
           <p className="font-medium text-slate-900">{row.description || 'No description'}</p>
+          {row.expense_type === 'fixed' && row.nature && (
+            <p className="text-xs text-slate-500">{row.nature}</p>
+          )}
+          {row.expense_type === 'fixed' && row.payment_frequency && (
+            <Badge variant="outline" className="text-xs mt-1">
+              {row.payment_frequency}
+            </Badge>
+          )}
         </div>
       ),
     },
@@ -192,26 +225,31 @@ export default function Expenses() {
       header: '',
       headerClassName: 'w-12',
       cell: (row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => openDialog(row)}>
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => deleteMutation.mutate(row.id)}
-              className="text-red-600"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ContextMenuWrapper
+          onEdit={() => openDialog(row)}
+          onDelete={() => deleteMutation.mutate(row.id)}
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => openDialog(row)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => deleteMutation.mutate(row.id)}
+                className="text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </ContextMenuWrapper>
       ),
     },
   ];
@@ -225,28 +263,61 @@ export default function Expenses() {
         </Button>
       </PageHeader>
 
-      {/* Summary Card */}
-      <Card className="mb-6">
-        <CardContent className="flex items-center justify-between py-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-red-50 rounded-xl">
-              <TrendingDown className="h-6 w-6 text-red-600" />
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+              <TrendingDown className="h-4 w-4 text-red-600" />
+              {activeTag === 'all' ? 'Total Expenses' : `${activeTag} Expenses`}
             </div>
-            <div>
-              <p className="text-sm text-slate-500">
-                {activeTag === 'all' ? 'Total Expenses' : `${activeTag} Expenses`}
-              </p>
-              <p className="text-2xl font-bold text-red-600">
-                €{totalAmount.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
-              </p>
+            <p className="text-2xl font-bold text-red-600">
+              €{totalAmount.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-xs text-slate-500 mt-1">{filteredExpenses.length} entries</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+              {currentYear}
             </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <Filter className="h-4 w-4" />
-            {filteredExpenses.length} entries
-          </div>
-        </CardContent>
-      </Card>
+            <p className="text-2xl font-bold text-slate-900">
+              €{yearlyData.currentTotal.toLocaleString('it-IT')}
+            </p>
+            <p className="text-xs text-slate-500 mt-1">Current year</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+              {previousYear}
+            </div>
+            <p className="text-2xl font-bold text-slate-600">
+              €{yearlyData.previousTotal.toLocaleString('it-IT')}
+            </p>
+            <p className="text-xs text-slate-500 mt-1">Previous year</p>
+          </CardContent>
+        </Card>
+        <Card className={yearlyData.delta <= 0 ? "border-emerald-200 bg-emerald-50/30" : "border-red-200 bg-red-50/30"}>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+              {yearlyData.delta <= 0 ? (
+                <ArrowDownCircle className="h-4 w-4 text-emerald-600" />
+              ) : (
+                <ArrowUpCircle className="h-4 w-4 text-red-600" />
+              )}
+              YoY Delta
+            </div>
+            <p className={`text-2xl font-bold ${yearlyData.delta <= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {yearlyData.delta >= 0 ? '+' : ''}€{yearlyData.delta.toLocaleString('it-IT')}
+            </p>
+            <p className={`text-xs mt-1 ${yearlyData.delta <= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {yearlyData.delta >= 0 ? '+' : ''}{yearlyData.deltaPercent}%
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Filter Tabs */}
       <Tabs value={activeTag} onValueChange={setActiveTag} className="mb-4">
@@ -325,23 +396,70 @@ export default function Expenses() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="chapter">Chapter</Label>
+                  <Label htmlFor="expense_type">Type *</Label>
                   <Select
-                    value={formData.chapter_id}
-                    onValueChange={handleChapterChange}
+                    value={formData.expense_type}
+                    onValueChange={(value) => setFormData({ ...formData, expense_type: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select chapter" />
+                      <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {chapters.map(chapter => (
-                        <SelectItem key={chapter.id} value={chapter.id}>
-                          {chapter.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="variable">Variable</SelectItem>
+                      <SelectItem value="fixed">Fixed</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              {formData.expense_type === 'fixed' && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="nature">Nature/Description *</Label>
+                    <Input
+                      id="nature"
+                      value={formData.nature}
+                      onChange={(e) => setFormData({ ...formData, nature: e.target.value })}
+                      placeholder="Nature of the fixed expense"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="payment_frequency">Payment Frequency *</Label>
+                    <Select
+                      value={formData.payment_frequency}
+                      onValueChange={(value) => setFormData({ ...formData, payment_frequency: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="bimonthly">Every 2 Months</SelectItem>
+                        <SelectItem value="quarterly">Quarterly</SelectItem>
+                        <SelectItem value="semiannual">Every 6 Months</SelectItem>
+                        <SelectItem value="annual">Yearly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="chapter">Chapter</Label>
+                <Select
+                  value={formData.chapter_id}
+                  onValueChange={handleChapterChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select chapter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {chapters.map(chapter => (
+                      <SelectItem key={chapter.id} value={chapter.id}>
+                        {chapter.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <DialogFooter>

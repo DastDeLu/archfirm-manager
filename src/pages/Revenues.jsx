@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '../components/ui/PageHeader';
@@ -29,8 +29,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MoreHorizontal, Pencil, Trash2, TrendingUp, Euro, Filter } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, TrendingUp, Euro, Filter, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
+import QuickAddProject from '../components/forms/QuickAddProject';
 
 const TAGS = ['PG', 'DL', 'PV', 'BR', 'Other'];
 
@@ -44,6 +46,7 @@ const tagColors = {
 
 export default function Revenues() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [editingRevenue, setEditingRevenue] = useState(null);
   const [activeTag, setActiveTag] = useState('all');
   const [formData, setFormData] = useState({
@@ -166,6 +169,21 @@ export default function Revenues() {
     ? revenues 
     : revenues.filter(r => r.tag === activeTag);
 
+  const currentYear = new Date().getFullYear();
+  const previousYear = currentYear - 1;
+
+  const yearlyData = useMemo(() => {
+    const currentYearRevenues = revenues.filter(r => r.date?.startsWith(String(currentYear)));
+    const previousYearRevenues = revenues.filter(r => r.date?.startsWith(String(previousYear)));
+    
+    const currentTotal = currentYearRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+    const previousTotal = previousYearRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+    const delta = currentTotal - previousTotal;
+    const deltaPercent = previousTotal > 0 ? ((delta / previousTotal) * 100).toFixed(1) : 0;
+
+    return { currentTotal, previousTotal, delta, deltaPercent };
+  }, [revenues, currentYear, previousYear]);
+
   const totalAmount = filteredRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
 
   const columns = [
@@ -214,26 +232,31 @@ export default function Revenues() {
       header: '',
       headerClassName: 'w-12',
       cell: (row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => openDialog(row)}>
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => deleteMutation.mutate(row.id)}
-              className="text-red-600"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ContextMenuWrapper
+          onEdit={() => openDialog(row)}
+          onDelete={() => deleteMutation.mutate(row.id)}
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => openDialog(row)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => deleteMutation.mutate(row.id)}
+                className="text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </ContextMenuWrapper>
       ),
     },
   ];
@@ -247,28 +270,61 @@ export default function Revenues() {
         </Button>
       </PageHeader>
 
-      {/* Summary Card */}
-      <Card className="mb-6">
-        <CardContent className="flex items-center justify-between py-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-emerald-50 rounded-xl">
-              <TrendingUp className="h-6 w-6 text-emerald-600" />
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+              <TrendingUp className="h-4 w-4 text-emerald-600" />
+              {activeTag === 'all' ? 'Total Revenue' : `${activeTag} Revenue`}
             </div>
-            <div>
-              <p className="text-sm text-slate-500">
-                {activeTag === 'all' ? 'Total Revenue' : `${activeTag} Revenue`}
-              </p>
-              <p className="text-2xl font-bold text-emerald-600">
-                €{totalAmount.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
-              </p>
+            <p className="text-2xl font-bold text-emerald-600">
+              €{totalAmount.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-xs text-slate-500 mt-1">{filteredRevenues.length} entries</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+              {currentYear}
             </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <Filter className="h-4 w-4" />
-            {filteredRevenues.length} entries
-          </div>
-        </CardContent>
-      </Card>
+            <p className="text-2xl font-bold text-slate-900">
+              €{yearlyData.currentTotal.toLocaleString('it-IT')}
+            </p>
+            <p className="text-xs text-slate-500 mt-1">Current year</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+              {previousYear}
+            </div>
+            <p className="text-2xl font-bold text-slate-600">
+              €{yearlyData.previousTotal.toLocaleString('it-IT')}
+            </p>
+            <p className="text-xs text-slate-500 mt-1">Previous year</p>
+          </CardContent>
+        </Card>
+        <Card className={yearlyData.delta >= 0 ? "border-emerald-200 bg-emerald-50/30" : "border-red-200 bg-red-50/30"}>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+              {yearlyData.delta >= 0 ? (
+                <ArrowUpCircle className="h-4 w-4 text-emerald-600" />
+              ) : (
+                <ArrowDownCircle className="h-4 w-4 text-red-600" />
+              )}
+              YoY Delta
+            </div>
+            <p className={`text-2xl font-bold ${yearlyData.delta >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {yearlyData.delta >= 0 ? '+' : ''}€{yearlyData.delta.toLocaleString('it-IT')}
+            </p>
+            <p className={`text-xs mt-1 ${yearlyData.delta >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {yearlyData.delta >= 0 ? '+' : ''}{yearlyData.deltaPercent}%
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Filter Tabs */}
       <Tabs value={activeTag} onValueChange={setActiveTag} className="mb-4">
@@ -367,21 +423,31 @@ export default function Revenues() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="project">Project</Label>
-                <Select
-                  value={formData.project_id}
-                  onValueChange={handleProjectChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select project" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map(project => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select
+                    value={formData.project_id}
+                    onValueChange={handleProjectChange}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projects.map(project => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuickAddOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -395,6 +461,19 @@ export default function Revenues() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <QuickAddProject
+        open={quickAddOpen}
+        onOpenChange={setQuickAddOpen}
+        onProjectCreated={(project) => {
+          queryClient.invalidateQueries({ queryKey: ['projects'] });
+          setFormData({
+            ...formData,
+            project_id: project.id,
+            project_name: project.name
+          });
+        }}
+      />
     </div>
   );
 }
