@@ -33,8 +33,10 @@ const navItems = [
     name: 'Finanza', 
     icon: Wallet, 
     children: [
+      { name: 'Tesoreria', path: 'Treasury' },
       { name: 'Ricavi', path: 'Revenues' },
       { name: 'Costi', path: 'Expenses' },
+      { name: 'Compensi', path: 'Fees' },
       { name: 'Previsioni', path: 'Forecast' },
       { name: 'Guadagni', path: 'Earnings' },
       { name: 'Capitoli', path: 'Chapters' },
@@ -45,12 +47,13 @@ const navItems = [
     name: 'Progetti', 
     icon: FolderKanban, 
     children: [
-      { name: 'Clienti', path: 'Clients' },
+      { name: 'Preventivi', path: 'Quotes' },
       { name: 'Progetti', path: 'Projects' },
+      { name: 'Clienti', path: 'Clients' },
     ]
   },
-  { name: 'Compensi', icon: Receipt, path: 'Fees' },
   { name: 'Marketing', icon: Megaphone, path: 'Marketing' },
+  { name: 'WBS', icon: FileText, path: 'WBS' },
         { 
           name: 'Admin', 
           icon: Settings, 

@@ -161,15 +161,21 @@ export default function Dashboard() {
           icon={Percent}
           iconClassName="bg-purple-50"
         />
-        <StatCard
-          title="Tasso Conversione"
-          value={`${conversionStats.rate}%`}
-          icon={TrendingUp}
-          iconClassName="bg-indigo-50"
-          trend={conversionStats.won > conversionStats.lost ? 'up' : undefined}
-          trendValue={`${conversionStats.won}/${conversionStats.won + conversionStats.lost} vinti`}
-        />
       </div>
+
+      {/* Conversion Rate Card */}
+      {quotes.length > 0 && (
+        <div className="grid grid-cols-1 gap-4">
+          <StatCard
+            title="Tasso Conversione Preventivi"
+            value={`${conversionStats.rate}%`}
+            icon={TrendingUp}
+            iconClassName="bg-indigo-50"
+            trend={conversionStats.won > conversionStats.lost ? 'up' : undefined}
+            trendValue={`${conversionStats.won}/${conversionStats.won + conversionStats.lost} vinti`}
+          />
+        </div>
+      )}
 
       {/* Alerts */}
       {overdueInstallments.length > 0 && (
