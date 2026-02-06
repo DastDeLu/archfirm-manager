@@ -14,10 +14,17 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit, TrendingDown, TrendingUp, AlertCircle } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Plus, Edit, TrendingDown, TrendingUp, AlertCircle, Receipt, MoreVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 export default function CapitoliSpesa() {
   const { 
@@ -30,13 +37,22 @@ export default function CapitoliSpesa() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [categoriaDialogOpen, setCategoriaDialogOpen] = useState(false);
+  const [spesaDialogOpen, setSpesaDialogOpen] = useState(false);
   const [editingVoce, setEditingVoce] = useState(null);
   const [editingBudget, setEditingBudget] = useState(null);
+  const [selectedVoce, setSelectedVoce] = useState(null);
   const [formData, setFormData] = useState({
     id_categoria: '',
     nome: '',
     budget_totale: '',
     stato: 'attivo'
+  });
+  const [spesaForm, setSpesaForm] = useState({
+    amount: '',
+    date: new Date().toISOString().split('T')[0],
+    description: '',
+    tag: 'Other',
+    stato: 'Pagato'
   });
   const [categoriaForm, setCategoriaForm] = useState({
     nome: '',
@@ -78,6 +94,31 @@ export default function CapitoliSpesa() {
     },
   });
 
+  const createSpesaMutation = useMutation({
+    mutationFn: (data) => base44.entities.Expense.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vociSpesa'] });
+      setSpesaDialogOpen(false);
+      setSelectedVoce(null);
+      setSpesaForm({
+        amount: '',
+        date: new Date().toISOString().split('T')[0],
+        description: '',
+        tag: 'Other',
+        stato: 'Pagato'
+      });
+      toast.success('Spesa registrata con successo');
+    },
+  });
+
+  const toggleStatoMutation = useMutation({
+    mutationFn: ({ id, nuovoStato }) => base44.entities.VoceSpesa.update(id, { stato: nuovoStato }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vociSpesa'] });
+      toast.success('Stato aggiornato');
+    },
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = {
@@ -112,6 +153,36 @@ export default function CapitoliSpesa() {
       // Apri edit
       setEditingBudget(voce.id);
     }
+  };
+
+  const handleEditVoce = (voce) => {
+    setEditingVoce(voce);
+    setFormData({
+      id_categoria: voce.id_categoria,
+      nome: voce.nome,
+      budget_totale: voce.budget_totale,
+      stato: voce.stato
+    });
+    setDialogOpen(true);
+  };
+
+  const handleToggleStato = (voce) => {
+    const nuovoStato = voce.stato === 'attivo' ? 'chiuso' : 'attivo';
+    toggleStatoMutation.mutate({ id: voce.id, nuovoStato });
+  };
+
+  const handleAddSpesa = (voce) => {
+    setSelectedVoce(voce);
+    setSpesaDialogOpen(true);
+  };
+
+  const handleSpesaSubmit = (e) => {
+    e.preventDefault();
+    createSpesaMutation.mutate({
+      ...spesaForm,
+      amount: parseFloat(spesaForm.amount),
+      id_voce_spesa: selectedVoce.id
+    });
   };
 
   if (loading) {
@@ -193,6 +264,7 @@ export default function CapitoliSpesa() {
                           <th className="text-right px-4 py-3 text-sm font-medium text-slate-600">Speso Reale</th>
                           <th className="px-4 py-3 text-sm font-medium text-slate-600">Progresso</th>
                           <th className="px-4 py-3 text-sm font-medium text-slate-600">Stato</th>
+                          <th className="px-4 py-3 text-sm font-medium text-slate-600">Azioni</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -279,6 +351,35 @@ export default function CapitoliSpesa() {
                                   {voce.stato}
                                 </Badge>
                               </td>
+                              <td className="px-4 py-4">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleAddSpesa(voce)}
+                                    className="gap-2"
+                                  >
+                                    <Receipt className="h-4 w-4" />
+                                    Aggiungi Spesa
+                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon">
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => handleEditVoce(voce)}>
+                                        <Edit className="h-4 w-4 mr-2" />
+                                        Modifica Voce
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleToggleStato(voce)}>
+                                        {voce.stato === 'attivo' ? 'Chiudi Voce' : 'Riapri Voce'}
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </td>
                             </tr>
                           );
                         })}
@@ -304,8 +405,14 @@ export default function CapitoliSpesa() {
         )}
       </div>
 
-      {/* Dialog Nuova Voce */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* Dialog Nuova/Modifica Voce */}
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open);
+        if (!open) {
+          setEditingVoce(null);
+          setFormData({ id_categoria: '', nome: '', budget_totale: '', stato: 'attivo' });
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{editingVoce ? 'Modifica Voce' : 'Nuova Voce di Spesa'}</DialogTitle>
@@ -345,6 +452,18 @@ export default function CapitoliSpesa() {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Stato *</Label>
+                <select
+                  className="w-full px-3 py-2 border rounded-md"
+                  value={formData.stato}
+                  onChange={(e) => setFormData({ ...formData, stato: e.target.value })}
+                  required
+                >
+                  <option value="attivo">Attivo</option>
+                  <option value="chiuso">Chiuso</option>
+                </select>
+              </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
@@ -353,6 +472,93 @@ export default function CapitoliSpesa() {
               <Button type="submit">
                 {editingVoce ? 'Aggiorna' : 'Crea'}
               </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Aggiungi Spesa */}
+      <Dialog open={spesaDialogOpen} onOpenChange={(open) => {
+        setSpesaDialogOpen(open);
+        if (!open) {
+          setSelectedVoce(null);
+          setSpesaForm({
+            amount: '',
+            date: new Date().toISOString().split('T')[0],
+            description: '',
+            tag: 'Other',
+            stato: 'Pagato'
+          });
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nuova Spesa per {selectedVoce?.nome}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSpesaSubmit}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Importo (€) *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={spesaForm.amount}
+                  onChange={(e) => setSpesaForm({ ...spesaForm, amount: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Data *</Label>
+                <Input
+                  type="date"
+                  value={spesaForm.date}
+                  onChange={(e) => setSpesaForm({ ...spesaForm, date: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Descrizione</Label>
+                <Input
+                  value={spesaForm.description}
+                  onChange={(e) => setSpesaForm({ ...spesaForm, description: e.target.value })}
+                  placeholder="Descrizione spesa"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Tag *</Label>
+                <select
+                  className="w-full px-3 py-2 border rounded-md"
+                  value={spesaForm.tag}
+                  onChange={(e) => setSpesaForm({ ...spesaForm, tag: e.target.value })}
+                  required
+                >
+                  <option value="Fixed">Fixed</option>
+                  <option value="Collab">Collab</option>
+                  <option value="Salary">Salary</option>
+                  <option value="Var">Var</option>
+                  <option value="Tax">Tax</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label>Stato *</Label>
+                <select
+                  className="w-full px-3 py-2 border rounded-md"
+                  value={spesaForm.stato}
+                  onChange={(e) => setSpesaForm({ ...spesaForm, stato: e.target.value })}
+                  required
+                >
+                  <option value="Pagato">Pagato</option>
+                  <option value="In attesa">In attesa</option>
+                  <option value="Annullato">Annullato</option>
+                </select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setSpesaDialogOpen(false)}>
+                Annulla
+              </Button>
+              <Button type="submit">Registra Spesa</Button>
             </DialogFooter>
           </form>
         </DialogContent>
