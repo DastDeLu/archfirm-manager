@@ -118,28 +118,28 @@ export default function Dashboard() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Total Revenue"
+          title="Ricavi Totali"
           value={`€${totalRevenue.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`}
           icon={TrendingUp}
           iconClassName="bg-emerald-50"
           trend="up"
-          trendValue="Year to date"
+          trendValue="Anno in corso"
         />
         <StatCard
-          title="Total Expenses"
+          title="Costi Totali"
           value={`€${totalExpenses.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`}
           icon={TrendingDown}
           iconClassName="bg-red-50"
         />
         <StatCard
-          title="Net Income"
+          title="Utile Netto"
           value={`€${netIncome.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`}
           icon={Euro}
           iconClassName={netIncome >= 0 ? "bg-blue-50" : "bg-red-50"}
           valueClassName={netIncome >= 0 ? "text-blue-600" : "text-red-600"}
         />
         <StatCard
-          title="Profit Margin"
+          title="Margine di Profitto"
           value={`${margin}%`}
           icon={Percent}
           iconClassName="bg-purple-50"
@@ -156,16 +156,16 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="font-medium text-red-900">
-                  {overdueInstallments.length} Overdue Installment{overdueInstallments.length > 1 ? 's' : ''}
+                  {overdueInstallments.length} Rata{overdueInstallments.length > 1 ? 'e' : ''} Scaduta{overdueInstallments.length > 1 ? 'e' : ''}
                 </p>
                 <p className="text-sm text-red-700">
-                  Total: €{overdueInstallments.reduce((sum, i) => sum + (i.amount || 0), 0).toLocaleString('it-IT')}
+                  Totale: €{overdueInstallments.reduce((sum, i) => sum + (i.amount || 0), 0).toLocaleString('it-IT')}
                 </p>
               </div>
             </div>
             <Link to={createPageUrl('Fees')}>
               <Button variant="outline" size="sm" className="text-red-700 border-red-200 hover:bg-red-100">
-                View Details <ArrowRight className="h-4 w-4 ml-2" />
+                Vedi Dettagli <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </Link>
           </CardContent>
@@ -176,7 +176,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Revenue vs Expenses</CardTitle>
+            <CardTitle className="text-base font-semibold">Ricavi vs Costi</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -209,7 +209,7 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Revenue by Category</CardTitle>
+            <CardTitle className="text-base font-semibold">Ricavi per Categoria</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px] flex items-center justify-center">
@@ -233,7 +233,7 @@ export default function Dashboard() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-slate-500 text-sm">No revenue data</p>
+                <p className="text-slate-500 text-sm">Nessun dato sui ricavi</p>
               )}
             </div>
             <div className="flex flex-wrap justify-center gap-3 mt-4">
@@ -258,7 +258,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{activeClients}</p>
-                <p className="text-sm text-slate-500">Active Clients</p>
+                <p className="text-sm text-slate-500">Clienti Attivi</p>
               </div>
             </CardContent>
           </Card>
@@ -272,7 +272,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{activeProjects}</p>
-                <p className="text-sm text-slate-500">Active Projects</p>
+                <p className="text-sm text-slate-500">Progetti Attivi</p>
               </div>
             </CardContent>
           </Card>
@@ -286,7 +286,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{fees.length}</p>
-                <p className="text-sm text-slate-500">Total Fees</p>
+                <p className="text-sm text-slate-500">Compensi Totali</p>
               </div>
             </CardContent>
           </Card>
@@ -297,7 +297,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base font-semibold">Recent Revenues</CardTitle>
+            <CardTitle className="text-base font-semibold">Ricavi Recenti</CardTitle>
             <Link to={createPageUrl('Revenues')}>
               <Button variant="ghost" size="sm">View All</Button>
             </Link>
@@ -327,7 +327,7 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base font-semibold">Recent Expenses</CardTitle>
+            <CardTitle className="text-base font-semibold">Costi Recenti</CardTitle>
             <Link to={createPageUrl('Expenses')}>
               <Button variant="ghost" size="sm">View All</Button>
             </Link>
@@ -349,7 +349,7 @@ export default function Dashboard() {
                 </div>
               ))}
               {expenses.length === 0 && (
-                <p className="text-center text-slate-500 py-4">No expenses yet</p>
+                <p className="text-center text-slate-500 py-4">Nessun costo ancora</p>
               )}
             </div>
           </CardContent>

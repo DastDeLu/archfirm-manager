@@ -30,33 +30,33 @@ import ControlDashboardSidebarWidget from './components/dashboard/ControlDashboa
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: 'Dashboard' },
   { 
-    name: 'Finance', 
+    name: 'Finanza', 
     icon: Wallet, 
     children: [
-      { name: 'Revenues', path: 'Revenues' },
-      { name: 'Expenses', path: 'Expenses' },
-      { name: 'Forecast', path: 'Forecast' },
-      { name: 'Earnings', path: 'Earnings' },
-      { name: 'Chapters', path: 'Chapters' },
-      { name: 'Baselines', path: 'Baselines' },
+      { name: 'Ricavi', path: 'Revenues' },
+      { name: 'Costi', path: 'Expenses' },
+      { name: 'Previsioni', path: 'Forecast' },
+      { name: 'Guadagni', path: 'Earnings' },
+      { name: 'Capitoli', path: 'Chapters' },
+      { name: 'Budget', path: 'Baselines' },
     ]
   },
   { 
-    name: 'Projects', 
+    name: 'Progetti', 
     icon: FolderKanban, 
     children: [
-      { name: 'Clients', path: 'Clients' },
-      { name: 'Projects', path: 'Projects' },
+      { name: 'Clienti', path: 'Clients' },
+      { name: 'Progetti', path: 'Projects' },
     ]
   },
-  { name: 'Fees & Quotes', icon: Receipt, path: 'Fees' },
+  { name: 'Compensi', icon: Receipt, path: 'Fees' },
   { name: 'Marketing', icon: Megaphone, path: 'Marketing' },
         { 
           name: 'Admin', 
           icon: Settings, 
           children: [
-            { name: 'KPI Targets', path: 'KpiTargets' },
-            { name: 'Settings', path: 'SettingsPage' },
+            { name: 'Obiettivi KPI', path: 'KpiTargets' },
+            { name: 'Impostazioni', path: 'SettingsPage' },
           ]
         },
 ];

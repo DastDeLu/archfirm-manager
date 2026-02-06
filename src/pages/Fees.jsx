@@ -39,6 +39,7 @@ import { format, isAfter, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddProject from '../components/forms/QuickAddProject';
+import QuickAddClient from '../components/forms/QuickAddClient';
 
 const statusColors = {
   draft: 'bg-slate-100 text-slate-700',
@@ -227,6 +228,7 @@ function FeeCard({ fee, installments, onEdit, onDelete, onManageInstallments }) 
 export default function Fees() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickAddClientOpen, setQuickAddClientOpen] = useState(false);
   const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false);
   const [editingFee, setEditingFee] = useState(null);
   const [selectedFee, setSelectedFee] = useState(null);

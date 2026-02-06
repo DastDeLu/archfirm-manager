@@ -256,10 +256,10 @@ export default function Expenses() {
 
   return (
     <div>
-      <PageHeader title="Expenses" description="Track all business expenses">
+      <PageHeader title="Costi" description="Traccia tutti i costi aziendali">
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Expense
+          Aggiungi Costo
         </Button>
       </PageHeader>
 
@@ -269,7 +269,7 @@ export default function Expenses() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <TrendingDown className="h-4 w-4 text-red-600" />
-              {activeTag === 'all' ? 'Total Expenses' : `${activeTag} Expenses`}
+              {activeTag === 'all' ? 'Costi Totali' : `Costi ${activeTag}`}
             </div>
             <p className="text-2xl font-bold text-red-600">
               €{totalAmount.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
@@ -333,14 +333,14 @@ export default function Expenses() {
         columns={columns}
         data={filteredExpenses}
         loading={isLoading}
-        emptyMessage="No expenses recorded yet. Click 'Add Expense' to get started."
+        emptyMessage="Nessun costo registrato. Clicca 'Aggiungi Costo' per iniziare."
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingExpense ? 'Edit Expense' : 'Add New Expense'}
+              {editingExpense ? 'Modifica Costo' : 'Aggiungi Nuovo Costo'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
@@ -375,7 +375,7 @@ export default function Expenses() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Expense description"
+                  placeholder="Descrizione costo"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -396,7 +396,7 @@ export default function Expenses() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="expense_type">Type *</Label>
+                  <Label htmlFor="expense_type">Tipo *</Label>
                   <Select
                     value={formData.expense_type}
                     onValueChange={(value) => setFormData({ ...formData, expense_type: value })}
@@ -405,8 +405,8 @@ export default function Expenses() {
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="variable">Variable</SelectItem>
-                      <SelectItem value="fixed">Fixed</SelectItem>
+                      <SelectItem value="variable">Variabile</SelectItem>
+                      <SelectItem value="fixed">Fisso</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -414,17 +414,17 @@ export default function Expenses() {
               {formData.expense_type === 'fixed' && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="nature">Nature/Description *</Label>
+                    <Label htmlFor="nature">Natura/Descrizione *</Label>
                     <Input
                       id="nature"
                       value={formData.nature}
                       onChange={(e) => setFormData({ ...formData, nature: e.target.value })}
-                      placeholder="Nature of the fixed expense"
+                      placeholder="Natura del costo fisso"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="payment_frequency">Payment Frequency *</Label>
+                    <Label htmlFor="payment_frequency">Frequenza Pagamento *</Label>
                     <Select
                       value={formData.payment_frequency}
                       onValueChange={(value) => setFormData({ ...formData, payment_frequency: value })}
@@ -433,11 +433,11 @@ export default function Expenses() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="bimonthly">Every 2 Months</SelectItem>
-                        <SelectItem value="quarterly">Quarterly</SelectItem>
-                        <SelectItem value="semiannual">Every 6 Months</SelectItem>
-                        <SelectItem value="annual">Yearly</SelectItem>
+                        <SelectItem value="monthly">Mensile</SelectItem>
+                        <SelectItem value="bimonthly">Bimestrale</SelectItem>
+                        <SelectItem value="quarterly">Trimestrale</SelectItem>
+                        <SelectItem value="semiannual">Semestrale</SelectItem>
+                        <SelectItem value="annual">Annuale</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

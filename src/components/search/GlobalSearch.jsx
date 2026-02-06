@@ -112,7 +112,7 @@ export default function GlobalSearch({ open, onOpenChange }) {
         <div className="flex items-center border-b px-4">
           <Search className="h-4 w-4 text-slate-400 mr-3" />
           <Input
-            placeholder="Search clients, projects, fees..."
+            placeholder="Cerca clienti, progetti, compensi..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -126,11 +126,11 @@ export default function GlobalSearch({ open, onOpenChange }) {
           {query.length < 2 ? (
             <div className="p-8 text-center text-slate-500">
               <Search className="h-8 w-8 mx-auto mb-3 text-slate-300" />
-              <p className="text-sm">Type at least 2 characters to search</p>
+              <p className="text-sm">Digita almeno 2 caratteri per cercare</p>
             </div>
           ) : flatResults.length === 0 && !loading ? (
             <div className="p-8 text-center text-slate-500">
-              <p className="text-sm">No results found for "{query}"</p>
+              <p className="text-sm">Nessun risultato trovato per "{query}"</p>
             </div>
           ) : (
             <div className="py-2">
@@ -180,10 +180,10 @@ export default function GlobalSearch({ open, onOpenChange }) {
 
         <div className="border-t px-4 py-3 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-4">
-            <span><kbd className="px-1.5 py-0.5 rounded bg-white border text-[10px]">↑↓</kbd> Navigate</span>
-            <span><kbd className="px-1.5 py-0.5 rounded bg-white border text-[10px]">↵</kbd> Select</span>
+            <span><kbd className="px-1.5 py-0.5 rounded bg-white border text-[10px]">↑↓</kbd> Naviga</span>
+            <span><kbd className="px-1.5 py-0.5 rounded bg-white border text-[10px]">↵</kbd> Seleziona</span>
           </div>
-          <span><kbd className="px-1.5 py-0.5 rounded bg-white border text-[10px]">Esc</kbd> Close</span>
+          <span><kbd className="px-1.5 py-0.5 rounded bg-white border text-[10px]">Esc</kbd> Chiudi</span>
         </div>
       </DialogContent>
     </Dialog>

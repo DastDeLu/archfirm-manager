@@ -188,7 +188,7 @@ export default function Revenues() {
 
   const columns = [
     {
-      header: 'Date',
+      header: 'Data',
       cell: (row) => (
         <span className="text-slate-600">
           {row.date ? format(new Date(row.date), 'MMM d, yyyy') : '-'}
@@ -196,10 +196,10 @@ export default function Revenues() {
       ),
     },
     {
-      header: 'Description',
+      header: 'Descrizione',
       cell: (row) => (
         <div>
-          <p className="font-medium text-slate-900">{row.description || 'No description'}</p>
+          <p className="font-medium text-slate-900">{row.description || 'Nessuna descrizione'}</p>
           {row.project_name && (
             <p className="text-xs text-slate-500">{row.project_name}</p>
           )}
@@ -215,13 +215,13 @@ export default function Revenues() {
       ),
     },
     {
-      header: 'Chapter',
+      header: 'Capitolo',
       cell: (row) => (
         <span className="text-slate-600">{row.chapter_name || '-'}</span>
       ),
     },
     {
-      header: 'Amount',
+      header: 'Importo',
       cell: (row) => (
         <span className="font-semibold text-emerald-600">
           +€{(row.amount || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}
@@ -245,14 +245,14 @@ export default function Revenues() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => openDialog(row)}>
                 <Pencil className="h-4 w-4 mr-2" />
-                Edit
+                Modifica
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => deleteMutation.mutate(row.id)}
                 className="text-red-600"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                Elimina
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -263,10 +263,10 @@ export default function Revenues() {
 
   return (
     <div>
-      <PageHeader title="Revenues" description="Track all income and revenue streams">
+      <PageHeader title="Ricavi" description="Traccia tutte le entrate e i flussi di ricavo">
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Revenue
+          Aggiungi Ricavo
         </Button>
       </PageHeader>
 
@@ -276,12 +276,12 @@ export default function Revenues() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <TrendingUp className="h-4 w-4 text-emerald-600" />
-              {activeTag === 'all' ? 'Total Revenue' : `${activeTag} Revenue`}
+              {activeTag === 'all' ? 'Ricavi Totali' : `Ricavi ${activeTag}`}
             </div>
             <p className="text-2xl font-bold text-emerald-600">
               €{totalAmount.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-slate-500 mt-1">{filteredRevenues.length} entries</p>
+            <p className="text-xs text-slate-500 mt-1">{filteredRevenues.length} voci</p>
           </CardContent>
         </Card>
         <Card>
@@ -292,7 +292,7 @@ export default function Revenues() {
             <p className="text-2xl font-bold text-slate-900">
               €{yearlyData.currentTotal.toLocaleString('it-IT')}
             </p>
-            <p className="text-xs text-slate-500 mt-1">Current year</p>
+            <p className="text-xs text-slate-500 mt-1">Anno corrente</p>
           </CardContent>
         </Card>
         <Card>
@@ -303,7 +303,7 @@ export default function Revenues() {
             <p className="text-2xl font-bold text-slate-600">
               €{yearlyData.previousTotal.toLocaleString('it-IT')}
             </p>
-            <p className="text-xs text-slate-500 mt-1">Previous year</p>
+            <p className="text-xs text-slate-500 mt-1">Anno precedente</p>
           </CardContent>
         </Card>
         <Card className={yearlyData.delta >= 0 ? "border-emerald-200 bg-emerald-50/30" : "border-red-200 bg-red-50/30"}>
@@ -329,7 +329,7 @@ export default function Revenues() {
       {/* Filter Tabs */}
       <Tabs value={activeTag} onValueChange={setActiveTag} className="mb-4">
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="all">Tutti</TabsTrigger>
           {TAGS.map(tag => (
             <TabsTrigger key={tag} value={tag}>{tag}</TabsTrigger>
           ))}
@@ -340,21 +340,21 @@ export default function Revenues() {
         columns={columns}
         data={filteredRevenues}
         loading={isLoading}
-        emptyMessage="No revenues recorded yet. Click 'Add Revenue' to get started."
+        emptyMessage="Nessun ricavo registrato. Clicca 'Aggiungi Ricavo' per iniziare."
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingRevenue ? 'Edit Revenue' : 'Add New Revenue'}
+              {editingRevenue ? 'Modifica Ricavo' : 'Aggiungi Nuovo Ricavo'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Amount (EUR) *</Label>
+                  <Label htmlFor="amount">Importo (EUR) *</Label>
                   <Input
                     id="amount"
                     type="number"
@@ -366,7 +366,7 @@ export default function Revenues() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="date">Date *</Label>
+                  <Label htmlFor="date">Data *</Label>
                   <Input
                     id="date"
                     type="date"
@@ -377,12 +377,12 @@ export default function Revenues() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Descrizione</Label>
                 <Input
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Revenue description"
+                  placeholder="Descrizione ricavo"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -393,7 +393,7 @@ export default function Revenues() {
                     onValueChange={(value) => setFormData({ ...formData, tag: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select tag" />
+                      <SelectValue placeholder="Seleziona tag" />
                     </SelectTrigger>
                     <SelectContent>
                       {TAGS.map(tag => (
@@ -403,13 +403,13 @@ export default function Revenues() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="chapter">Chapter</Label>
+                  <Label htmlFor="chapter">Capitolo</Label>
                   <Select
                     value={formData.chapter_id}
                     onValueChange={handleChapterChange}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select chapter" />
+                      <SelectValue placeholder="Seleziona capitolo" />
                     </SelectTrigger>
                     <SelectContent>
                       {chapters.map(chapter => (
@@ -422,14 +422,14 @@ export default function Revenues() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="project">Project</Label>
+                <Label htmlFor="project">Progetto</Label>
                 <div className="flex gap-2">
                   <Select
                     value={formData.project_id}
                     onValueChange={handleProjectChange}
                   >
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select project" />
+                      <SelectValue placeholder="Seleziona progetto" />
                     </SelectTrigger>
                     <SelectContent>
                       {projects.map(project => (
@@ -452,10 +452,10 @@ export default function Revenues() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                Annulla
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {editingRevenue ? 'Update' : 'Create'}
+                {editingRevenue ? 'Aggiorna' : 'Crea'}
               </Button>
             </DialogFooter>
           </form>
