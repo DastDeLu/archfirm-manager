@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
-import { useKpiData } from '../../hooks/useKpiData';
+import { useKpiData } from '../hooks/useKpiData';
 import { cn } from '@/lib/utils';
 import { TrendingUp } from 'lucide-react';
 

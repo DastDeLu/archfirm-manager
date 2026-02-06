@@ -1,6 +1,6 @@
 import React from 'react';
-import { useKpiData } from '../hooks/useKpiData';
-import { KPI_CATEGORIES, CATEGORY_LABELS } from '../lib/kpiDashboard';
+import { useKpiData } from '../components/hooks/useKpiData';
+import { KPI_CATEGORIES, CATEGORY_LABELS } from '../components/lib/kpiDashboard';
 import PageHeader from '../components/ui/PageHeader';
 import KpiCard from '../components/dashboard/KpiCard';
 import { Activity } from 'lucide-react';

@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import GlobalSearch from './components/search/GlobalSearch';
+import ControlDashboardSidebarWidget from './components/dashboard/ControlDashboardSidebarWidget';
 
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: 'Dashboard' },
@@ -303,6 +304,8 @@ export default function Layout({ children, currentPageName }) {
         </div>
 
         <CashDisplay {...cashData} />
+
+        <ControlDashboardSidebarWidget />
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map(item => (
