@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import GlobalSearch from './components/search/GlobalSearch';
 import ControlDashboardSidebarWidget from './components/dashboard/ControlDashboardSidebarWidget';
+import { BudgetProvider } from './components/budget/BudgetContext';
 
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: 'Dashboard' },
@@ -251,6 +252,7 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   return (
+    <BudgetProvider>
     <div className="min-h-screen bg-slate-50/50">
       {/* Mobile header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4">
@@ -378,5 +380,6 @@ export default function Layout({ children, currentPageName }) {
 
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
+    </BudgetProvider>
   );
 }
