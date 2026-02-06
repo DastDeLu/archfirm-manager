@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import Baselines from './pages/Baselines';
 import Chapters from './pages/Chapters';
 import Clients from './pages/Clients';
 import Dashboard from './pages/Dashboard';
@@ -59,11 +60,12 @@ import Projects from './pages/Projects';
 import Revenues from './pages/Revenues';
 import SettingsPage from './pages/SettingsPage';
 import WBS from './pages/WBS';
-import Baselines from './pages/Baselines';
+import ControlDashboard from './pages/ControlDashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Baselines": Baselines,
     "Chapters": Chapters,
     "Clients": Clients,
     "Dashboard": Dashboard,
@@ -76,7 +78,7 @@ export const PAGES = {
     "Revenues": Revenues,
     "SettingsPage": SettingsPage,
     "WBS": WBS,
-    "Baselines": Baselines,
+    "ControlDashboard": ControlDashboard,
 }
 
 export const pagesConfig = {
