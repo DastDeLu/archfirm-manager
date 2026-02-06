@@ -14,7 +14,7 @@ export default function DataTable({
   columns,
   data,
   loading,
-  emptyMessage = "No data available",
+  emptyMessage = "Nessun dato disponibile",
   onRowClick,
   className
 }) {

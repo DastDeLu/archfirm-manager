@@ -350,7 +350,7 @@ export default function Dashboard() {
                 </div>
               ))}
               {revenues.length === 0 && (
-                <p className="text-center text-slate-500 py-4">No revenues yet</p>
+                <p className="text-center text-slate-500 py-4">Nessun ricavo ancora</p>
               )}
             </div>
           </CardContent>

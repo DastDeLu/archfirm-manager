@@ -283,12 +283,12 @@ export default function Clients() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
+                <Label htmlFor="notes">Note</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Additional notes..."
+                  placeholder="Note aggiuntive..."
                   rows={3}
                 />
               </div>

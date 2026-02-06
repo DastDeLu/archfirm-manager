@@ -133,7 +133,7 @@ function FeeCard({ fee, installments, onEdit, onDelete, onManageInstallments }) 
             </p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-slate-500">Paid</p>
+            <p className="text-sm text-slate-500">Pagato</p>
             <p className="text-lg font-semibold text-emerald-600">
               €{paidAmount.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
             </p>
@@ -142,7 +142,7 @@ function FeeCard({ fee, installments, onEdit, onDelete, onManageInstallments }) 
 
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Progress</span>
+            <span className="text-slate-500">Progresso</span>
             <span className="font-medium">{progress.toFixed(0)}%</span>
           </div>
           <Progress value={progress} className="h-2" />
@@ -460,7 +460,7 @@ export default function Fees() {
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-sm text-slate-500">Paid</p>
+            <p className="text-sm text-slate-500">Pagato</p>
             <p className="text-2xl font-bold text-emerald-600">
               €{stats.paid.toLocaleString('it-IT')}
             </p>
@@ -498,7 +498,7 @@ export default function Fees() {
 
       {/* Fees Grid */}
       {isLoading ? (
-        <div className="text-center py-12 text-slate-500">Loading...</div>
+        <div className="text-center py-12 text-slate-500">Caricamento...</div>
       ) : filteredFees.length === 0 ? (
         <div className="text-center py-12">
           <Receipt className="h-12 w-12 mx-auto text-slate-300 mb-4" />

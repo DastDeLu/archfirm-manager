@@ -428,7 +428,7 @@ export default function WBS() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="name">Nome *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -484,7 +484,7 @@ export default function WBS() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status">Stato</Label>
                 <Select
                   value={formData.status}
                   onValueChange={(value) => setFormData({ ...formData, status: value })}
@@ -502,7 +502,7 @@ export default function WBS() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                Annulla
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                 {editingItem ? 'Aggiorna' : 'Crea'}
