@@ -92,8 +92,8 @@ function FeeCard({ fee, installments, onEdit, onDelete, onManageInstallments }) 
                 )} />
               </div>
               <div>
-                <CardTitle className="text-base font-semibold">{fee.project_name || 'Untitled'}</CardTitle>
-                <p className="text-sm text-slate-500">{fee.client_name || 'No client'}</p>
+                <CardTitle className="text-base font-semibold">{fee.project_name || 'Senza titolo'}</CardTitle>
+                <p className="text-sm text-slate-500">{fee.client_name || 'Nessun cliente'}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -109,15 +109,15 @@ function FeeCard({ fee, installments, onEdit, onDelete, onManageInstallments }) 
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => onEdit(fee)}>
                     <Pencil className="h-4 w-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onManageInstallments(fee)}>
+                    Modifica
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onManageInstallments(fee)}>
                     <Calendar className="h-4 w-4 mr-2" />
-                    Manage Installments
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onDelete(fee.id)} className="text-red-600">
+                    Gestisci Rate
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onDelete(fee.id)} className="text-red-600">
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
+                    Elimina
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -127,7 +127,7 @@ function FeeCard({ fee, installments, onEdit, onDelete, onManageInstallments }) 
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-slate-500">Total Amount</p>
+            <p className="text-sm text-slate-500">Importo Totale</p>
             <p className="text-2xl font-bold text-slate-900">
               €{(fee.total_amount || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}
             </p>
@@ -152,7 +152,7 @@ function FeeCard({ fee, installments, onEdit, onDelete, onManageInstallments }) 
           <div className="flex items-center gap-2 p-2 bg-red-100 rounded-lg">
             <AlertCircle className="h-4 w-4 text-red-600" />
             <span className="text-sm text-red-700 font-medium">
-              {overdueInstallments.length} overdue installment{overdueInstallments.length > 1 ? 's' : ''}
+              {overdueInstallments.length} rata{overdueInstallments.length > 1 ? 'e' : ''} scaduta{overdueInstallments.length > 1 ? 'e' : ''}
             </span>
           </div>
         )}
@@ -165,7 +165,7 @@ function FeeCard({ fee, installments, onEdit, onDelete, onManageInstallments }) 
               onClick={() => setExpanded(!expanded)}
               className="w-full justify-between"
             >
-              <span>{feeInstallments.length} Installment{feeInstallments.length > 1 ? 's' : ''}</span>
+              <span>{feeInstallments.length} Rata{feeInstallments.length > 1 ? 'e' : ''}</span>
               {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
 
@@ -198,7 +198,7 @@ function FeeCard({ fee, installments, onEdit, onDelete, onManageInstallments }) 
                             €{(inst.amount || 0).toLocaleString('it-IT')}
                           </p>
                           <p className="text-xs text-slate-500">
-                            Due: {inst.due_date ? format(parseISO(inst.due_date), 'MMM d, yyyy') : 'TBD'}
+                            Scadenza: {inst.due_date ? format(parseISO(inst.due_date), 'd MMM yyyy') : 'Da definire'}
                           </p>
                         </div>
                       </div>
@@ -216,7 +216,7 @@ function FeeCard({ fee, installments, onEdit, onDelete, onManageInstallments }) 
         {fee.agreed_date && (
           <div className="flex items-center gap-2 text-sm text-slate-500 pt-2 border-t">
             <Calendar className="h-4 w-4" />
-            Agreed: {format(parseISO(fee.agreed_date), 'MMM d, yyyy')}
+            Accordato: {format(parseISO(fee.agreed_date), 'd MMM yyyy')}
           </div>
         )}
       </CardContent>
@@ -424,10 +424,10 @@ export default function Fees() {
 
   return (
     <div>
-      <PageHeader title="Fees & Quotes" description="Manage project fees and payment installments">
+      <PageHeader title="Compensi" description="Gestisci compensi e rate di pagamento">
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Fee
+          Aggiungi Compenso
         </Button>
       </PageHeader>
 
@@ -435,7 +435,7 @@ export default function Fees() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="pt-4">
-            <p className="text-sm text-slate-500">Total Fees</p>
+            <p className="text-sm text-slate-500">Compensi Totali</p>
             <p className="text-2xl font-bold text-slate-900">
               €{stats.total.toLocaleString('it-IT')}
             </p>
@@ -451,7 +451,7 @@ export default function Fees() {
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-sm text-slate-500">Pending</p>
+            <p className="text-sm text-slate-500">In Attesa</p>
             <p className="text-2xl font-bold text-amber-600">
               €{stats.pending.toLocaleString('it-IT')}
             </p>
@@ -459,7 +459,7 @@ export default function Fees() {
         </Card>
         <Card className={stats.overdue > 0 ? "border-red-200 bg-red-50" : ""}>
           <CardContent className="pt-4">
-            <p className="text-sm text-slate-500">Overdue</p>
+            <p className="text-sm text-slate-500">Scaduto</p>
             <p className="text-2xl font-bold text-red-600">
               €{stats.overdue.toLocaleString('it-IT')}
             </p>
@@ -470,12 +470,12 @@ export default function Fees() {
       {/* Filters */}
       <Tabs value={activeFilter} onValueChange={setActiveFilter} className="mb-6">
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="draft">Draft</TabsTrigger>
-          <TabsTrigger value="agreed">Agreed</TabsTrigger>
-          <TabsTrigger value="partial">Partial</TabsTrigger>
-          <TabsTrigger value="paid">Paid</TabsTrigger>
-          <TabsTrigger value="overdue" className="text-red-600">Overdue</TabsTrigger>
+          <TabsTrigger value="all">Tutti</TabsTrigger>
+          <TabsTrigger value="draft">Bozza</TabsTrigger>
+          <TabsTrigger value="agreed">Concordato</TabsTrigger>
+          <TabsTrigger value="partial">Parziale</TabsTrigger>
+          <TabsTrigger value="paid">Pagato</TabsTrigger>
+          <TabsTrigger value="overdue" className="text-red-600">Scaduto</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -485,7 +485,7 @@ export default function Fees() {
       ) : filteredFees.length === 0 ? (
         <div className="text-center py-12">
           <Receipt className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-          <p className="text-slate-500">No fees found</p>
+          <p className="text-slate-500">Nessun compenso trovato</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -506,21 +506,21 @@ export default function Fees() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingFee ? 'Edit Fee' : 'Add New Fee'}</DialogTitle>
+            <DialogTitle>{editingFee ? 'Modifica Compenso' : 'Aggiungi Nuovo Compenso'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="project">Project *</Label>
+                <Label htmlFor="project">Progetto *</Label>
                 <div className="flex gap-2">
                   <Select value={formData.project_id} onValueChange={handleProjectChange}>
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select project" />
+                      <SelectValue placeholder="Seleziona progetto" />
                     </SelectTrigger>
                     <SelectContent>
                       {projects.map(project => (
                         <SelectItem key={project.id} value={project.id}>
-                          {project.name} ({project.client_name || 'No client'})
+                          {project.name} ({project.client_name || 'Nessun cliente'})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -537,7 +537,7 @@ export default function Fees() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="total_amount">Total Amount (€) *</Label>
+                  <Label htmlFor="total_amount">Importo Totale (€) *</Label>
                   <Input
                     id="total_amount"
                     type="number"
@@ -549,7 +549,7 @@ export default function Fees() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="agreed_date">Agreed Date</Label>
+                  <Label htmlFor="agreed_date">Data Accordo</Label>
                   <Input
                     id="agreed_date"
                     type="date"
@@ -559,7 +559,7 @@ export default function Fees() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status">Stato</Label>
                 <Select
                   value={formData.status}
                   onValueChange={(value) => setFormData({ ...formData, status: value })}
@@ -568,29 +568,29 @@ export default function Fees() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="agreed">Agreed</SelectItem>
-                    <SelectItem value="partial">Partial</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="draft">Bozza</SelectItem>
+                    <SelectItem value="agreed">Concordato</SelectItem>
+                    <SelectItem value="partial">Parziale</SelectItem>
+                    <SelectItem value="paid">Pagato</SelectItem>
+                    <SelectItem value="cancelled">Annullato</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
+                <Label htmlFor="notes">Note</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Additional notes..."
+                  placeholder="Note aggiuntive..."
                   rows={3}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={closeDialog}>Cancel</Button>
+              <Button type="button" variant="outline" onClick={closeDialog}>Annulla</Button>
               <Button type="submit" disabled={createFeeMutation.isPending || updateFeeMutation.isPending}>
-                {editingFee ? 'Update' : 'Create'}
+                {editingFee ? 'Aggiorna' : 'Crea'}
               </Button>
             </DialogFooter>
           </form>
@@ -601,14 +601,14 @@ export default function Fees() {
       <Dialog open={installmentDialogOpen} onOpenChange={setInstallmentDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Manage Installments - {selectedFee?.project_name}</DialogTitle>
+            <DialogTitle>Gestisci Rate - {selectedFee?.project_name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {/* Existing installments */}
             <div className="space-y-2">
-              <Label>Existing Installments</Label>
+              <Label>Rate Esistenti</Label>
               {installments.filter(i => i.fee_id === selectedFee?.id).length === 0 ? (
-                <p className="text-sm text-slate-500">No installments yet</p>
+                <p className="text-sm text-slate-500">Nessuna rata ancora</p>
               ) : (
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {installments
@@ -617,7 +617,7 @@ export default function Fees() {
                       <div key={inst.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                         <div>
                           <p className="font-medium">#{inst.installment_number || idx + 1} - €{inst.amount?.toLocaleString('it-IT')}</p>
-                          <p className="text-xs text-slate-500">Due: {inst.due_date}</p>
+                          <p className="text-xs text-slate-500">Scadenza: {inst.due_date}</p>
                         </div>
                         <Button
                           variant={inst.status === 'paid' ? 'default' : 'outline'}
@@ -625,7 +625,7 @@ export default function Fees() {
                           onClick={() => toggleInstallmentPaid(inst)}
                         >
                           {inst.status === 'paid' ? <CheckCircle className="h-4 w-4 mr-1" /> : <Clock className="h-4 w-4 mr-1" />}
-                          {inst.status === 'paid' ? 'Paid' : 'Mark Paid'}
+                          {inst.status === 'paid' ? 'Pagato' : 'Segna Pagato'}
                         </Button>
                       </div>
                     ))}
@@ -635,12 +635,12 @@ export default function Fees() {
 
             {/* Add new installment */}
             <div className="border-t pt-4">
-              <Label className="mb-2 block">Add New Installment</Label>
+              <Label className="mb-2 block">Aggiungi Nuova Rata</Label>
               <form onSubmit={handleInstallmentSubmit} className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <Input
                     type="number"
-                    placeholder="Amount"
+                    placeholder="Importo"
                     value={installmentForm.amount}
                     onChange={(e) => setInstallmentForm({ ...installmentForm, amount: e.target.value })}
                     step="0.01"
@@ -662,20 +662,20 @@ export default function Fees() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="bank">Bank</SelectItem>
-                      <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="bank">Bonifico</SelectItem>
+                      <SelectItem value="cash">Contanti</SelectItem>
+                      <SelectItem value="other">Altro</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button type="submit" disabled={createInstallmentMutation.isPending}>
-                    <Plus className="h-4 w-4 mr-1" /> Add
+                    <Plus className="h-4 w-4 mr-1" /> Aggiungi
                   </Button>
                 </div>
               </form>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setInstallmentDialogOpen(false)}>Close</Button>
+            <Button variant="outline" onClick={() => setInstallmentDialogOpen(false)}>Chiudi</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -691,6 +691,14 @@ export default function Fees() {
             project_name: project.name,
             client_name: project.client_name || ''
           });
+        }}
+      />
+
+      <QuickAddClient
+        open={quickAddClientOpen}
+        onOpenChange={setQuickAddClientOpen}
+        onClientCreated={(client) => {
+          queryClient.invalidateQueries({ queryKey: ['clients'] });
         }}
       />
     </div>

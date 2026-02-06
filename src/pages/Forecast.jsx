@@ -157,7 +157,7 @@ export default function Forecast() {
 
   return (
     <div>
-      <PageHeader title="Forecast" description="Plan and track financial projections">
+      <PageHeader title="Previsioni" description="Pianifica e traccia le proiezioni finanziarie">
         <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
           <SelectTrigger className="w-32">
             <SelectValue />
@@ -170,7 +170,7 @@ export default function Forecast() {
         </Select>
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Forecast
+          Aggiungi Previsione
         </Button>
       </PageHeader>
 
@@ -180,7 +180,7 @@ export default function Forecast() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <TrendingUp className="h-4 w-4 text-emerald-600" />
-              Forecast Revenue
+              Ricavi Previsti
             </div>
             <p className="text-xl font-bold text-slate-900">
               €{totals.forecastRevenue.toLocaleString('it-IT')}
@@ -191,7 +191,7 @@ export default function Forecast() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <TrendingUp className="h-4 w-4 text-blue-600" />
-              Actual Revenue
+              Ricavi Effettivi
             </div>
             <p className={cn(
               "text-xl font-bold",
@@ -205,7 +205,7 @@ export default function Forecast() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <TrendingDown className="h-4 w-4 text-red-600" />
-              Forecast Expenses
+              Costi Previsti
             </div>
             <p className="text-xl font-bold text-slate-900">
               €{totals.forecastExpense.toLocaleString('it-IT')}
@@ -216,7 +216,7 @@ export default function Forecast() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <TrendingDown className="h-4 w-4 text-amber-600" />
-              Actual Expenses
+              Costi Effettivi
             </div>
             <p className={cn(
               "text-xl font-bold",
@@ -231,7 +231,7 @@ export default function Forecast() {
       {/* Chart */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-base font-semibold">Forecast vs Actual</CardTitle>
+          <CardTitle className="text-base font-semibold">Previsto vs Effettivo</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[350px]">
@@ -258,7 +258,7 @@ export default function Forecast() {
       {/* Monthly Grid */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-semibold">Monthly Forecasts</CardTitle>
+          <CardTitle className="text-base font-semibold">Previsioni Mensili</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -282,19 +282,19 @@ export default function Forecast() {
                 {item.forecast ? (
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Revenue:</span>
+                      <span className="text-slate-500">Ricavi:</span>
                       <span className="text-emerald-600 font-medium">
                         €{item.forecastRevenue.toLocaleString('it-IT')}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Expense:</span>
+                      <span className="text-slate-500">Costi:</span>
                       <span className="text-red-600 font-medium">
                         €{item.forecastExpense.toLocaleString('it-IT')}
                       </span>
                     </div>
                     <div className="flex justify-between border-t pt-2">
-                      <span className="text-slate-500">Net:</span>
+                      <span className="text-slate-500">Netto:</span>
                       <span className={cn(
                         "font-semibold",
                         item.forecastRevenue - item.forecastExpense >= 0 ? "text-emerald-600" : "text-red-600"
@@ -304,7 +304,7 @@ export default function Forecast() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-400 text-center">Click to add forecast</p>
+                  <p className="text-sm text-slate-400 text-center">Clicca per aggiungere</p>
                 )}
               </div>
             ))}
@@ -316,14 +316,14 @@ export default function Forecast() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingForecast ? 'Edit Forecast' : 'Add Forecast'}
+              {editingForecast ? 'Modifica Previsione' : 'Aggiungi Previsione'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="month">Month *</Label>
+                  <Label htmlFor="month">Mese *</Label>
                   <Select
                     value={String(formData.month)}
                     onValueChange={(v) => setFormData({ ...formData, month: Number(v) })}
@@ -339,7 +339,7 @@ export default function Forecast() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="year">Year *</Label>
+                  <Label htmlFor="year">Anno *</Label>
                   <Select
                     value={String(formData.year)}
                     onValueChange={(v) => setFormData({ ...formData, year: Number(v) })}
@@ -357,7 +357,7 @@ export default function Forecast() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="revenue_amount">Forecast Revenue (€)</Label>
+                  <Label htmlFor="revenue_amount">Ricavi Previsti (€)</Label>
                   <Input
                     id="revenue_amount"
                     type="number"
@@ -368,7 +368,7 @@ export default function Forecast() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="expense_amount">Forecast Expense (€)</Label>
+                  <Label htmlFor="expense_amount">Costi Previsti (€)</Label>
                   <Input
                     id="expense_amount"
                     type="number"
