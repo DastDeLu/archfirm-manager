@@ -64,6 +64,7 @@ import SettingsPage from './pages/SettingsPage';
 import WBS from './pages/WBS';
 import Quotes from './pages/Quotes';
 import Treasury from './pages/Treasury';
+import CapitoliSpesa from './pages/CapitoliSpesa';
 import __Layout from './Layout.jsx';
 
 
@@ -85,6 +86,7 @@ export const PAGES = {
     "WBS": WBS,
     "Quotes": Quotes,
     "Treasury": Treasury,
+    "CapitoliSpesa": CapitoliSpesa,
 }
 
 export const pagesConfig = {

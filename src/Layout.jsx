@@ -40,6 +40,7 @@ const navItems = [
       { name: 'Previsioni', path: 'Forecast' },
       { name: 'Guadagni', path: 'Earnings' },
       { name: 'Capitoli', path: 'Chapters' },
+      { name: 'Capitoli di Spesa', path: 'CapitoliSpesa' },
       { name: 'Budget', path: 'Baselines' },
     ]
   },
