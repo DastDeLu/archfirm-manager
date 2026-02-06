@@ -162,7 +162,7 @@ export default function Projects() {
 
   const columns = [
     {
-      header: 'Project',
+      header: 'Progetto',
       cell: (row) => (
         <div className="flex items-center gap-3">
           <div className="p-2 bg-purple-50 rounded-lg">
@@ -170,7 +170,7 @@ export default function Projects() {
           </div>
           <div>
             <p className="font-medium text-slate-900">{row.name}</p>
-            <p className="text-xs text-slate-500">{row.client_name || 'No client'}</p>
+            <p className="text-xs text-slate-500">{row.client_name || 'Nessun cliente'}</p>
           </div>
         </div>
       ),
@@ -204,7 +204,7 @@ export default function Projects() {
       ),
     },
     {
-      header: 'Priority',
+      header: 'Priorità',
       cell: (row) => (
         <Badge variant="outline" className={priorityColors[row.priority || 'medium']}>
           {row.priority || 'medium'}
@@ -229,26 +229,26 @@ export default function Projects() {
             <DropdownMenuItem asChild>
               <Link to={createPageUrl(`WBS?projectId=${row.id}`)}>
                 <GitBranch className="h-4 w-4 mr-2" />
-                View WBS
+                Vedi WBS
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => openDialog(row)}>
               <Pencil className="h-4 w-4 mr-2" />
-              Edit
+              Modifica
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => {
               setSelectedProject(row);
               setDocumentsDialogOpen(true);
             }}>
               <FileText className="h-4 w-4 mr-2" />
-              Documents
+              Documenti
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={() => deleteMutation.mutate(row.id)}
               className="text-red-600"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete
+              Elimina
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -259,10 +259,10 @@ export default function Projects() {
 
   return (
     <div>
-      <PageHeader title="Projects" description="Manage your architecture projects">
+      <PageHeader title="Progetti" description="Gestisci i tuoi progetti di architettura">
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
-          New Project
+          Nuovo Progetto
         </Button>
       </PageHeader>
 
@@ -270,25 +270,25 @@ export default function Projects() {
         columns={columns}
         data={projects}
         loading={isLoading}
-        emptyMessage="No projects yet. Create your first project to get started."
+        emptyMessage="Nessun progetto ancora. Crea il primo progetto per iniziare."
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingProject ? 'Edit Project' : 'Create New Project'}
+              {editingProject ? 'Modifica Progetto' : 'Crea Nuovo Progetto'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Project Name *</Label>
+                <Label htmlFor="name">Nome Progetto *</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Project name"
+                  placeholder="Nome progetto"
                   required
                 />
               </div>
@@ -311,18 +311,18 @@ export default function Projects() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Descrizione</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Project description..."
+                  placeholder="Descrizione progetto..."
                   rows={3}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="start_date">Start Date</Label>
+                  <Label htmlFor="start_date">Data Inizio</Label>
                   <Input
                     id="start_date"
                     type="date"
@@ -331,7 +331,7 @@ export default function Projects() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="end_date">End Date</Label>
+                  <Label htmlFor="end_date">Data Fine</Label>
                   <Input
                     id="end_date"
                     type="date"
@@ -359,31 +359,31 @@ export default function Projects() {
                     onValueChange={(value) => setFormData({ ...formData, status: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder="Seleziona stato" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="planning">Planning</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="on_hold">On Hold</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="planning">Pianificazione</SelectItem>
+                      <SelectItem value="in_progress">In Corso</SelectItem>
+                      <SelectItem value="on_hold">In Pausa</SelectItem>
+                      <SelectItem value="completed">Completato</SelectItem>
+                      <SelectItem value="cancelled">Annullato</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="priority">Priority</Label>
+                  <Label htmlFor="priority">Priorità</Label>
                   <Select
                     value={formData.priority}
                     onValueChange={(value) => setFormData({ ...formData, priority: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
+                      <SelectValue placeholder="Seleziona priorità" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
+                      <SelectItem value="low">Bassa</SelectItem>
+                      <SelectItem value="medium">Media</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                      <SelectItem value="critical">Critica</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -392,17 +392,17 @@ export default function Projects() {
             
             {editingProject && (
               <div className="border-t pt-4 mt-4">
-                <h3 className="text-sm font-semibold mb-3">Project Documents</h3>
+                <h3 className="text-sm font-semibold mb-3">Documenti Progetto</h3>
                 <ProjectDocuments projectId={editingProject.id} />
               </div>
             )}
             
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                Annulla
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {editingProject ? 'Update' : 'Create'}
+                {editingProject ? 'Aggiorna' : 'Crea'}
               </Button>
             </DialogFooter>
           </form>
@@ -419,7 +419,7 @@ export default function Projects() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDocumentsDialogOpen(false)}>
-              Close
+              Chiudi
             </Button>
           </DialogFooter>
         </DialogContent>

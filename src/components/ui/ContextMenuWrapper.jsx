@@ -16,11 +16,11 @@ export default function ContextMenuWrapper({ children, onEdit, onDelete }) {
       <ContextMenuContent>
         <ContextMenuItem onClick={onEdit}>
           <Pencil className="h-4 w-4 mr-2" />
-          Edit
+          Modifica
         </ContextMenuItem>
         <ContextMenuItem onClick={onDelete} className="text-red-600">
           <Trash2 className="h-4 w-4 mr-2" />
-          Delete
+          Elimina
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
