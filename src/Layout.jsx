@@ -51,7 +51,14 @@ const navItems = [
   },
   { name: 'Fees & Quotes', icon: Receipt, path: 'Fees' },
   { name: 'Marketing', icon: Megaphone, path: 'Marketing' },
-  { name: 'Settings', icon: Settings, path: 'SettingsPage' },
+        { 
+          name: 'Admin', 
+          icon: Settings, 
+          children: [
+            { name: 'KPI Targets', path: 'KpiTargets' },
+            { name: 'Settings', path: 'SettingsPage' },
+          ]
+        },
 ];
 
 function CashDisplay({ bankCash, pettyCash, forecast }) {

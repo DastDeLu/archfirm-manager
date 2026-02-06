@@ -127,23 +127,26 @@ export const KPI_DEFINITIONS = {
  * Determines KPI status based on value and thresholds
  * @param {string} kpiId - KPI identifier
  * @param {number} value - Current KPI value
+ * @param {Object} thresholds - Custom thresholds (optional)
+ * @param {boolean} lessIsBetter - Override lessIsBetter logic (optional)
  * @returns {'ok' | 'attention' | 'critical'}
  */
-export function getKpiStatus(kpiId, value) {
+export function getKpiStatus(kpiId, value, thresholds = null, lessIsBetter = null) {
   const kpi = KPI_DEFINITIONS[kpiId];
   if (!kpi) return 'ok';
 
-  const { thresholds, lessIsBetter } = kpi;
+  const useThresholds = thresholds || kpi.thresholds;
+  const useLessIsBetter = lessIsBetter !== null ? lessIsBetter : kpi.lessIsBetter;
 
-  if (lessIsBetter) {
+  if (useLessIsBetter) {
     // For "less is better" KPIs (inverted logic)
-    if (value <= thresholds.ok) return 'ok';
-    if (value <= thresholds.attention) return 'attention';
+    if (value <= useThresholds.ok) return 'ok';
+    if (value <= useThresholds.attention) return 'attention';
     return 'critical';
   } else {
     // For "more is better" KPIs (normal logic)
-    if (value >= thresholds.ok) return 'ok';
-    if (value >= thresholds.attention) return 'attention';
+    if (value >= useThresholds.ok) return 'ok';
+    if (value >= useThresholds.attention) return 'attention';
     return 'critical';
   }
 }
@@ -167,17 +170,22 @@ export function formatKpiValue(value, format) {
 /**
  * Gets target label for KPI
  * @param {string} kpiId - KPI identifier
+ * @param {Object} thresholds - Custom thresholds (optional)
+ * @param {boolean} lessIsBetter - Override lessIsBetter logic (optional)
+ * @param {string} format - Override format (optional)
  * @returns {string}
  */
-export function getKpiTarget(kpiId) {
+export function getKpiTarget(kpiId, thresholds = null, lessIsBetter = null, format = null) {
   const kpi = KPI_DEFINITIONS[kpiId];
   if (!kpi) return '';
 
-  const { thresholds, lessIsBetter, format } = kpi;
-  const targetValue = thresholds.ok;
-  const formattedTarget = formatKpiValue(targetValue, format);
+  const useThresholds = thresholds || kpi.thresholds;
+  const useLessIsBetter = lessIsBetter !== null ? lessIsBetter : kpi.lessIsBetter;
+  const useFormat = format || kpi.format;
+  const targetValue = useThresholds.ok;
+  const formattedTarget = formatKpiValue(targetValue, useFormat);
   
-  if (lessIsBetter) {
+  if (useLessIsBetter) {
     return `Target: ≤ ${formattedTarget}`;
   } else {
     return `Target: ≥ ${formattedTarget}`;

@@ -61,6 +61,7 @@ import Revenues from './pages/Revenues';
 import SettingsPage from './pages/SettingsPage';
 import WBS from './pages/WBS';
 import ControlDashboard from './pages/ControlDashboard';
+import KpiTargets from './pages/KpiTargets';
 import __Layout from './Layout.jsx';
 
 
@@ -79,6 +80,7 @@ export const PAGES = {
     "SettingsPage": SettingsPage,
     "WBS": WBS,
     "ControlDashboard": ControlDashboard,
+    "KpiTargets": KpiTargets,
 }
 
 export const pagesConfig = {
