@@ -50,18 +50,20 @@
 import Baselines from './pages/Baselines';
 import Chapters from './pages/Chapters';
 import Clients from './pages/Clients';
+import ControlDashboard from './pages/ControlDashboard';
 import Dashboard from './pages/Dashboard';
 import Earnings from './pages/Earnings';
 import Expenses from './pages/Expenses';
 import Fees from './pages/Fees';
 import Forecast from './pages/Forecast';
+import KpiTargets from './pages/KpiTargets';
 import Marketing from './pages/Marketing';
 import Projects from './pages/Projects';
 import Revenues from './pages/Revenues';
 import SettingsPage from './pages/SettingsPage';
 import WBS from './pages/WBS';
-import ControlDashboard from './pages/ControlDashboard';
-import KpiTargets from './pages/KpiTargets';
+import Quotes from './pages/Quotes';
+import Treasury from './pages/Treasury';
 import __Layout from './Layout.jsx';
 
 
@@ -69,18 +71,20 @@ export const PAGES = {
     "Baselines": Baselines,
     "Chapters": Chapters,
     "Clients": Clients,
+    "ControlDashboard": ControlDashboard,
     "Dashboard": Dashboard,
     "Earnings": Earnings,
     "Expenses": Expenses,
     "Fees": Fees,
     "Forecast": Forecast,
+    "KpiTargets": KpiTargets,
     "Marketing": Marketing,
     "Projects": Projects,
     "Revenues": Revenues,
     "SettingsPage": SettingsPage,
     "WBS": WBS,
-    "ControlDashboard": ControlDashboard,
-    "KpiTargets": KpiTargets,
+    "Quotes": Quotes,
+    "Treasury": Treasury,
 }
 
 export const pagesConfig = {
