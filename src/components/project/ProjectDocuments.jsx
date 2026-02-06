@@ -32,7 +32,7 @@ export default function ProjectDocuments({ projectId }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projectDocuments', projectId] });
       setDeleteDialogOpen(false);
-      toast.success('Document deleted');
+      toast.success('Documento eliminato');
     },
   });
 
@@ -46,13 +46,13 @@ export default function ProjectDocuments({ projectId }) {
         // Validate file type
         const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!validTypes.includes(file.type)) {
-          toast.error(`Invalid file type: ${file.name}`);
+          toast.error(`Tipo file non valido: ${file.name}`);
           continue;
         }
 
         // Validate file size (10MB max)
         if (file.size > 10 * 1024 * 1024) {
-          toast.error(`File too large: ${file.name} (max 10MB)`);
+          toast.error(`File troppo grande: ${file.name} (max 10MB)`);
           continue;
         }
 
@@ -71,10 +71,10 @@ export default function ProjectDocuments({ projectId }) {
       }
       
       queryClient.invalidateQueries({ queryKey: ['projectDocuments', projectId] });
-      toast.success(`${files.length} file(s) uploaded`);
+      toast.success(`${files.length} file caricato/i`);
       e.target.value = '';
     } catch (error) {
-      toast.error('Upload failed: ' + error.message);
+      toast.error('Caricamento fallito: ' + error.message);
     } finally {
       setUploading(false);
     }
@@ -95,7 +95,7 @@ export default function ProjectDocuments({ projectId }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base font-semibold">Documents</CardTitle>
+        <CardTitle className="text-base font-semibold">Documenti</CardTitle>
         <div>
           <input
             type="file"
@@ -113,15 +113,15 @@ export default function ProjectDocuments({ projectId }) {
             disabled={uploading}
           >
             <Upload className="h-4 w-4 mr-1" />
-            {uploading ? 'Uploading...' : 'Upload'}
+            {uploading ? 'Caricamento...' : 'Carica'}
           </Button>
         </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-sm text-slate-500 text-center py-4">Loading...</p>
+          <p className="text-sm text-slate-500 text-center py-4">Caricamento...</p>
         ) : documents.length === 0 ? (
-          <p className="text-sm text-slate-500 text-center py-4">No documents uploaded yet</p>
+          <p className="text-sm text-slate-500 text-center py-4">Nessun documento caricato ancora</p>
         ) : (
           <div className="space-y-2">
             {documents.map((doc) => (
@@ -174,21 +174,21 @@ export default function ProjectDocuments({ projectId }) {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Document</DialogTitle>
+            <DialogTitle>Elimina Documento</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-slate-600">
-            Are you sure you want to delete <strong>{selectedDoc?.file_name}</strong>? This action cannot be undone.
+            Sei sicuro di voler eliminare <strong>{selectedDoc?.file_name}</strong>? Questa azione non può essere annullata.
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
+              Annulla
             </Button>
             <Button
               variant="destructive"
               onClick={() => deleteMutation.mutate(selectedDoc.id)}
               disabled={deleteMutation.isPending}
             >
-              Delete
+              Elimina
             </Button>
           </DialogFooter>
         </DialogContent>
