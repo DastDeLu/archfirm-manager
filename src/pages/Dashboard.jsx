@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import StatCard from '../components/ui/StatCard';
+import CashPosition from '../components/treasury/CashPosition';
 import { format, startOfMonth, endOfMonth, isAfter, parseISO } from 'date-fns';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -47,6 +48,11 @@ export default function Dashboard() {
   const { data: clients = [], isLoading: loadingClients } = useQuery({
     queryKey: ['clients'],
     queryFn: () => base44.entities.Client.list(),
+  });
+
+  const { data: quotes = [] } = useQuery({
+    queryKey: ['quotes'],
+    queryFn: () => base44.entities.Quote.list(),
   });
 
   const loading = loadingRevenues || loadingExpenses || loadingFees || loadingProjects;
@@ -113,8 +119,19 @@ export default function Dashboard() {
   const activeProjects = projects.filter(p => p.status === 'in_progress').length;
   const activeClients = clients.filter(c => c.status === 'active').length;
 
+  // Conversion rate calculation
+  const conversionStats = React.useMemo(() => {
+    const won = quotes.filter(q => q.status === 'won').length;
+    const lost = quotes.filter(q => q.status === 'lost').length;
+    const rate = (won + lost) > 0 ? ((won / (won + lost)) * 100).toFixed(1) : 0;
+    return { won, lost, rate };
+  }, [quotes]);
+
   return (
     <div className="space-y-6">
+      {/* Cash Position */}
+      <CashPosition />
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
@@ -143,6 +160,14 @@ export default function Dashboard() {
           value={`${margin}%`}
           icon={Percent}
           iconClassName="bg-purple-50"
+        />
+        <StatCard
+          title="Tasso Conversione"
+          value={`${conversionStats.rate}%`}
+          icon={TrendingUp}
+          iconClassName="bg-indigo-50"
+          trend={conversionStats.won > conversionStats.lost ? 'up' : undefined}
+          trendValue={`${conversionStats.won}/${conversionStats.won + conversionStats.lost} vinti`}
         />
       </div>
 

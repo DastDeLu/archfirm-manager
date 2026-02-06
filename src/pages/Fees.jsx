@@ -387,14 +387,31 @@ export default function Fees() {
     });
   };
 
-  const toggleInstallmentPaid = (installment) => {
-    updateInstallmentMutation.mutate({
-      id: installment.id,
-      data: {
-        status: installment.status === 'paid' ? 'pending' : 'paid',
-        paid_date: installment.status === 'paid' ? null : format(new Date(), 'yyyy-MM-dd')
+  const toggleInstallmentPaid = async (installment) => {
+    if (installment.status === 'paid') {
+      // Unpay - just update status
+      updateInstallmentMutation.mutate({
+        id: installment.id,
+        data: {
+          status: 'pending',
+          paid_date: null
+        }
+      });
+    } else {
+      // Pay - use automated function
+      try {
+        await base44.functions.invoke('processInstallmentPayment', {
+          installment_id: installment.id
+        });
+        queryClient.invalidateQueries({ queryKey: ['installments'] });
+        queryClient.invalidateQueries({ queryKey: ['fees'] });
+        queryClient.invalidateQueries({ queryKey: ['revenues'] });
+        queryClient.invalidateQueries({ queryKey: ['bankcash'] });
+        queryClient.invalidateQueries({ queryKey: ['pettycash'] });
+      } catch (error) {
+        console.error('Errore processamento pagamento:', error);
       }
-    });
+    }
   };
 
   // Filter fees

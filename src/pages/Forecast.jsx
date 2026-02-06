@@ -62,6 +62,11 @@ export default function Forecast() {
     queryFn: () => base44.entities.Expense.list(),
   });
 
+  const { data: installments = [] } = useQuery({
+    queryKey: ['installments'],
+    queryFn: () => base44.entities.Installment.list(),
+  });
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Forecast.create(data),
     onSuccess: () => {
@@ -120,30 +125,42 @@ export default function Forecast() {
     }
   };
 
-  // Calculate actual vs forecast data
+  // Calculate actual vs forecast data with dynamic installments
   const chartData = useMemo(() => {
     return MONTHS.map((month, idx) => {
       const monthNum = idx + 1;
       const monthKey = `${selectedYear}-${String(monthNum).padStart(2, '0')}`;
       
       const forecast = forecasts.find(f => f.month === monthNum);
+      
+      // Actual revenue from recorded revenues
       const actualRevenue = revenues
         .filter(r => r.date?.startsWith(monthKey))
         .reduce((sum, r) => sum + (r.amount || 0), 0);
+      
+      // Expected revenue from installments due in this month
+      const expectedRevenue = installments
+        .filter(i => i.due_date?.startsWith(monthKey) && i.status !== 'paid' && i.status !== 'cancelled')
+        .reduce((sum, i) => sum + (i.amount || 0), 0);
+      
       const actualExpense = expenses
         .filter(e => e.date?.startsWith(monthKey))
         .reduce((sum, e) => sum + (e.amount || 0), 0);
 
+      // Dynamic forecast: use manual forecast OR expected from installments
+      const dynamicForecastRevenue = forecast?.revenue_amount || expectedRevenue;
+
       return {
         month: month.substring(0, 3),
-        forecastRevenue: forecast?.revenue_amount || 0,
+        forecastRevenue: dynamicForecastRevenue,
         forecastExpense: forecast?.expense_amount || 0,
         actualRevenue,
         actualExpense,
+        expectedRevenue,
         forecast
       };
     });
-  }, [forecasts, revenues, expenses, selectedYear]);
+  }, [forecasts, revenues, expenses, installments, selectedYear]);
 
   // Calculate totals
   const totals = useMemo(() => {
