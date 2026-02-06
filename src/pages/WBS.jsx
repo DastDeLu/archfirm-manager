@@ -104,18 +104,18 @@ function WBSItem({ item, children, level, onEdit, onDelete, onAddChild }) {
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onAddChild(item)}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Child
+              Aggiungi Figlio
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEdit(item)}>
               <Pencil className="h-4 w-4 mr-2" />
-              Edit
+              Modifica
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={() => onDelete(item.id)}
               className="text-red-600"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete
+              Elimina
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -297,10 +297,10 @@ export default function WBS() {
     return (
       <div className="text-center py-12">
         <FolderKanban className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-        <h2 className="text-xl font-semibold text-slate-900 mb-2">Select a Project</h2>
-        <p className="text-slate-500 mb-6">Please select a project from the Projects page to view its WBS.</p>
+        <h2 className="text-xl font-semibold text-slate-900 mb-2">Seleziona un Progetto</h2>
+        <p className="text-slate-500 mb-6">Seleziona un progetto dalla pagina Progetti per visualizzare la WBS.</p>
         <Button asChild>
-          <a href={createPageUrl('Projects')}>Go to Projects</a>
+          <a href={createPageUrl('Projects')}>Vai ai Progetti</a>
         </Button>
       </div>
     );
@@ -309,12 +309,12 @@ export default function WBS() {
   return (
     <div>
       <PageHeader 
-        title={`WBS: ${currentProject?.name || 'Loading...'}`}
-        description="Work Breakdown Structure - Manage phases, sub-phases, and tasks"
+        title={`WBS: ${currentProject?.name || 'Caricamento...'}`}
+        description="Struttura di Scomposizione del Lavoro - Gestisci fasi, sotto-fasi e attività"
       >
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Phase
+          Aggiungi Fase
         </Button>
       </PageHeader>
 
@@ -324,7 +324,7 @@ export default function WBS() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <Clock className="h-4 w-4" />
-              Estimated Hours
+              Ore Stimate
             </div>
             <p className="text-2xl font-bold">{totals.estimatedHours}h</p>
           </CardContent>
@@ -333,7 +333,7 @@ export default function WBS() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <Clock className="h-4 w-4" />
-              Actual Hours
+              Ore Effettive
             </div>
             <p className={cn(
               "text-2xl font-bold",
@@ -347,7 +347,7 @@ export default function WBS() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <Euro className="h-4 w-4" />
-              Estimated Cost
+              Costo Stimato
             </div>
             <p className="text-2xl font-bold">€{totals.estimatedCost.toLocaleString('it-IT')}</p>
           </CardContent>
@@ -356,7 +356,7 @@ export default function WBS() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <Euro className="h-4 w-4" />
-              Actual Cost
+              Costo Effettivo
             </div>
             <p className={cn(
               "text-2xl font-bold",
@@ -373,15 +373,15 @@ export default function WBS() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5" />
-            Work Breakdown Structure
+            Struttura di Scomposizione del Lavoro
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="py-8 text-center text-slate-500">Loading...</div>
+            <div className="py-8 text-center text-slate-500">Caricamento...</div>
           ) : wbsTree.length === 0 ? (
             <div className="py-8 text-center text-slate-500">
-              No WBS items yet. Click "Add Phase" to create your first phase.
+              Nessun elemento WBS ancora. Clicca "Aggiungi Fase" per creare la prima fase.
             </div>
           ) : (
             <div className="space-y-2">
@@ -395,14 +395,14 @@ export default function WBS() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editingItem ? 'Edit WBS Item' : `Add ${parentItem ? 'Child Item' : 'Phase'}`}
+              {editingItem ? 'Modifica Elemento WBS' : `Aggiungi ${parentItem ? 'Sotto-elemento' : 'Fase'}`}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="code">Code</Label>
+                  <Label htmlFor="code">Codice</Label>
                   <Input
                     id="code"
                     value={formData.code}
@@ -411,18 +411,18 @@ export default function WBS() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="type">Type</Label>
+                  <Label htmlFor="type">Tipo</Label>
                   <Select
                     value={formData.type}
                     onValueChange={(value) => setFormData({ ...formData, type: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder="Seleziona tipo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="phase">Phase</SelectItem>
-                      <SelectItem value="subphase">Sub-phase</SelectItem>
-                      <SelectItem value="task">Task</SelectItem>
+                      <SelectItem value="phase">Fase</SelectItem>
+                      <SelectItem value="subphase">Sotto-fase</SelectItem>
+                      <SelectItem value="task">Attività</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -433,13 +433,13 @@ export default function WBS() {
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Item name"
+                  placeholder="Nome elemento"
                   required
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="estimated_hours">Estimated Hours</Label>
+                  <Label htmlFor="estimated_hours">Ore Stimate</Label>
                   <Input
                     id="estimated_hours"
                     type="number"
@@ -449,7 +449,7 @@ export default function WBS() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="actual_hours">Actual Hours</Label>
+                  <Label htmlFor="actual_hours">Ore Effettive</Label>
                   <Input
                     id="actual_hours"
                     type="number"
@@ -461,7 +461,7 @@ export default function WBS() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="estimated_cost">Estimated Cost (€)</Label>
+                  <Label htmlFor="estimated_cost">Costo Stimato (€)</Label>
                   <Input
                     id="estimated_cost"
                     type="number"
@@ -472,7 +472,7 @@ export default function WBS() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="actual_cost">Actual Cost (€)</Label>
+                  <Label htmlFor="actual_cost">Costo Effettivo (€)</Label>
                   <Input
                     id="actual_cost"
                     type="number"
@@ -490,12 +490,12 @@ export default function WBS() {
                   onValueChange={(value) => setFormData({ ...formData, status: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder="Seleziona stato" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="not_started">Not Started</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="not_started">Non Iniziato</SelectItem>
+                    <SelectItem value="in_progress">In Corso</SelectItem>
+                    <SelectItem value="completed">Completato</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -505,7 +505,7 @@ export default function WBS() {
                 Cancel
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {editingItem ? 'Update' : 'Create'}
+                {editingItem ? 'Aggiorna' : 'Crea'}
               </Button>
             </DialogFooter>
           </form>
