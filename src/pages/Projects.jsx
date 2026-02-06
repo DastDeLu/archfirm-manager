@@ -34,12 +34,14 @@ import { Plus, MoreHorizontal, Pencil, Trash2, FolderKanban, Calendar, Euro, Git
 import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import ProjectDocuments from '../components/project/ProjectDocuments';
+import QuickAddClient from '../components/forms/QuickAddClient';
 
 export default function Projects() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [documentsDialogOpen, setDocumentsDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
+  const [quickAddClientOpen, setQuickAddClientOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     client_id: '',
@@ -293,22 +295,32 @@ export default function Projects() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="client">Client *</Label>
-                <Select
-                  value={formData.client_id}
-                  onValueChange={handleClientChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map(client => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="client">Cliente *</Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={formData.client_id}
+                    onValueChange={handleClientChange}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Seleziona cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map(client => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuickAddClientOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Descrizione</Label>
@@ -412,7 +424,7 @@ export default function Projects() {
       <Dialog open={documentsDialogOpen} onOpenChange={setDocumentsDialogOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Documents - {selectedProject?.name}</DialogTitle>
+            <DialogTitle>Documenti - {selectedProject?.name}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             {selectedProject && <ProjectDocuments projectId={selectedProject.id} />}
@@ -424,6 +436,15 @@ export default function Projects() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <QuickAddClient
+        open={quickAddClientOpen}
+        onOpenChange={setQuickAddClientOpen}
+        onClientCreated={(client) => {
+          queryClient.invalidateQueries({ queryKey: ['clients'] });
+          setFormData({ ...formData, client_id: client.id, client_name: client.name });
+        }}
+      />
     </div>
   );
 }
