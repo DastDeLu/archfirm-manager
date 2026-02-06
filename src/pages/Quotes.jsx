@@ -179,15 +179,20 @@ export default function Quotes() {
     {
       header: 'Preventivo',
       cell: (row) => (
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-50 rounded-lg">
-            <FileText className="h-4 w-4 text-blue-600" />
+        <ContextMenuWrapper
+          onEdit={() => openDialog(row)}
+          onDelete={() => deleteMutation.mutate(row.id)}
+        >
+          <div className="flex items-center gap-3 cursor-context-menu">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <FileText className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="font-medium text-slate-900">{row.project_name}</p>
+              <p className="text-xs text-slate-500">{row.client_name || 'Nessun cliente'}</p>
+            </div>
           </div>
-          <div>
-            <p className="font-medium text-slate-900">{row.project_name}</p>
-            <p className="text-xs text-slate-500">{row.client_name || 'Nessun cliente'}</p>
-          </div>
-        </div>
+        </ContextMenuWrapper>
       ),
     },
     {
@@ -218,28 +223,23 @@ export default function Quotes() {
       header: '',
       headerClassName: 'w-12',
       cell: (row) => (
-        <ContextMenuWrapper
-          onEdit={() => openDialog(row)}
-          onDelete={() => deleteMutation.mutate(row.id)}
-        >
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => openDialog(row)}>
-                <Pencil className="h-4 w-4 mr-2" />
-                Modifica
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => deleteMutation.mutate(row.id)} className="text-red-600">
-                <Trash2 className="h-4 w-4 mr-2" />
-                Elimina
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </ContextMenuWrapper>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => openDialog(row)}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Modifica
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => deleteMutation.mutate(row.id)} className="text-red-600">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Elimina
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       ),
     },
   ];
