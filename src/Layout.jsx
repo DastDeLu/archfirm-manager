@@ -70,7 +70,7 @@ function CashDisplay({ bankCash, pettyCash, forecast }) {
             <div className="p-2 bg-emerald-500/10 rounded-lg">
               <Banknote className="h-4 w-4 text-emerald-600" />
             </div>
-            <span className="text-xs font-medium text-slate-600">Bank</span>
+            <span className="text-xs font-medium text-slate-600">Banca</span>
           </div>
           <span className={cn(
             "text-sm font-bold",
@@ -85,7 +85,7 @@ function CashDisplay({ bankCash, pettyCash, forecast }) {
             <div className="p-2 bg-amber-500/10 rounded-lg">
               <PiggyBank className="h-4 w-4 text-amber-600" />
             </div>
-            <span className="text-xs font-medium text-slate-600">Petty Cash</span>
+            <span className="text-xs font-medium text-slate-600">Cassa</span>
           </div>
           <span className={cn(
             "text-sm font-bold",
@@ -100,7 +100,7 @@ function CashDisplay({ bankCash, pettyCash, forecast }) {
             <div className="p-2 bg-blue-500/10 rounded-lg">
               <TrendingUp className="h-4 w-4 text-blue-600" />
             </div>
-            <span className="text-xs font-medium text-slate-600">Forecast</span>
+            <span className="text-xs font-medium text-slate-600">Previsione</span>
           </div>
           <span className={cn(
             "text-sm font-bold",
