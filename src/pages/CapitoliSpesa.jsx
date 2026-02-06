@@ -97,10 +97,25 @@ export default function CapitoliSpesa() {
   const createSpesaMutation = useMutation({
     mutationFn: async (data) => {
       const spesa = await base44.entities.Expense.create(data);
+      
       // Aggiorna il budget se la spesa è pagata
-      if (data.stato === 'Pagato' && data.id_voce_spesa) {
-        await aggiornaBudget(spesa);
+      if (spesa.stato === 'Pagato' && spesa.id_voce_spesa) {
+        // Chiama il service direttamente con i dati corretti
+        const vociSpesa = await base44.entities.VoceSpesa.filter({ id: spesa.id_voce_spesa });
+        const voceSpesa = vociSpesa[0];
+        
+        if (voceSpesa) {
+          const nuovoSpesoReale = (voceSpesa.speso_reale || 0) + spesa.amount;
+          const nuovoResiduo = voceSpesa.budget_totale - nuovoSpesoReale;
+          
+          await base44.entities.VoceSpesa.update(spesa.id_voce_spesa, {
+            speso_reale: nuovoSpesoReale,
+            residuo: nuovoResiduo,
+            data_aggiornamento: new Date().toISOString()
+          });
+        }
       }
+      
       return spesa;
     },
     onSuccess: () => {
