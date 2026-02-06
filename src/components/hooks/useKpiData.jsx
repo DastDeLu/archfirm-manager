@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { mockKpiData } from '../data/mockKpiData';
 import { 
   KPI_DEFINITIONS, 
   getKpiStatus, 
   formatKpiValue, 
-  getKpiTarget 
+  getKpiTarget,
+  mockKpiData
 } from '../lib/kpiDashboard';
 
 /**
