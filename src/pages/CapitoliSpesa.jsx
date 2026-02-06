@@ -95,7 +95,14 @@ export default function CapitoliSpesa() {
   });
 
   const createSpesaMutation = useMutation({
-    mutationFn: (data) => base44.entities.Expense.create(data),
+    mutationFn: async (data) => {
+      const spesa = await base44.entities.Expense.create(data);
+      // Aggiorna il budget se la spesa è pagata
+      if (data.stato === 'Pagato' && data.id_voce_spesa) {
+        await aggiornaBudget(spesa);
+      }
+      return spesa;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vociSpesa'] });
       setSpesaDialogOpen(false);
