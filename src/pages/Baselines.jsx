@@ -170,7 +170,7 @@ export default function Baselines() {
 
   return (
     <div>
-      <PageHeader title="Baselines" description="Set and track financial targets">
+      <PageHeader title="Budget" description="Imposta e traccia obiettivi finanziari">
         <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
           <SelectTrigger className="w-32">
             <SelectValue />
@@ -183,24 +183,24 @@ export default function Baselines() {
         </Select>
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Baseline
+          Aggiungi Budget
         </Button>
       </PageHeader>
 
       <Tabs value={activeType} onValueChange={setActiveType} className="mb-6">
         <TabsList>
-          <TabsTrigger value="revenue">Revenue</TabsTrigger>
-          <TabsTrigger value="expense">Expense</TabsTrigger>
-          <TabsTrigger value="chapter">Chapters</TabsTrigger>
+          <TabsTrigger value="revenue">Ricavi</TabsTrigger>
+          <TabsTrigger value="expense">Costi</TabsTrigger>
+          <TabsTrigger value="chapter">Capitoli</TabsTrigger>
         </TabsList>
       </Tabs>
 
       {isLoading ? (
-        <div className="text-center py-12 text-slate-500">Loading...</div>
+        <div className="text-center py-12 text-slate-500">Caricamento...</div>
       ) : filteredBaselines.length === 0 ? (
         <div className="text-center py-12">
           <Target className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-          <p className="text-slate-500">No baselines set for {activeType}</p>
+          <p className="text-slate-500">Nessun budget impostato per {activeType === 'revenue' ? 'ricavi' : activeType === 'expense' ? 'costi' : 'capitoli'}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -243,24 +243,24 @@ export default function Baselines() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Target</p>
+                    <p className="text-xs text-slate-500 mb-1">Obiettivo</p>
                     <p className="text-xl font-bold text-slate-900">
                       €{baseline.baseline_amount.toLocaleString('it-IT')}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Actual</p>
+                    <p className="text-xs text-slate-500 mb-1">Effettivo</p>
                     <p className="text-xl font-bold text-blue-600">
                       €{actual.toLocaleString('it-IT')}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Variance</p>
+                    <p className="text-xs text-slate-500 mb-1">Varianza</p>
                     <p className={`text-lg font-semibold ${variance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                       {variance >= 0 ? '+' : ''}€{variance.toLocaleString('it-IT')}
                     </p>
                     <p className={`text-xs ${variance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {percentOfTarget}% of target
+                      {percentOfTarget}% dell'obiettivo
                     </p>
                   </div>
                   {baseline.notes && (
@@ -276,13 +276,13 @@ export default function Baselines() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingBaseline ? 'Edit Baseline' : 'Add New Baseline'}</DialogTitle>
+            <DialogTitle>{editingBaseline ? 'Modifica Budget' : 'Aggiungi Nuovo Budget'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Year *</Label>
+                  <Label>Anno *</Label>
                   <Select
                     value={String(formData.year)}
                     onValueChange={(v) => setFormData({ ...formData, year: Number(v) })}
@@ -298,7 +298,7 @@ export default function Baselines() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Type *</Label>
+                  <Label>Tipo *</Label>
                   <Select
                     value={formData.entity_type}
                     onValueChange={(value) => setFormData({ ...formData, entity_type: value, entity_id: '', entity_name: '' })}
@@ -307,19 +307,19 @@ export default function Baselines() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="revenue">Revenue</SelectItem>
-                      <SelectItem value="expense">Expense</SelectItem>
-                      <SelectItem value="chapter">Chapter</SelectItem>
+                      <SelectItem value="revenue">Ricavi</SelectItem>
+                      <SelectItem value="expense">Costi</SelectItem>
+                      <SelectItem value="chapter">Capitolo</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               {formData.entity_type === 'chapter' && (
                 <div className="space-y-2">
-                  <Label>Chapter *</Label>
+                  <Label>Capitolo *</Label>
                   <Select value={formData.entity_id} onValueChange={handleChapterChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select chapter" />
+                      <SelectValue placeholder="Seleziona capitolo" />
                     </SelectTrigger>
                     <SelectContent>
                       {chapters.map(chapter => (
@@ -332,7 +332,7 @@ export default function Baselines() {
                 </div>
               )}
               <div className="space-y-2">
-                <Label>Baseline Amount (€) *</Label>
+                <Label>Importo Budget (€) *</Label>
                 <Input
                   type="number"
                   value={formData.baseline_amount}

@@ -131,13 +131,13 @@ export default function Chapters() {
       ),
     },
     {
-      header: 'Description',
+      header: 'Descrizione',
       cell: (row) => (
         <span className="text-slate-600">{row.description || '-'}</span>
       ),
     },
     {
-      header: 'Type',
+      header: 'Tipo',
       cell: (row) => (
         <Badge className={row.type === 'revenue' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}>
           {row.type}
@@ -174,10 +174,10 @@ export default function Chapters() {
 
   return (
     <div>
-      <PageHeader title="Chapters" description="Manage revenue and expense categories">
+      <PageHeader title="Capitoli" description="Gestisci le categorie di ricavi e costi">
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Chapter
+          Aggiungi Capitolo
         </Button>
       </PageHeader>
 
@@ -185,11 +185,11 @@ export default function Chapters() {
         <TabsList>
           <TabsTrigger value="revenue" className="gap-2">
             <TrendingUp className="h-4 w-4" />
-            Revenue Chapters
+            Capitoli Ricavi
           </TabsTrigger>
           <TabsTrigger value="expense" className="gap-2">
             <TrendingDown className="h-4 w-4" />
-            Expense Chapters
+            Capitoli Costi
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -198,21 +198,21 @@ export default function Chapters() {
         columns={columns}
         data={filteredChapters}
         loading={isLoading}
-        emptyMessage={`No ${activeType} chapters yet. Click 'Add Chapter' to create one.`}
+        emptyMessage={`Nessun capitolo ${activeType === 'revenue' ? 'ricavi' : 'costi'} ancora. Clicca 'Aggiungi Capitolo' per crearne uno.`}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingChapter ? 'Edit Chapter' : 'Add New Chapter'}
+              {editingChapter ? 'Modifica Capitolo' : 'Aggiungi Nuovo Capitolo'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name *</Label>
+                  <Label htmlFor="name">Nome *</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -222,7 +222,7 @@ export default function Chapters() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="code">Code</Label>
+                  <Label htmlFor="code">Codice</Label>
                   <Input
                     id="code"
                     value={formData.code}
@@ -232,7 +232,7 @@ export default function Chapters() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="type">Type *</Label>
+                <Label htmlFor="type">Tipo *</Label>
                 <Select
                   value={formData.type}
                   onValueChange={(value) => setFormData({ ...formData, type: value })}
@@ -241,8 +241,8 @@ export default function Chapters() {
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="revenue">Revenue</SelectItem>
-                    <SelectItem value="expense">Expense</SelectItem>
+                    <SelectItem value="revenue">Ricavi</SelectItem>
+                    <SelectItem value="expense">Costi</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -122,7 +122,7 @@ export default function Clients() {
 
   const columns = [
     {
-      header: 'Client',
+      header: 'Cliente',
       cell: (row) => (
         <div className="flex items-center gap-3">
           <div className="p-2 bg-slate-100 rounded-lg">
@@ -138,7 +138,7 @@ export default function Clients() {
       ),
     },
     {
-      header: 'Contact',
+      header: 'Contatto',
       cell: (row) => (
         <div className="space-y-1">
           {row.email && (
@@ -157,7 +157,7 @@ export default function Clients() {
       ),
     },
     {
-      header: 'Status',
+      header: 'Stato',
       cell: (row) => (
         <Badge className={statusColors[row.status || 'active']}>
           {row.status || 'active'}
@@ -177,14 +177,14 @@ export default function Clients() {
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => openDialog(row)}>
               <Pencil className="h-4 w-4 mr-2" />
-              Edit
+              Modifica
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={() => deleteMutation.mutate(row.id)}
               className="text-red-600"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete
+              Elimina
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -194,10 +194,10 @@ export default function Clients() {
 
   return (
     <div>
-      <PageHeader title="Clients" description="Manage your client database">
+      <PageHeader title="Clienti" description="Gestisci il database clienti">
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Client
+          Aggiungi Cliente
         </Button>
       </PageHeader>
 
@@ -205,35 +205,35 @@ export default function Clients() {
         columns={columns}
         data={clients}
         loading={isLoading}
-        emptyMessage="No clients yet. Add your first client to get started."
+        emptyMessage="Nessun cliente ancora. Aggiungi il primo cliente per iniziare."
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingClient ? 'Edit Client' : 'Add New Client'}
+              {editingClient ? 'Modifica Cliente' : 'Aggiungi Nuovo Cliente'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Company Name *</Label>
+                <Label htmlFor="name">Nome Azienda *</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Company name"
+                  placeholder="Nome azienda"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contact_person">Contact Person</Label>
+                <Label htmlFor="contact_person">Persona di Contatto</Label>
                 <Input
                   id="contact_person"
                   value={formData.contact_person}
                   onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
-                  placeholder="Contact name"
+                  placeholder="Nome referente"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -248,7 +248,7 @@ export default function Clients() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">Telefono</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
@@ -258,26 +258,26 @@ export default function Clients() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">Indirizzo</Label>
                 <Input
                   id="address"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="Street, City, Country"
+                  placeholder="Via, Città, Paese"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status">Stato</Label>
                 <Select
                   value={formData.status}
                   onValueChange={(value) => setFormData({ ...formData, status: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder="Seleziona stato" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="active">Attivo</SelectItem>
+                    <SelectItem value="inactive">Inattivo</SelectItem>
                     <SelectItem value="prospect">Prospect</SelectItem>
                   </SelectContent>
                 </Select>
@@ -295,10 +295,10 @@ export default function Clients() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                Annulla
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {editingClient ? 'Update' : 'Create'}
+                {editingClient ? 'Aggiorna' : 'Crea'}
               </Button>
             </DialogFooter>
           </form>

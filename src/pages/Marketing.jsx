@@ -153,7 +153,7 @@ export default function Marketing() {
 
   return (
     <div>
-      <PageHeader title="Marketing" description="Track marketing budget, spend, and conversions">
+      <PageHeader title="Marketing" description="Traccia budget, spesa e conversioni marketing">
         <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
           <SelectTrigger className="w-32">
             <SelectValue />
@@ -166,7 +166,7 @@ export default function Marketing() {
         </Select>
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Entry
+          Aggiungi Voce
         </Button>
       </PageHeader>
 
@@ -176,7 +176,7 @@ export default function Marketing() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <Target className="h-4 w-4 text-blue-600" />
-              Total Budget
+              Budget Totale
             </div>
             <p className="text-2xl font-bold text-slate-900">
               €{totals.budget.toLocaleString('it-IT')}
@@ -187,7 +187,7 @@ export default function Marketing() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <Euro className="h-4 w-4 text-amber-600" />
-              Total Spent
+              Spesa Totale
             </div>
             <p className={cn(
               "text-2xl font-bold",
@@ -199,14 +199,14 @@ export default function Marketing() {
               value={parseFloat(budgetUtilization)} 
               className="h-1.5 mt-2" 
             />
-            <p className="text-xs text-slate-500 mt-1">{budgetUtilization}% utilized</p>
+            <p className="text-xs text-slate-500 mt-1">{budgetUtilization}% utilizzato</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <Users className="h-4 w-4 text-emerald-600" />
-              Total Conversions
+              Conversioni Totali
             </div>
             <p className="text-2xl font-bold text-emerald-600">
               {totals.conversions}
@@ -217,7 +217,7 @@ export default function Marketing() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <TrendingUp className="h-4 w-4 text-purple-600" />
-              Cost per Conversion
+              Costo per Conversione
             </div>
             <p className="text-2xl font-bold text-purple-600">
               €{costPerConversion}
@@ -230,7 +230,7 @@ export default function Marketing() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-semibold">Budget vs Spend</CardTitle>
+            <CardTitle className="text-base font-semibold">Budget vs Spesa</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -254,7 +254,7 @@ export default function Marketing() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-semibold">Conversions Trend</CardTitle>
+            <CardTitle className="text-base font-semibold">Andamento Conversioni</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -284,7 +284,7 @@ export default function Marketing() {
       {/* Monthly Grid */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-semibold">Monthly Breakdown</CardTitle>
+          <CardTitle className="text-base font-semibold">Dettaglio Mensile</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -321,12 +321,12 @@ export default function Marketing() {
                       </span>
                     </div>
                     <div className="flex justify-between border-t pt-2">
-                      <span className="text-slate-500">Conversions:</span>
+                      <span className="text-slate-500">Conversioni:</span>
                       <span className="font-semibold text-emerald-600">{item.conversions}</span>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-400 text-center">Click to add</p>
+                  <p className="text-sm text-slate-400 text-center">Clicca per aggiungere</p>
                 )}
               </div>
             ))}
@@ -338,7 +338,7 @@ export default function Marketing() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingBudget ? 'Edit Marketing Entry' : 'Add Marketing Entry'}
+              {editingBudget ? 'Modifica Voce Marketing' : 'Aggiungi Voce Marketing'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
@@ -404,7 +404,7 @@ export default function Marketing() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="conversions">Conversions</Label>
+                  <Label htmlFor="conversions">Conversioni</Label>
                   <Input
                     id="conversions"
                     type="number"
@@ -414,7 +414,7 @@ export default function Marketing() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="channel">Channel</Label>
+                  <Label htmlFor="channel">Canale</Label>
                   <Input
                     id="channel"
                     value={formData.channel}

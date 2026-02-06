@@ -106,14 +106,14 @@ export default function SettingsPage() {
             <User className="h-4 w-4 text-slate-600" />
           </div>
           <div>
-            <p className="font-medium text-slate-900">{row.full_name || 'No name'}</p>
+            <p className="font-medium text-slate-900">{row.full_name || 'Nessun nome'}</p>
             <p className="text-xs text-slate-500">{row.email}</p>
           </div>
         </div>
       ),
     },
     {
-      header: 'Role',
+      header: 'Ruolo',
       cell: (row) => (
         <Badge className={row.role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}>
           {row.role === 'admin' && <Shield className="h-3 w-3 mr-1" />}
@@ -122,7 +122,7 @@ export default function SettingsPage() {
       ),
     },
     {
-      header: 'Joined',
+      header: 'Iscritto',
       cell: (row) => (
         <span className="text-slate-600 text-sm">
           {row.created_date ? format(new Date(row.created_date), 'MMM d, yyyy') : '-'}
@@ -133,13 +133,13 @@ export default function SettingsPage() {
 
   const auditColumns = [
     {
-      header: 'Action',
+      header: 'Azione',
       cell: (row) => (
         <Badge variant="outline">{row.action}</Badge>
       ),
     },
     {
-      header: 'Entity',
+      header: 'Entità',
       cell: (row) => (
         <span className="text-slate-900 font-medium">{row.entity_type}</span>
       ),
@@ -151,7 +151,7 @@ export default function SettingsPage() {
       ),
     },
     {
-      header: 'Date',
+      header: 'Data',
       cell: (row) => (
         <span className="text-slate-500 text-sm">
           {row.created_date ? format(new Date(row.created_date), 'MMM d, HH:mm') : '-'}
@@ -162,27 +162,27 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <PageHeader title="Settings" description="Manage your application settings" />
+      <PageHeader title="Impostazioni" description="Gestisci le impostazioni dell'applicazione" />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="general" className="gap-2">
             <Settings className="h-4 w-4" />
-            General
+            Generale
           </TabsTrigger>
           {isAdmin && (
             <>
               <TabsTrigger value="users" className="gap-2">
                 <Users className="h-4 w-4" />
-                Users
+                Utenti
               </TabsTrigger>
               <TabsTrigger value="data" className="gap-2">
                 <Database className="h-4 w-4" />
-                Data & Backup
+                Dati e Backup
               </TabsTrigger>
               <TabsTrigger value="audit" className="gap-2">
                 <RefreshCw className="h-4 w-4" />
-                Audit Log
+                Log Audit
               </TabsTrigger>
             </>
           )}
@@ -192,8 +192,8 @@ export default function SettingsPage() {
           <div className="grid gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Profile</CardTitle>
-                <CardDescription>Your account information</CardDescription>
+                <CardTitle>Profilo</CardTitle>
+                <CardDescription>Informazioni sul tuo account</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 max-w-md">
@@ -202,7 +202,7 @@ export default function SettingsPage() {
                       <User className="h-8 w-8 text-slate-600" />
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-900">{currentUser?.full_name || 'No name'}</p>
+                      <p className="font-semibold text-slate-900">{currentUser?.full_name || 'Nessun nome'}</p>
                       <p className="text-sm text-slate-500">{currentUser?.email}</p>
                       <Badge className="mt-1" variant="outline">
                         {currentUser?.role === 'admin' && <Shield className="h-3 w-3 mr-1" />}
@@ -216,21 +216,21 @@ export default function SettingsPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Application</CardTitle>
-                <CardDescription>ArchFirm Manager settings</CardDescription>
+                <CardTitle>Applicazione</CardTitle>
+                <CardDescription>Impostazioni ArchFirm Manager</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-slate-500">Version</Label>
+                    <Label className="text-slate-500">Versione</Label>
                     <p className="font-medium">1.0.0</p>
                   </div>
                   <div>
-                    <Label className="text-slate-500">Currency</Label>
+                    <Label className="text-slate-500">Valuta</Label>
                     <p className="font-medium">EUR (€)</p>
                   </div>
                   <div>
-                    <Label className="text-slate-500">Date Format</Label>
+                    <Label className="text-slate-500">Formato Data</Label>
                     <p className="font-medium">MMM d, yyyy</p>
                   </div>
                 </div>
@@ -244,12 +244,12 @@ export default function SettingsPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Team Members</CardTitle>
-                  <CardDescription>Manage users and permissions</CardDescription>
+                  <CardTitle>Membri del Team</CardTitle>
+                  <CardDescription>Gestisci utenti e permessi</CardDescription>
                 </div>
                 <Button onClick={() => setInviteDialogOpen(true)} className="gap-2">
                   <UserPlus className="h-4 w-4" />
-                  Invite User
+                  Invita Utente
                 </Button>
               </CardHeader>
               <CardContent>
@@ -257,7 +257,7 @@ export default function SettingsPage() {
                   columns={userColumns}
                   data={users}
                   loading={loadingUsers}
-                  emptyMessage="No users found"
+                  emptyMessage="Nessun utente trovato"
                 />
               </CardContent>
             </Card>
@@ -269,18 +269,18 @@ export default function SettingsPage() {
             <div className="grid gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Export Data</CardTitle>
-                  <CardDescription>Download all your data</CardDescription>
+                  <CardTitle>Esporta Dati</CardTitle>
+                  <CardDescription>Scarica tutti i tuoi dati</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-4">
                     <Button variant="outline" onClick={() => handleExport('json')} className="gap-2">
                       <FileJson className="h-4 w-4" />
-                      Export as JSON
+                      Esporta come JSON
                     </Button>
                     <Button variant="outline" onClick={() => handleExport('excel')} className="gap-2">
                       <FileSpreadsheet className="h-4 w-4" />
-                      Export as Excel
+                      Esporta come Excel
                     </Button>
                   </div>
                 </CardContent>
@@ -289,19 +289,19 @@ export default function SettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Backup</CardTitle>
-                  <CardDescription>Automatic backups are enabled</CardDescription>
+                  <CardDescription>I backup automatici sono attivi</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                       <div>
-                        <p className="font-medium text-slate-900">Daily Backup</p>
-                        <p className="text-sm text-slate-500">Runs at 2:00 AM UTC</p>
+                        <p className="font-medium text-slate-900">Backup Giornaliero</p>
+                        <p className="text-sm text-slate-500">Eseguito alle 2:00 AM UTC</p>
                       </div>
-                      <Badge className="bg-emerald-100 text-emerald-700">Active</Badge>
+                      <Badge className="bg-emerald-100 text-emerald-700">Attivo</Badge>
                     </div>
                     <p className="text-sm text-slate-500">
-                      Backups are automatically created daily. Contact support to restore from a backup.
+                      I backup vengono creati automaticamente ogni giorno. Contatta il supporto per ripristinare da un backup.
                     </p>
                   </div>
                 </CardContent>
@@ -314,15 +314,15 @@ export default function SettingsPage() {
           <TabsContent value="audit">
             <Card>
               <CardHeader>
-                <CardTitle>Audit Log</CardTitle>
-                <CardDescription>Recent activity in your application</CardDescription>
+                <CardTitle>Log Audit</CardTitle>
+                <CardDescription>Attività recente nell'applicazione</CardDescription>
               </CardHeader>
               <CardContent>
                 <DataTable
                   columns={auditColumns}
                   data={auditLogs}
                   loading={loadingLogs}
-                  emptyMessage="No audit logs yet"
+                  emptyMessage="Nessun log audit ancora"
                 />
               </CardContent>
             </Card>
@@ -334,30 +334,30 @@ export default function SettingsPage() {
       <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Invite User</DialogTitle>
+            <DialogTitle>Invita Utente</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleInvite}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email">Indirizzo Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="colleague@company.com"
+                  placeholder="collega@azienda.com"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
+                <Label htmlFor="role">Ruolo</Label>
                 <Select value={inviteRole} onValueChange={setInviteRole}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="user">Utente</SelectItem>
+                    <SelectItem value="admin">Amministratore</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -367,7 +367,7 @@ export default function SettingsPage() {
                 Cancel
               </Button>
               <Button type="submit">
-                Send Invitation
+                Invia Invito
               </Button>
             </DialogFooter>
           </form>

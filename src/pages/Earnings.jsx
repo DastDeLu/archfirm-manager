@@ -137,14 +137,14 @@ export default function Earnings() {
   return (
     <div>
       <PageHeader 
-        title="Earnings & KPIs" 
-        description="Financial performance metrics and analysis"
+        title="Guadagni e KPI" 
+        description="Metriche e analisi delle performance finanziarie"
       />
 
       {/* Main KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard
-          title="Total Revenue"
+          title="Ricavi Totali"
           value={`€${kpis.totalRevenue.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`}
           icon={TrendingUp}
           iconClassName="bg-emerald-50"
@@ -152,7 +152,7 @@ export default function Earnings() {
           trendValue={`${kpis.revenueVariance}% vs baseline`}
         />
         <StatCard
-          title="Total Expenses"
+          title="Costi Totali"
           value={`€${kpis.totalExpense.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`}
           icon={TrendingDown}
           iconClassName="bg-red-50"
@@ -160,14 +160,14 @@ export default function Earnings() {
           trendValue={`${kpis.expenseVariance}% vs baseline`}
         />
         <StatCard
-          title="Net Income"
+          title="Utile Netto"
           value={`€${kpis.netIncome.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`}
           icon={Euro}
           iconClassName={kpis.netIncome >= 0 ? "bg-blue-50" : "bg-red-50"}
           valueClassName={kpis.netIncome >= 0 ? "text-blue-600" : "text-red-600"}
         />
         <StatCard
-          title="Profit Margin"
+          title="Margine di Profitto"
           value={`${kpis.margin}%`}
           icon={Percent}
           iconClassName="bg-purple-50"
@@ -205,14 +205,14 @@ export default function Earnings() {
                 <BarChart3 className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-slate-500">Baseline Revenue</p>
+                <p className="text-sm text-slate-500">Ricavi Baseline</p>
                 <p className="text-2xl font-bold text-slate-900">
                   €{kpis.baselineRevenue.toLocaleString('it-IT')}
                 </p>
               </div>
             </div>
             <p className="text-xs text-slate-500">
-              Total forecasted revenue for the year
+              Totale ricavi previsti per l'anno
             </p>
           </CardContent>
         </Card>
@@ -224,14 +224,14 @@ export default function Earnings() {
                 <BarChart3 className="h-6 w-6 text-red-600" />
               </div>
               <div>
-                <p className="text-sm text-slate-500">Baseline Expenses</p>
+                <p className="text-sm text-slate-500">Costi Baseline</p>
                 <p className="text-2xl font-bold text-slate-900">
                   €{kpis.baselineExpense.toLocaleString('it-IT')}
                 </p>
               </div>
             </div>
             <p className="text-xs text-slate-500">
-              Total forecasted expenses for the year
+              Totale costi previsti per l'anno
             </p>
           </CardContent>
         </Card>
@@ -255,7 +255,7 @@ export default function Earnings() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-semibold">Monthly Net Income</CardTitle>
+            <CardTitle className="text-base font-semibold">Utile Netto Mensile</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -282,7 +282,7 @@ export default function Earnings() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-semibold">Cumulative Income</CardTitle>
+            <CardTitle className="text-base font-semibold">Utile Cumulativo</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -320,7 +320,7 @@ export default function Earnings() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-semibold">Revenue by Category</CardTitle>
+            <CardTitle className="text-base font-semibold">Ricavi per Categoria</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[250px]">
@@ -342,7 +342,7 @@ export default function Earnings() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-semibold">Expenses by Category</CardTitle>
+            <CardTitle className="text-base font-semibold">Costi per Categoria</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[250px]">
