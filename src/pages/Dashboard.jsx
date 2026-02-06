@@ -330,7 +330,7 @@ export default function Dashboard() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base font-semibold">Ricavi Recenti</CardTitle>
             <Link to={createPageUrl('Revenues')}>
-              <Button variant="ghost" size="sm">View All</Button>
+              <Button variant="ghost" size="sm">Vedi Tutti</Button>
             </Link>
           </CardHeader>
           <CardContent>
@@ -360,7 +360,7 @@ export default function Dashboard() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base font-semibold">Costi Recenti</CardTitle>
             <Link to={createPageUrl('Expenses')}>
-              <Button variant="ghost" size="sm">View All</Button>
+              <Button variant="ghost" size="sm">Vedi Tutti</Button>
             </Link>
           </CardHeader>
           <CardContent>
