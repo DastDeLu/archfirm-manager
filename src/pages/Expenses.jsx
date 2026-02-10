@@ -54,6 +54,7 @@ export default function Expenses() {
     description: '',
     tag: 'Fixed',
     expense_type: 'variable',
+    payment_method: 'bank_transfer',
     nature: '',
     payment_frequency: 'monthly',
     chapter_id: '',
@@ -104,6 +105,7 @@ export default function Expenses() {
         description: expense.description || '',
         tag: expense.tag || 'Fixed',
         expense_type: expense.expense_type || 'variable',
+        payment_method: expense.payment_method || 'bank_transfer',
         nature: expense.nature || '',
         payment_frequency: expense.payment_frequency || 'monthly',
         chapter_id: expense.chapter_id || '',
@@ -117,6 +119,7 @@ export default function Expenses() {
         description: '',
         tag: 'Fixed',
         expense_type: 'variable',
+        payment_method: 'bank_transfer',
         nature: '',
         payment_frequency: 'monthly',
         chapter_id: '',
@@ -410,6 +413,23 @@ export default function Expenses() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="payment_method">Metodo Pagamento *</Label>
+                <Select
+                  value={formData.payment_method}
+                  onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleziona metodo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Contanti</SelectItem>
+                    <SelectItem value="bank_transfer">Bonifico</SelectItem>
+                    <SelectItem value="card">Carta</SelectItem>
+                    <SelectItem value="other">Altro</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               {formData.expense_type === 'fixed' && (
                 <>

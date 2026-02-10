@@ -309,19 +309,19 @@ export default function Dashboard() {
           </Card>
         </Link>
 
-        <Link to={createPageUrl('Fees')}>
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="flex items-center gap-4 py-4">
-              <div className="p-3 bg-amber-50 rounded-xl">
-                <Receipt className="h-6 w-6 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900">{fees.length}</p>
-                <p className="text-sm text-slate-500">Compensi Totali</p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className="p-3 bg-indigo-50 rounded-xl">
+              <TrendingUp className="h-6 w-6 text-indigo-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900">
+                €{quotes.filter(q => q.status === 'won').reduce((sum, q) => sum + (q.amount || 0), 0).toLocaleString('it-IT')}
+              </p>
+              <p className="text-sm text-slate-500">Preventivi Vinti</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent Activity */}
