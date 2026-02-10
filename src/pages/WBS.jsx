@@ -28,8 +28,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, MoreHorizontal, Pencil, Trash2, ChevronRight, ChevronDown, Layers, Clock, Euro, FolderKanban } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, ChevronRight, ChevronDown, Layers, Clock, Euro, FolderKanban, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import QuickAddEmployee from '../components/forms/QuickAddEmployee';
 
 function WBSItem({ item, children, level, onEdit, onDelete, onAddChild }) {
   const [expanded, setExpanded] = useState(true);
@@ -92,6 +93,12 @@ function WBSItem({ item, children, level, onEdit, onDelete, onAddChild }) {
                 (Actual: €{(item.actual_cost || 0).toLocaleString('it-IT')})
               </span>
             </div>
+            {item.assigned_to_name && (
+              <div className="flex items-center gap-1">
+                <User className="h-3 w-3" />
+                <span>{item.assigned_to_name}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -146,8 +153,11 @@ export default function WBS() {
     estimated_cost: '',
     actual_cost: '',
     status: 'not_started',
+    assigned_to_id: '',
+    assigned_to_name: '',
     order_index: 0
   });
+  const [quickAddEmployeeOpen, setQuickAddEmployeeOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -160,6 +170,11 @@ export default function WBS() {
     queryKey: ['wbs', projectId],
     queryFn: () => base44.entities.WBS.filter({ project_id: projectId }),
     enabled: !!projectId,
+  });
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list(),
   });
 
   const currentProject = projects.find(p => p.id === projectId);
@@ -200,6 +215,8 @@ export default function WBS() {
         estimated_cost: item.estimated_cost || '',
         actual_cost: item.actual_cost || '',
         status: item.status || 'not_started',
+        assigned_to_id: item.assigned_to_id || '',
+        assigned_to_name: item.assigned_to_name || '',
         order_index: item.order_index || 0
       });
     } else {
@@ -216,6 +233,8 @@ export default function WBS() {
         estimated_cost: '',
         actual_cost: '',
         status: 'not_started',
+        assigned_to_id: '',
+        assigned_to_name: '',
         order_index: 0
       });
     }
@@ -511,6 +530,24 @@ export default function WBS() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <QuickAddEmployee
+        open={quickAddEmployeeOpen}
+        onOpenChange={setQuickAddEmployeeOpen}
+        onEmployeeCreated={(employee) => {
+          queryClient.invalidateQueries({ queryKey: ['employees'] });
+          setFormData({ ...formData, assigned_to_id: employee.id, assigned_to_name: employee.name });
+        }}
+      />
     </div>
   );
 }
+
+const handleEmployeeChange = (employeeId) => {
+  const employee = employees.find(e => e.id === employeeId);
+  setFormData({ 
+    ...formData, 
+    assigned_to_id: employeeId,
+    assigned_to_name: employee?.name || ''
+  });
+};
