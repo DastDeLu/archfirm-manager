@@ -503,6 +503,41 @@ export default function WBS() {
                 </div>
               </div>
               <div className="space-y-2">
+                <Label htmlFor="assigned_to">Assegnato a</Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={formData.assigned_to_id}
+                    onValueChange={(employeeId) => {
+                      const employee = employees.find(e => e.id === employeeId);
+                      setFormData({ 
+                        ...formData, 
+                        assigned_to_id: employeeId,
+                        assigned_to_name: employee?.name || ''
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Seleziona dipendente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map(employee => (
+                        <SelectItem key={employee.id} value={employee.id}>
+                          {employee.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuickAddEmployeeOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="status">Stato</Label>
                 <Select
                   value={formData.status}
@@ -542,12 +577,3 @@ export default function WBS() {
     </div>
   );
 }
-
-const handleEmployeeChange = (employeeId) => {
-  const employee = employees.find(e => e.id === employeeId);
-  setFormData({ 
-    ...formData, 
-    assigned_to_id: employeeId,
-    assigned_to_name: employee?.name || ''
-  });
-};
