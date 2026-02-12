@@ -33,15 +33,15 @@ import { Plus, MoreHorizontal, Pencil, Trash2, TrendingDown, Filter, ArrowUpCirc
 import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 
-const TAGS = ['Fixed', 'Collab', 'Salary', 'Var', 'Tax', 'Other'];
+const TAGS = ['Spese Fisse', 'Collaborazioni', 'Stipendi', 'Spese variabili', 'Tasse', 'Other'];
 
 const tagColors = {
-  Fixed: 'bg-purple-100 text-purple-700',
-  Collab: 'bg-blue-100 text-blue-700',
-  Salary: 'bg-emerald-100 text-emerald-700',
-  Var: 'bg-amber-100 text-amber-700',
-  Tax: 'bg-red-100 text-red-700',
-  Other: 'bg-slate-100 text-slate-700',
+  'Spese Fisse': 'bg-purple-100 text-purple-700',
+  'Collaborazioni': 'bg-blue-100 text-blue-700',
+  'Stipendi': 'bg-emerald-100 text-emerald-700',
+  'Spese variabili': 'bg-amber-100 text-amber-700',
+  'Tasse': 'bg-red-100 text-red-700',
+  'Other': 'bg-slate-100 text-slate-700',
 };
 
 export default function Expenses() {
@@ -52,7 +52,7 @@ export default function Expenses() {
     amount: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     description: '',
-    tag: 'Fixed',
+    tag: 'Spese Fisse',
     expense_type: 'variable',
     payment_method: 'bank_transfer',
     nature: '',
@@ -117,7 +117,7 @@ export default function Expenses() {
         amount: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         description: '',
-        tag: 'Fixed',
+        tag: 'Spese Fisse',
         expense_type: 'variable',
         payment_method: 'bank_transfer',
         nature: '',
@@ -259,10 +259,10 @@ export default function Expenses() {
 
   return (
     <div>
-      <PageHeader title="Costi" description="Traccia tutti i costi aziendali">
+      <PageHeader title="Spese" description="Traccia tutte le spese aziendali">
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Aggiungi Costo
+          Aggiungi Spesa
         </Button>
       </PageHeader>
 
@@ -272,7 +272,7 @@ export default function Expenses() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <TrendingDown className="h-4 w-4 text-red-600" />
-              {activeTag === 'all' ? 'Costi Totali' : `Costi ${activeTag}`}
+              {activeTag === 'all' ? 'Spese Totali' : `Spese ${activeTag}`}
             </div>
             <p className="text-2xl font-bold text-red-600">
               €{totalAmount.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
@@ -336,14 +336,14 @@ export default function Expenses() {
         columns={columns}
         data={filteredExpenses}
         loading={isLoading}
-        emptyMessage="Nessun costo registrato. Clicca 'Aggiungi Costo' per iniziare."
+        emptyMessage="Nessuna spesa registrata. Clicca 'Aggiungi Spesa' per iniziare."
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingExpense ? 'Modifica Costo' : 'Aggiungi Nuovo Costo'}
+              {editingExpense ? 'Modifica Spesa' : 'Aggiungi Nuova Spesa'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
@@ -378,7 +378,7 @@ export default function Expenses() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Descrizione costo"
+                  placeholder="Descrizione spesa"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -439,7 +439,7 @@ export default function Expenses() {
                       id="nature"
                       value={formData.nature}
                       onChange={(e) => setFormData({ ...formData, nature: e.target.value })}
-                      placeholder="Natura del costo fisso"
+                      placeholder="Natura della spesa fissa"
                       required
                     />
                   </div>

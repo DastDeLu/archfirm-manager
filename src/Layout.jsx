@@ -36,8 +36,8 @@ const navItems = [
     children: [
       { name: 'Tesoreria', path: 'Treasury' },
       { name: 'Ricavi', path: 'Revenues' },
-      { name: 'Costi', path: 'Expenses' },
-      { name: 'Compensi', path: 'Fees' },
+      { name: 'Spese', path: 'Expenses' },
+      { name: 'Previsionale incassi', path: 'Fees' },
       { name: 'Previsioni', path: 'Forecast' },
       { name: 'Guadagni', path: 'Earnings' },
       { name: 'Capitoli di Spesa', path: 'CapitoliSpesa' },
