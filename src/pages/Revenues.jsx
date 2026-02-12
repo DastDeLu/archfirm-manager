@@ -63,8 +63,8 @@ export default function Revenues() {
   const queryClient = useQueryClient();
 
   const { data: revenues = [], isLoading } = useQuery({
-    queryKey: ['revenues'],
-    queryFn: () => base44.entities.Revenue.list('-date'),
+    queryKey: ['revenues', selectedYear],
+    queryFn: () => base44.entities.Revenue.filter({ year: selectedYear }),
   });
 
   const { data: chapters = [] } = useQuery({
@@ -171,6 +171,7 @@ export default function Revenues() {
 
   const currentYear = new Date().getFullYear();
   const previousYear = currentYear - 1;
+  const [selectedYear, setSelectedYear] = useState(currentYear);
 
   const yearlyData = useMemo(() => {
     const currentYearRevenues = revenues.filter(r => r.date?.startsWith(String(currentYear)));
@@ -264,6 +265,16 @@ export default function Revenues() {
   return (
     <div>
       <PageHeader title="Ricavi" description="Traccia tutte le entrate e i flussi di ricavo">
+        <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[currentYear - 1, currentYear, currentYear + 1].map(year => (
+              <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
           Aggiungi Ricavo

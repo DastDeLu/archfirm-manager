@@ -11,7 +11,7 @@ export default function Treasury() {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Tesoreria" 
+        title="CASSA" 
         description="Vista unificata della posizione finanziaria e analisi avanzate"
       />
 

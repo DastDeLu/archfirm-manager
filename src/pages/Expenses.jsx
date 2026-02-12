@@ -45,6 +45,8 @@ const tagColors = {
 };
 
 export default function Expenses() {
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [activeTag, setActiveTag] = useState('all');
@@ -64,8 +66,8 @@ export default function Expenses() {
   const queryClient = useQueryClient();
 
   const { data: expenses = [], isLoading } = useQuery({
-    queryKey: ['expenses'],
-    queryFn: () => base44.entities.Expense.list('-date'),
+    queryKey: ['expenses', selectedYear],
+    queryFn: () => base44.entities.Expense.filter({ year: selectedYear }),
   });
 
   const { data: chapters = [] } = useQuery({
@@ -145,6 +147,9 @@ export default function Expenses() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.chapter_id) {
+      return;
+    }
     const data = {
       ...formData,
       amount: parseFloat(formData.amount)
@@ -160,7 +165,6 @@ export default function Expenses() {
     ? expenses 
     : expenses.filter(e => e.tag === activeTag);
 
-  const currentYear = new Date().getFullYear();
   const previousYear = currentYear - 1;
 
   const yearlyData = useMemo(() => {
@@ -260,6 +264,16 @@ export default function Expenses() {
   return (
     <div>
       <PageHeader title="Spese" description="Traccia tutte le spese aziendali">
+        <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[currentYear - 1, currentYear, currentYear + 1].map(year => (
+              <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
           Aggiungi Spesa
@@ -464,10 +478,11 @@ export default function Expenses() {
                 </>
               )}
               <div className="space-y-2">
-                <Label htmlFor="chapter">Capitolo</Label>
+                <Label htmlFor="chapter">Capitolo *</Label>
                 <Select
                   value={formData.chapter_id}
                   onValueChange={handleChapterChange}
+                  required
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleziona capitolo" />

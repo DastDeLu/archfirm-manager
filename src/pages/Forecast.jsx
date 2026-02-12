@@ -42,6 +42,7 @@ export default function Forecast() {
     year: currentYear,
     revenue_amount: '',
     expense_amount: '',
+    prestazioni: 'PG',
     notes: ''
   });
 
@@ -91,6 +92,7 @@ export default function Forecast() {
         year: forecast.year,
         revenue_amount: forecast.revenue_amount || '',
         expense_amount: forecast.expense_amount || '',
+        prestazioni: forecast.prestazioni || 'PG',
         notes: forecast.notes || ''
       });
     } else {
@@ -100,6 +102,7 @@ export default function Forecast() {
         year: selectedYear,
         revenue_amount: '',
         expense_amount: '',
+        prestazioni: 'PG',
         notes: ''
       });
     }
@@ -371,6 +374,23 @@ export default function Forecast() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="prestazioni">Prestazioni *</Label>
+                <Select
+                  value={formData.prestazioni}
+                  onValueChange={(value) => setFormData({ ...formData, prestazioni: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PG">Progettazione</SelectItem>
+                    <SelectItem value="DL">Direzione Lavori</SelectItem>
+                    <SelectItem value="BR">Burocrazia</SelectItem>
+                    <SelectItem value="PV">Provvigione</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

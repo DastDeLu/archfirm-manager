@@ -66,6 +66,7 @@ import SettingsPage from './pages/SettingsPage';
 import Treasury from './pages/Treasury';
 import WBS from './pages/WBS';
 import WBSProjects from './pages/WBSProjects';
+import DashboardConfronto from './pages/DashboardConfronto';
 import __Layout from './Layout.jsx';
 
 
@@ -89,6 +90,7 @@ export const PAGES = {
     "Treasury": Treasury,
     "WBS": WBS,
     "WBSProjects": WBSProjects,
+    "DashboardConfronto": DashboardConfronto,
 }
 
 export const pagesConfig = {

@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import OpeningBalances from '../components/settings/OpeningBalances';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
@@ -176,6 +177,10 @@ export default function SettingsPage() {
                 <Users className="h-4 w-4" />
                 Utenti
               </TabsTrigger>
+              <TabsTrigger value="opening" className="gap-2">
+                <Database className="h-4 w-4" />
+                Saldi Iniziali
+              </TabsTrigger>
               <TabsTrigger value="data" className="gap-2">
                 <Database className="h-4 w-4" />
                 Dati e Backup
@@ -238,6 +243,12 @@ export default function SettingsPage() {
             </Card>
           </div>
         </TabsContent>
+
+        {isAdmin && (
+          <TabsContent value="opening">
+            <OpeningBalances />
+          </TabsContent>
+        )}
 
         {isAdmin && (
           <TabsContent value="users">

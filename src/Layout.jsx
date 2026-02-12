@@ -31,10 +31,10 @@ import { BudgetProvider } from './components/budget/BudgetContext';
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: 'Dashboard' },
   { 
-    name: 'Finanza', 
-    icon: Wallet, 
-    children: [
-      { name: 'Tesoreria', path: 'Treasury' },
+  name: 'Finanza', 
+  icon: Wallet, 
+  children: [
+    { name: 'CASSA', path: 'Treasury' },
       { name: 'Ricavi', path: 'Revenues' },
       { name: 'Spese', path: 'Expenses' },
       { name: 'Previsionale incassi', path: 'Fees' },
@@ -59,6 +59,7 @@ const navItems = [
           name: 'Admin', 
           icon: Settings, 
           children: [
+            { name: 'Dashboard Confronto', path: 'DashboardConfronto' },
             { name: 'Obiettivi KPI', path: 'KpiTargets' },
             { name: 'Impostazioni', path: 'SettingsPage' },
           ]
