@@ -66,8 +66,8 @@ export default function Revenues() {
   const queryClient = useQueryClient();
 
   const { data: revenues = [], isLoading } = useQuery({
-    queryKey: ['revenues', selectedYear],
-    queryFn: () => base44.entities.Revenue.filter({ year: selectedYear }),
+    queryKey: ['revenues'],
+    queryFn: () => base44.entities.Revenue.list('-date'),
   });
 
   const { data: chapters = [] } = useQuery({
@@ -110,7 +110,7 @@ export default function Revenues() {
         amount: revenue.amount || '',
         date: revenue.date || format(new Date(), 'yyyy-MM-dd'),
         description: revenue.description || '',
-        tag: revenue.tag || 'PG',
+        tag: revenue.tag || 'Progettazione',
         chapter_id: revenue.chapter_id || '',
         chapter_name: revenue.chapter_name || '',
         project_id: revenue.project_id || '',
@@ -122,7 +122,7 @@ export default function Revenues() {
         amount: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         description: '',
-        tag: 'PG',
+        tag: 'Progettazione',
         chapter_id: '',
         chapter_name: '',
         project_id: '',

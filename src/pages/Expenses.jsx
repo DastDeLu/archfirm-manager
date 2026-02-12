@@ -66,8 +66,8 @@ export default function Expenses() {
   const queryClient = useQueryClient();
 
   const { data: expenses = [], isLoading } = useQuery({
-    queryKey: ['expenses', selectedYear],
-    queryFn: () => base44.entities.Expense.filter({ year: selectedYear }),
+    queryKey: ['expenses'],
+    queryFn: () => base44.entities.Expense.list('-date'),
   });
 
   const { data: chapters = [] } = useQuery({
