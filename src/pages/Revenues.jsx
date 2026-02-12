@@ -45,6 +45,9 @@ const tagColors = {
 };
 
 export default function Revenues() {
+  const currentYear = new Date().getFullYear();
+  const previousYear = currentYear - 1;
+  const [selectedYear, setSelectedYear] = useState(currentYear);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [editingRevenue, setEditingRevenue] = useState(null);
@@ -168,10 +171,6 @@ export default function Revenues() {
   const filteredRevenues = activeTag === 'all' 
     ? revenues 
     : revenues.filter(r => r.tag === activeTag);
-
-  const currentYear = new Date().getFullYear();
-  const previousYear = currentYear - 1;
-  const [selectedYear, setSelectedYear] = useState(currentYear);
 
   const yearlyData = useMemo(() => {
     const currentYearRevenues = revenues.filter(r => r.date?.startsWith(String(currentYear)));

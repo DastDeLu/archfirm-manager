@@ -161,11 +161,11 @@ export default function Expenses() {
     }
   };
 
+  const previousYear = currentYear - 1;
+  
   const filteredExpenses = activeTag === 'all' 
     ? expenses 
     : expenses.filter(e => e.tag === activeTag);
-
-  const previousYear = currentYear - 1;
 
   const yearlyData = useMemo(() => {
     const currentYearExpenses = expenses.filter(e => e.date?.startsWith(String(currentYear)));
