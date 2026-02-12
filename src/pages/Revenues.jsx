@@ -34,14 +34,14 @@ import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddProject from '../components/forms/QuickAddProject';
 
-const TAGS = ['PG', 'DL', 'PV', 'BR', 'Other'];
+const TAGS = ['Progettazione', 'Direzione Lavori', 'Provvigione', 'Burocrazia', 'Other'];
 
 const tagColors = {
-  PG: 'bg-purple-100 text-purple-700',
-  DL: 'bg-blue-100 text-blue-700',
-  PV: 'bg-emerald-100 text-emerald-700',
-  BR: 'bg-amber-100 text-amber-700',
-  Other: 'bg-slate-100 text-slate-700',
+  'Progettazione': 'bg-purple-100 text-purple-700',
+  'Direzione Lavori': 'bg-blue-100 text-blue-700',
+  'Provvigione': 'bg-emerald-100 text-emerald-700',
+  'Burocrazia': 'bg-amber-100 text-amber-700',
+  'Other': 'bg-slate-100 text-slate-700',
 };
 
 export default function Revenues() {
@@ -56,7 +56,7 @@ export default function Revenues() {
     amount: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     description: '',
-    tag: 'PG',
+    tag: 'Progettazione',
     chapter_id: '',
     chapter_name: '',
     project_id: '',

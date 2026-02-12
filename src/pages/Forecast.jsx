@@ -42,7 +42,7 @@ export default function Forecast() {
     year: currentYear,
     revenue_amount: '',
     expense_amount: '',
-    prestazioni: 'PG',
+    prestazioni: 'Progettazione',
     notes: ''
   });
 
@@ -92,7 +92,7 @@ export default function Forecast() {
         year: forecast.year,
         revenue_amount: forecast.revenue_amount || '',
         expense_amount: forecast.expense_amount || '',
-        prestazioni: forecast.prestazioni || 'PG',
+        prestazioni: forecast.prestazioni || 'Progettazione',
         notes: forecast.notes || ''
       });
     } else {
@@ -102,7 +102,7 @@ export default function Forecast() {
         year: selectedYear,
         revenue_amount: '',
         expense_amount: '',
-        prestazioni: 'PG',
+        prestazioni: 'Progettazione',
         notes: ''
       });
     }
@@ -385,10 +385,10 @@ export default function Forecast() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="PG">Progettazione</SelectItem>
-                    <SelectItem value="DL">Direzione Lavori</SelectItem>
-                    <SelectItem value="BR">Burocrazia</SelectItem>
-                    <SelectItem value="PV">Provvigione</SelectItem>
+                    <SelectItem value="Progettazione">Progettazione</SelectItem>
+                    <SelectItem value="Direzione Lavori">Direzione Lavori</SelectItem>
+                    <SelectItem value="Burocrazia">Burocrazia</SelectItem>
+                    <SelectItem value="Provvigione">Provvigione</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

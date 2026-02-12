@@ -53,6 +53,7 @@ import Chapters from './pages/Chapters';
 import Clients from './pages/Clients';
 import ControlDashboard from './pages/ControlDashboard';
 import Dashboard from './pages/Dashboard';
+import DashboardConfronto from './pages/DashboardConfronto';
 import Earnings from './pages/Earnings';
 import Expenses from './pages/Expenses';
 import Fees from './pages/Fees';
@@ -66,7 +67,6 @@ import SettingsPage from './pages/SettingsPage';
 import Treasury from './pages/Treasury';
 import WBS from './pages/WBS';
 import WBSProjects from './pages/WBSProjects';
-import DashboardConfronto from './pages/DashboardConfronto';
 import __Layout from './Layout.jsx';
 
 
@@ -77,6 +77,7 @@ export const PAGES = {
     "Clients": Clients,
     "ControlDashboard": ControlDashboard,
     "Dashboard": Dashboard,
+    "DashboardConfronto": DashboardConfronto,
     "Earnings": Earnings,
     "Expenses": Expenses,
     "Fees": Fees,
@@ -90,7 +91,6 @@ export const PAGES = {
     "Treasury": Treasury,
     "WBS": WBS,
     "WBSProjects": WBSProjects,
-    "DashboardConfronto": DashboardConfronto,
 }
 
 export const pagesConfig = {
