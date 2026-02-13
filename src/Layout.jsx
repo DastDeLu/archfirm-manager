@@ -34,7 +34,7 @@ const navItems = [
   name: 'Finanza', 
   icon: Wallet, 
   children: [
-    { name: 'CASSA', path: 'Treasury' },
+    { name: 'Cassa', path: 'Treasury' },
       { name: 'Ricavi', path: 'Revenues' },
       { name: 'Spese', path: 'Expenses' },
       { name: 'Previsionale incassi', path: 'Fees' },
