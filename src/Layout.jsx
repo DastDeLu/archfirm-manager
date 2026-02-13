@@ -209,22 +209,43 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     const loadCashData = async () => {
       try {
-        const [bankCashEntries, pettyCashEntries, forecasts] = await Promise.all([
-          base44.entities.BankCash.list(),
-          base44.entities.PettyCash.list(),
-          base44.entities.Forecast.list()
+        const [revenues, expenses, forecasts, openingBalances] = await Promise.all([
+          base44.entities.Revenue.list(),
+          base44.entities.Expense.list(),
+          base44.entities.Forecast.list(),
+          base44.entities.OpeningBalance.list()
         ]);
 
-        const bankTotal = bankCashEntries.reduce((sum, entry) => {
-          return entry.type === 'deposit' ? sum + (entry.amount || 0) : sum - (entry.amount || 0);
-        }, 0);
-
-        const pettyTotal = pettyCashEntries.reduce((sum, entry) => {
-          return entry.type === 'in' ? sum + (entry.amount || 0) : sum - (entry.amount || 0);
-        }, 0);
-
-        const currentMonth = new Date().getMonth() + 1;
         const currentYear = new Date().getFullYear();
+
+        // Get opening balances for current year
+        const bankOpening = openingBalances.find(ob => ob.type === 'bank' && ob.year === currentYear)?.amount || 0;
+        const pettyOpening = openingBalances.find(ob => ob.type === 'petty' && ob.year === currentYear)?.amount || 0;
+
+        // Calculate bank balance: revenues without payment_method or with bank methods
+        const bankRevenues = revenues
+          .filter(r => !r.payment_method || ['bank_transfer', 'card'].includes(r.payment_method))
+          .reduce((sum, r) => sum + (r.amount || 0), 0);
+        
+        const bankExpenses = expenses
+          .filter(e => !e.payment_method || ['bank_transfer', 'card'].includes(e.payment_method))
+          .reduce((sum, e) => sum + (e.amount || 0), 0);
+        
+        const bankTotal = bankOpening + bankRevenues - bankExpenses;
+
+        // Calculate petty cash balance: only cash payment_method
+        const pettyRevenues = revenues
+          .filter(r => r.payment_method === 'cash')
+          .reduce((sum, r) => sum + (r.amount || 0), 0);
+        
+        const pettyExpenses = expenses
+          .filter(e => e.payment_method === 'cash')
+          .reduce((sum, e) => sum + (e.amount || 0), 0);
+        
+        const pettyTotal = pettyOpening + pettyRevenues - pettyExpenses;
+
+        // Forecast calculation
+        const currentMonth = new Date().getMonth() + 1;
         const currentForecast = forecasts.find(f => f.month === currentMonth && f.year === currentYear);
         const forecastNet = currentForecast 
           ? (currentForecast.revenue_amount || 0) - (currentForecast.expense_amount || 0)

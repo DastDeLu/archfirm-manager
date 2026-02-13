@@ -57,8 +57,6 @@ export default function Revenues() {
     date: format(new Date(), 'yyyy-MM-dd'),
     description: '',
     tag: 'Progettazione',
-    chapter_id: '',
-    chapter_name: '',
     project_id: '',
     project_name: ''
   });
@@ -70,10 +68,7 @@ export default function Revenues() {
     queryFn: () => base44.entities.Revenue.list('-date'),
   });
 
-  const { data: chapters = [] } = useQuery({
-    queryKey: ['chapters'],
-    queryFn: () => base44.entities.Chapter.filter({ type: 'revenue' }),
-  });
+
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
@@ -111,8 +106,6 @@ export default function Revenues() {
         date: revenue.date || format(new Date(), 'yyyy-MM-dd'),
         description: revenue.description || '',
         tag: revenue.tag || 'Progettazione',
-        chapter_id: revenue.chapter_id || '',
-        chapter_name: revenue.chapter_name || '',
         project_id: revenue.project_id || '',
         project_name: revenue.project_name || ''
       });
@@ -123,8 +116,6 @@ export default function Revenues() {
         date: format(new Date(), 'yyyy-MM-dd'),
         description: '',
         tag: 'Progettazione',
-        chapter_id: '',
-        chapter_name: '',
         project_id: '',
         project_name: ''
       });
@@ -137,14 +128,7 @@ export default function Revenues() {
     setEditingRevenue(null);
   };
 
-  const handleChapterChange = (chapterId) => {
-    const chapter = chapters.find(c => c.id === chapterId);
-    setFormData({ 
-      ...formData, 
-      chapter_id: chapterId,
-      chapter_name: chapter?.name || ''
-    });
-  };
+
 
   const handleProjectChange = (projectId) => {
     const project = projects.find(p => p.id === projectId);
@@ -212,12 +196,6 @@ export default function Revenues() {
         <Badge className={tagColors[row.tag || 'Other']}>
           {row.tag || 'Other'}
         </Badge>
-      ),
-    },
-    {
-      header: 'Capitolo',
-      cell: (row) => (
-        <span className="text-slate-600">{row.chapter_name || '-'}</span>
       ),
     },
     {
@@ -395,41 +373,21 @@ export default function Revenues() {
                   placeholder="Descrizione ricavo"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tag">Tag *</Label>
-                  <Select
-                    value={formData.tag}
-                    onValueChange={(value) => setFormData({ ...formData, tag: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleziona tag" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TAGS.map(tag => (
-                        <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="chapter">Capitolo</Label>
-                  <Select
-                    value={formData.chapter_id}
-                    onValueChange={handleChapterChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleziona capitolo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {chapters.map(chapter => (
-                        <SelectItem key={chapter.id} value={chapter.id}>
-                          {chapter.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="tag">Tag *</Label>
+                <Select
+                  value={formData.tag}
+                  onValueChange={(value) => setFormData({ ...formData, tag: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleziona tag" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TAGS.map(tag => (
+                      <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="project">Progetto</Label>
