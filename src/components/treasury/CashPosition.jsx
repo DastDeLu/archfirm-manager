@@ -6,14 +6,19 @@ import { Wallet, TrendingUp, Clock, AlertCircle } from 'lucide-react';
 import { isAfter, parseISO } from 'date-fns';
 
 export default function CashPosition() {
-  const { data: bankCash = [] } = useQuery({
-    queryKey: ['bankcash'],
-    queryFn: () => base44.entities.BankCash.list(),
+  const { data: revenues = [] } = useQuery({
+    queryKey: ['revenues'],
+    queryFn: () => base44.entities.Revenue.list(),
   });
 
-  const { data: pettyCash = [] } = useQuery({
-    queryKey: ['pettycash'],
-    queryFn: () => base44.entities.PettyCash.list(),
+  const { data: expenses = [] } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: () => base44.entities.Expense.list(),
+  });
+
+  const { data: openingBalances = [] } = useQuery({
+    queryKey: ['openingBalances'],
+    queryFn: () => base44.entities.OpeningBalance.list(),
   });
 
   const { data: installments = [] } = useQuery({
@@ -21,14 +26,34 @@ export default function CashPosition() {
     queryFn: () => base44.entities.Installment.list(),
   });
 
-  // Calculate real cash (available now)
-  const bankBalance = bankCash.reduce((sum, t) => {
-    return sum + (t.type === 'deposit' ? t.amount : -t.amount);
-  }, 0);
+  // Calculate real cash (available now) using Revenues - Expenses
+  const currentYear = new Date().getFullYear();
+  
+  // Get opening balances
+  const bankOpening = openingBalances.find(ob => ob.type === 'bank' && ob.year === currentYear)?.amount || 0;
+  const pettyOpening = openingBalances.find(ob => ob.type === 'petty' && ob.year === currentYear)?.amount || 0;
 
-  const pettyBalance = pettyCash.reduce((sum, t) => {
-    return sum + (t.type === 'in' ? t.amount : -t.amount);
-  }, 0);
+  // Bank balance
+  const bankRevenues = revenues
+    .filter(r => !r.payment_method || ['bank_transfer', 'card'].includes(r.payment_method))
+    .reduce((sum, r) => sum + (r.amount || 0), 0);
+  
+  const bankExpenses = expenses
+    .filter(e => !e.payment_method || ['bank_transfer', 'card'].includes(e.payment_method))
+    .reduce((sum, e) => sum + (e.amount || 0), 0);
+  
+  const bankBalance = bankOpening + bankRevenues - bankExpenses;
+
+  // Petty cash balance
+  const pettyRevenues = revenues
+    .filter(r => r.payment_method === 'cash')
+    .reduce((sum, r) => sum + (r.amount || 0), 0);
+  
+  const pettyExpenses = expenses
+    .filter(e => e.payment_method === 'cash')
+    .reduce((sum, e) => sum + (e.amount || 0), 0);
+  
+  const pettyBalance = pettyOpening + pettyRevenues - pettyExpenses;
 
   const realCash = bankBalance + pettyBalance;
 
