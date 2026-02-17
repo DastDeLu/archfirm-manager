@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Banknote, PiggyBank, Save } from 'lucide-react';
+import { Banknote, PiggyBank, Save, Megaphone } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function OpeningBalances() {
@@ -14,6 +14,7 @@ export default function OpeningBalances() {
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [bankBalance, setBankBalance] = useState('');
   const [pettyBalance, setPettyBalance] = useState('');
+  const [marketingBudget, setMarketingBudget] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -48,8 +49,10 @@ export default function OpeningBalances() {
   React.useEffect(() => {
     const bankBal = balances.find(b => b.type === 'bank');
     const pettyBal = balances.find(b => b.type === 'petty');
+    const marketingBal = balances.find(b => b.type === 'marketing_budget');
     setBankBalance(bankBal?.amount?.toString() || '');
     setPettyBalance(pettyBal?.amount?.toString() || '');
+    setMarketingBudget(marketingBal?.amount?.toString() || '');
   }, [balances]);
 
   const handleSaveBank = () => {
@@ -61,6 +64,12 @@ export default function OpeningBalances() {
   const handleSavePetty = () => {
     if (pettyBalance) {
       saveMutation.mutate({ type: 'petty', amount: pettyBalance });
+    }
+  };
+
+  const handleSaveMarketing = () => {
+    if (marketingBudget) {
+      saveMutation.mutate({ type: 'marketing_budget', amount: marketingBudget });
     }
   };
 
@@ -139,6 +148,32 @@ export default function OpeningBalances() {
                   </Button>
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="marketing" className="flex items-center gap-2">
+                  <Megaphone className="h-4 w-4 text-blue-600" />
+                  Budget Marketing Annuale (€)
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="marketing"
+                    type="number"
+                    value={marketingBudget}
+                    onChange={(e) => setMarketingBudget(e.target.value)}
+                    placeholder="0.00"
+                    step="0.01"
+                    className="flex-1"
+                  />
+                  <Button 
+                    onClick={handleSaveMarketing} 
+                    disabled={!marketingBudget || saveMutation.isPending}
+                    className="gap-2"
+                  >
+                    <Save className="h-4 w-4" />
+                    Salva
+                  </Button>
+                </div>
+              </div>
             </div>
 
             {balances.length > 0 && (
@@ -150,6 +185,9 @@ export default function OpeningBalances() {
                   )}
                   {balances.find(b => b.type === 'petty') && (
                     <p>• Contanti: €{balances.find(b => b.type === 'petty').amount.toLocaleString('it-IT', { minimumFractionDigits: 2 })}</p>
+                  )}
+                  {balances.find(b => b.type === 'marketing_budget') && (
+                    <p>• Budget Marketing: €{balances.find(b => b.type === 'marketing_budget').amount.toLocaleString('it-IT', { minimumFractionDigits: 2 })}</p>
                   )}
                 </div>
               </div>
