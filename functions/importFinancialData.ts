@@ -22,10 +22,24 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const { file_url: fileUrl } = await req.json();
+    // Parse request body
+    let fileUrl;
+    try {
+      const body = await req.json();
+      fileUrl = body.file_url;
+    } catch (parseError) {
+      console.error('Failed to parse request body:', parseError);
+      return Response.json({ 
+        success: false,
+        error: 'Invalid request format. Expected JSON with file_url property.' 
+      }, { status: 400 });
+    }
 
     if (!fileUrl) {
-      return Response.json({ error: 'No file URL provided' }, { status: 400 });
+      return Response.json({ 
+        success: false,
+        error: 'No file_url provided in request body' 
+      }, { status: 400 });
     }
 
     // Step 1: Extract raw data from Excel/CSV
