@@ -44,23 +44,34 @@ Deno.serve(async (req) => {
 
     // Step 1: Extract raw data from Excel/CSV
     console.log('Extracting data from file...');
-    const extractResult = await base44.asServiceRole.integrations.Core.ExtractDataFromUploadedFile({
-      file_url: fileUrl,
-      json_schema: {
-        type: 'object',
-        properties: {
-          rows: {
-            type: 'array',
-            items: {
-              type: 'object',
-              additionalProperties: true
+    let extractResult;
+    try {
+      extractResult = await base44.asServiceRole.integrations.Core.ExtractDataFromUploadedFile({
+        file_url: fileUrl,
+        json_schema: {
+          type: 'object',
+          properties: {
+            rows: {
+              type: 'array',
+              items: {
+                type: 'object',
+                additionalProperties: true
+              }
             }
           }
         }
-      }
-    });
+      });
+      console.log('Extract result received:', JSON.stringify(extractResult, null, 2));
+    } catch (extractError) {
+      console.error('Extract error:', extractError);
+      return Response.json({ 
+        success: false, 
+        error: `File extraction failed: ${extractError.message}` 
+      }, { status: 400 });
+    }
 
     if (extractResult.status === 'error') {
+      console.error('Extract status error:', extractResult.details);
       return Response.json({ 
         success: false, 
         error: `File extraction failed: ${extractResult.details}` 
