@@ -22,20 +22,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    // Parse multipart form data
-    const formData = await req.formData();
-    const file = formData.get('file');
+    const { file_url: fileUrl } = await req.json();
 
-    if (!file) {
-      return Response.json({ error: 'No file provided' }, { status: 400 });
+    if (!fileUrl) {
+      return Response.json({ error: 'No file URL provided' }, { status: 400 });
     }
 
-    // Step 1: Upload file to get URL
-    console.log('Uploading file...');
-    const uploadResult = await base44.asServiceRole.integrations.Core.UploadFile({ file });
-    const fileUrl = uploadResult.file_url;
-
-    // Step 2: Extract raw data from Excel/CSV
+    // Step 1: Extract raw data from Excel/CSV
     console.log('Extracting data from file...');
     const extractResult = await base44.asServiceRole.integrations.Core.ExtractDataFromUploadedFile({
       file_url: fileUrl,
@@ -68,7 +61,7 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Step 3: Use AI to analyze and map data to our schema
+    // Step 2: Use AI to analyze and map data to our schema
     console.log(`Analyzing ${rawData.length} rows with AI...`);
     
     const aiPrompt = `You are a financial data import assistant. Analyze the following spreadsheet data and map it to our entity schemas.
@@ -146,7 +139,7 @@ Only include arrays that have data. Skip empty arrays.`;
     const mappedData = aiResponse;
     console.log('AI mapped data:', JSON.stringify(mappedData, null, 2));
 
-    // Step 4: Fetch existing entities for resolution
+    // Step 3: Fetch existing entities for resolution
     const [existingChapters, existingClients] = await Promise.all([
       base44.asServiceRole.entities.Chapter.list(),
       base44.asServiceRole.entities.Client.list()
@@ -164,7 +157,7 @@ Only include arrays that have data. Skip empty arrays.`;
     };
     const errors = [];
 
-    // Step 5: Create Chapters first (if any)
+    // Step 4: Create Chapters first (if any)
     if (mappedData.chapters && mappedData.chapters.length > 0) {
       for (const chapter of mappedData.chapters) {
         try {
@@ -177,7 +170,7 @@ Only include arrays that have data. Skip empty arrays.`;
       }
     }
 
-    // Step 6: Create Clients (if any)
+    // Step 5: Create Clients (if any)
     if (mappedData.clients && mappedData.clients.length > 0) {
       for (const client of mappedData.clients) {
         try {
@@ -190,7 +183,7 @@ Only include arrays that have data. Skip empty arrays.`;
       }
     }
 
-    // Step 7: Create Projects (if any)
+    // Step 6: Create Projects (if any)
     if (mappedData.projects && mappedData.projects.length > 0) {
       for (const project of mappedData.projects) {
         try {
@@ -218,7 +211,7 @@ Only include arrays that have data. Skip empty arrays.`;
       }
     }
 
-    // Step 8: Create Revenues (if any)
+    // Step 7: Create Revenues (if any)
     if (mappedData.revenues && mappedData.revenues.length > 0) {
       for (const revenue of mappedData.revenues) {
         try {
@@ -246,7 +239,7 @@ Only include arrays that have data. Skip empty arrays.`;
       }
     }
 
-    // Step 9: Create Expenses (if any)
+    // Step 8: Create Expenses (if any)
     if (mappedData.expenses && mappedData.expenses.length > 0) {
       for (const expense of mappedData.expenses) {
         try {

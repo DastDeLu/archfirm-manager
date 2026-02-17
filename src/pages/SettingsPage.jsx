@@ -46,15 +46,15 @@ import {
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import OpeningBalances from '../components/settings/OpeningBalances';
+import ImportDialog from '../components/settings/ImportDialog';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('user');
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
-  const [importing, setImporting] = useState(false);
-  const fileInputRef = React.useRef(null);
 
   const queryClient = useQueryClient();
 
@@ -96,61 +96,6 @@ export default function SettingsPage() {
       toast.success(`Export completed`);
       setExportDialogOpen(false);
     }, 2000);
-  };
-
-  const handleImport = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const allowedTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-      'application/vnd.ms-excel', // .xls
-      'text/csv'
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Formato file non valido. Usa .xlsx, .xls o .csv');
-      return;
-    }
-
-    setImporting(true);
-    toast.info('Importazione in corso...');
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await base44.functions.invoke('importFinancialData', formData);
-
-      if (response.data.success) {
-        const { imported, errors } = response.data;
-        const summary = [];
-        
-        if (imported.revenues > 0) summary.push(`${imported.revenues} ricavi`);
-        if (imported.expenses > 0) summary.push(`${imported.expenses} spese`);
-        if (imported.clients > 0) summary.push(`${imported.clients} clienti`);
-        if (imported.projects > 0) summary.push(`${imported.projects} progetti`);
-        if (imported.chapters > 0) summary.push(`${imported.chapters} capitoli`);
-
-        toast.success(`Importati con successo: ${summary.join(', ')}`);
-        
-        if (errors && errors.length > 0) {
-          toast.warning(`Alcuni errori: ${errors.length} operazioni fallite`);
-        }
-
-        queryClient.invalidateQueries();
-      } else {
-        toast.error(response.data.error || 'Importazione fallita');
-      }
-    } catch (error) {
-      console.error('Import error:', error);
-      toast.error('Errore durante l\'importazione');
-    } finally {
-      setImporting(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
   };
 
   const isAdmin = currentUser?.role === 'admin';
@@ -360,45 +305,13 @@ export default function SettingsPage() {
                   <CardDescription>Carica file Excel o CSV per importare ricavi, spese, clienti e progetti</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".xlsx,.xls,.csv"
-                        onChange={handleImport}
-                        className="hidden"
-                        disabled={importing}
-                      />
-                      <Button
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={importing}
-                        className="gap-2"
-                      >
-                        {importing ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Importazione...
-                          </>
-                        ) : (
-                          <>
-                            <FileUp className="h-4 w-4" />
-                            Carica File Excel
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-sm text-blue-900 font-medium mb-2">Formati supportati:</p>
-                      <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
-                        <li>.xlsx, .xls (Microsoft Excel)</li>
-                        <li>.csv (Valori separati da virgola)</li>
-                      </ul>
-                      <p className="text-xs text-blue-600 mt-3">
-                        L'AI analizzerà automaticamente il file e mapperà i dati alle entità corrette (Ricavi, Spese, Clienti, Progetti, Capitoli).
-                      </p>
-                    </div>
-                  </div>
+                  <Button
+                    onClick={() => setImportDialogOpen(true)}
+                    className="gap-2"
+                  >
+                    <FileUp className="h-4 w-4" />
+                    Apri Importazione
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -489,6 +402,9 @@ export default function SettingsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Import Dialog */}
+      <ImportDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} />
     </div>
   );
 }
