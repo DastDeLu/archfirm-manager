@@ -39,13 +39,12 @@ export default function ImportDialog({ open, onOpenChange }) {
     if (!selectedFile) return;
 
     const allowedTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
       'text/csv'
     ];
 
     if (!allowedTypes.includes(selectedFile.type)) {
-      toast.error('Formato file non valido. Usa .xlsx, .xls o .csv');
+      toast.error('Formato file non valido. Usa solo .xlsx o .csv (non .xls)');
       return;
     }
 
@@ -120,7 +119,7 @@ export default function ImportDialog({ open, onOpenChange }) {
         <DialogHeader>
           <DialogTitle>Importa Dati Finanziari</DialogTitle>
           <DialogDescription>
-            Carica un file Excel o CSV per importare ricavi, spese, clienti e progetti
+            Carica un file Excel (.xlsx) o CSV per importare ricavi, spese, clienti e progetti
           </DialogDescription>
         </DialogHeader>
 
@@ -131,7 +130,7 @@ export default function ImportDialog({ open, onOpenChange }) {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".xlsx,.xls,.csv"
+                accept=".xlsx,.csv"
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -140,7 +139,7 @@ export default function ImportDialog({ open, onOpenChange }) {
                 Clicca per selezionare un file
               </p>
               <p className="text-xs text-slate-500">
-                Formati supportati: .xlsx, .xls, .csv
+                Formati supportati: .xlsx, .csv (non .xls)
               </p>
               <Button
                 onClick={() => fileInputRef.current?.click()}
