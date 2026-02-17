@@ -292,7 +292,7 @@ export default function Fees() {
 
   const createInstallmentMutation = useMutation({
     mutationFn: (data) => base44.entities.Installment.create(data),
-    onSuccess: () => {
+    onSuccess: async (createdInstallment) => {
       queryClient.invalidateQueries({ queryKey: ['installments'] });
       setInstallmentForm({
         amount: '',
@@ -301,6 +301,31 @@ export default function Fees() {
         payment_method: 'bank',
         installment_number: installments.filter(i => i.fee_id === selectedFee?.id).length + 2
       });
+
+      // Sync to Google Calendar (non-blocking)
+      if (selectedFee && createdInstallment) {
+        base44.functions.invoke('createInstallmentCalendarReminder', {
+          installment: {
+            id: createdInstallment.id,
+            amount: createdInstallment.amount,
+            due_date: createdInstallment.due_date,
+            installment_number: createdInstallment.installment_number
+          },
+          fee: {
+            id: selectedFee.id,
+            client_name: selectedFee.client_name,
+            project_name: selectedFee.project_name
+          }
+        }).then(result => {
+          if (result.data.success) {
+            console.log('✓ Calendar reminder created:', result.data.eventId);
+          } else {
+            console.error('Calendar sync failed:', result.data.error);
+          }
+        }).catch(err => {
+          console.error('Calendar sync error:', err);
+        });
+      }
     },
   });
 
