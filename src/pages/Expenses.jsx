@@ -79,6 +79,7 @@ export default function Expenses() {
     mutationFn: (data) => base44.entities.Expense.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['cashData'] });
       closeDialog();
     },
   });
@@ -87,6 +88,7 @@ export default function Expenses() {
     mutationFn: ({ id, data }) => base44.entities.Expense.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['cashData'] });
       closeDialog();
     },
   });
@@ -95,6 +97,7 @@ export default function Expenses() {
     mutationFn: (id) => base44.entities.Expense.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['cashData'] });
     },
   });
 
