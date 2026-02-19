@@ -192,7 +192,6 @@ export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [cashData, setCashData] = useState({ bankCash: 0, pettyCash: 0, forecast: 0 });
 
   useEffect(() => {
     const loadUser = async () => {
@@ -206,60 +205,56 @@ export default function Layout({ children, currentPageName }) {
     loadUser();
   }, []);
 
-  useEffect(() => {
-    const loadCashData = async () => {
-      try {
-        const [revenues, expenses, forecasts, openingBalances] = await Promise.all([
-          base44.entities.Revenue.list(),
-          base44.entities.Expense.list(),
-          base44.entities.Forecast.list(),
-          base44.entities.OpeningBalance.list()
-        ]);
+  // React Query per i dati della cassa - si aggiorna automaticamente
+  const { data: cashData = { bankCash: 0, pettyCash: 0, forecast: 0 } } = useQuery({
+    queryKey: ['cashData'],
+    queryFn: async () => {
+      const [revenues, expenses, forecasts, openingBalances] = await Promise.all([
+        base44.entities.Revenue.list(),
+        base44.entities.Expense.list(),
+        base44.entities.Forecast.list(),
+        base44.entities.OpeningBalance.list()
+      ]);
 
-        const currentYear = new Date().getFullYear();
+      const currentYear = new Date().getFullYear();
 
-        // Get opening balances for current year
-        const bankOpening = openingBalances.find(ob => ob.type === 'bank' && ob.year === currentYear)?.amount || 0;
-        const pettyOpening = openingBalances.find(ob => ob.type === 'petty' && ob.year === currentYear)?.amount || 0;
+      // Get opening balances for current year
+      const bankOpening = openingBalances.find(ob => ob.type === 'bank' && ob.year === currentYear)?.amount || 0;
+      const pettyOpening = openingBalances.find(ob => ob.type === 'petty' && ob.year === currentYear)?.amount || 0;
 
-        // Calculate bank balance: revenues without payment_method or with bank methods
-        const bankRevenues = revenues
-          .filter(r => !r.payment_method || ['bank_transfer', 'card'].includes(r.payment_method))
-          .reduce((sum, r) => sum + (r.amount || 0), 0);
-        
-        const bankExpenses = expenses
-          .filter(e => !e.payment_method || ['bank_transfer', 'card'].includes(e.payment_method))
-          .reduce((sum, e) => sum + (e.amount || 0), 0);
-        
-        const bankTotal = bankOpening + bankRevenues - bankExpenses;
+      // Calculate bank balance: revenues without payment_method or with bank methods
+      const bankRevenues = revenues
+        .filter(r => !r.payment_method || ['bank_transfer', 'card'].includes(r.payment_method))
+        .reduce((sum, r) => sum + (r.amount || 0), 0);
+      
+      const bankExpenses = expenses
+        .filter(e => !e.payment_method || ['bank_transfer', 'card'].includes(e.payment_method))
+        .reduce((sum, e) => sum + (e.amount || 0), 0);
+      
+      const bankTotal = bankOpening + bankRevenues - bankExpenses;
 
-        // Calculate petty cash balance: only cash payment_method
-        const pettyRevenues = revenues
-          .filter(r => r.payment_method === 'cash')
-          .reduce((sum, r) => sum + (r.amount || 0), 0);
-        
-        const pettyExpenses = expenses
-          .filter(e => e.payment_method === 'cash')
-          .reduce((sum, e) => sum + (e.amount || 0), 0);
-        
-        const pettyTotal = pettyOpening + pettyRevenues - pettyExpenses;
+      // Calculate petty cash balance: only cash payment_method
+      const pettyRevenues = revenues
+        .filter(r => r.payment_method === 'cash')
+        .reduce((sum, r) => sum + (r.amount || 0), 0);
+      
+      const pettyExpenses = expenses
+        .filter(e => e.payment_method === 'cash')
+        .reduce((sum, e) => sum + (e.amount || 0), 0);
+      
+      const pettyTotal = pettyOpening + pettyRevenues - pettyExpenses;
 
-        // Forecast calculation
-        const currentMonth = new Date().getMonth() + 1;
-        const currentForecast = forecasts.find(f => f.month === currentMonth && f.year === currentYear);
-        const forecastNet = currentForecast 
-          ? (currentForecast.revenue_amount || 0) - (currentForecast.expense_amount || 0)
-          : 0;
+      // Forecast calculation
+      const currentMonth = new Date().getMonth() + 1;
+      const currentForecast = forecasts.find(f => f.month === currentMonth && f.year === currentYear);
+      const forecastNet = currentForecast 
+        ? (currentForecast.revenue_amount || 0) - (currentForecast.expense_amount || 0)
+        : 0;
 
-        setCashData({ bankCash: bankTotal, pettyCash: pettyTotal, forecast: forecastNet });
-      } catch (e) {
-        console.log('Error loading cash data');
-      }
-    };
-    loadCashData();
-    const interval = setInterval(loadCashData, 30000);
-    return () => clearInterval(interval);
-  }, []);
+      return { bankCash: bankTotal, pettyCash: pettyTotal, forecast: forecastNet };
+    },
+    refetchInterval: 30000,
+  });
 
   useEffect(() => {
     const handleKeyDown = (e) => {
