@@ -26,8 +26,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   LineChart, Line
 } from 'recharts';
-import { Plus, Pencil, Megaphone, Target, Euro, TrendingUp, Users } from 'lucide-react';
+import { Plus, Pencil, Megaphone, Target, Euro, TrendingUp, Users, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -55,6 +56,21 @@ export default function Marketing() {
     queryKey: ['marketing', selectedYear],
     queryFn: () => base44.entities.MarketingBudget.filter({ year: selectedYear }),
   });
+
+  // Leggi budget annuale da UserPreferences
+  const { data: userPrefs } = useQuery({
+    queryKey: ['userPreferences'],
+    queryFn: async () => {
+      try {
+        const prefs = await base44.entities.UserPreferences.list();
+        return prefs[0];
+      } catch {
+        return null;
+      }
+    },
+  });
+
+  const annualMarketingBudget = userPrefs?.annual_marketing_budget || 0;
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.MarketingBudget.create(data),
@@ -143,6 +159,37 @@ export default function Marketing() {
     }), { budget: 0, spent: 0, conversions: 0 });
   }, [budgets]);
 
+  // Statistiche conversioni per canale social
+  const socialConversionStats = useMemo(() => {
+    const conversionsByChannel = budgets.reduce((acc, item) => {
+      const channel = item.channel || 'Non specificato';
+      if (!acc[channel]) {
+        acc[channel] = { conversions: 0, spent: 0 };
+      }
+      acc[channel].conversions += item.conversions || 0;
+      acc[channel].spent += item.spent || 0;
+      return acc;
+    }, {});
+
+    const totalConversions = Object.values(conversionsByChannel).reduce(
+      (sum, ch) => sum + ch.conversions,
+      0
+    );
+
+    const channelStats = Object.entries(conversionsByChannel).map(([channel, data]) => ({
+      channel,
+      conversions: data.conversions,
+      spent: data.spent,
+      percentage: totalConversions > 0 ? (data.conversions / totalConversions) * 100 : 0,
+      costPerConversion: data.conversions > 0 ? data.spent / data.conversions : 0
+    }));
+
+    channelStats.sort((a, b) => b.conversions - a.conversions);
+    const topPerformer = channelStats.length > 0 && totalConversions > 0 ? channelStats[0].channel : null;
+
+    return { channelStats, totalConversions, topPerformer };
+  }, [budgets]);
+
   const costPerConversion = totals.conversions > 0 
     ? (totals.spent / totals.conversions).toFixed(2)
     : 0;
@@ -169,6 +216,35 @@ export default function Marketing() {
           Aggiungi Voce
         </Button>
       </PageHeader>
+
+      {/* Annual Budget Card */}
+      {annualMarketingBudget > 0 && (
+        <Card className="mb-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-sm text-blue-700 mb-1">
+                  <Megaphone className="h-4 w-4" />
+                  Budget Annuale Marketing
+                </div>
+                <p className="text-2xl font-bold text-blue-900">
+                  {annualMarketingBudget.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-blue-600 mb-1">Utilizzato</p>
+                <p className="text-lg font-semibold text-blue-900">
+                  {totals.spent.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
+                </p>
+                <Progress 
+                  value={annualMarketingBudget > 0 ? (totals.spent / annualMarketingBudget) * 100 : 0} 
+                  className="h-1.5 mt-2 w-32" 
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -225,6 +301,47 @@ export default function Marketing() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Performance per Canale Social */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-amber-500" />
+            Performance per Canale Social
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {socialConversionStats.totalConversions === 0 ? (
+            <p className="text-center text-slate-500 py-8">Nessuna conversione registrata</p>
+          ) : (
+            <div className="space-y-4">
+              {socialConversionStats.channelStats.map((stat) => (
+                <div key={stat.channel} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-900">{stat.channel}</span>
+                      {stat.channel === socialConversionStats.topPerformer && (
+                        <Badge className="bg-amber-100 text-amber-700 gap-1">
+                          <Trophy className="h-3 w-3" />
+                          Top Performer
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-sm text-slate-600">
+                      {stat.conversions} conversioni ({stat.percentage.toFixed(1)}%)
+                    </span>
+                  </div>
+                  <Progress value={stat.percentage} className="h-2" />
+                  <div className="flex justify-between text-xs text-slate-500">
+                    <span>Speso: €{stat.spent.toLocaleString('it-IT', { minimumFractionDigits: 2 })}</span>
+                    <span>Costo/Conv: €{stat.costPerConversion.toFixed(2)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

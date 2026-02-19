@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '../components/ui/PageHeader';
@@ -55,8 +55,30 @@ export default function SettingsPage() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('user');
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [annualMarketingBudget, setAnnualMarketingBudget] = useState('');
+  const [isSavingBudget, setIsSavingBudget] = useState(false);
 
   const queryClient = useQueryClient();
+
+  // Fetch current user preferences
+  const { data: userPrefs, refetch: refetchPrefs } = useQuery({
+    queryKey: ['userPreferences'],
+    queryFn: async () => {
+      try {
+        const prefs = await base44.entities.UserPreferences.list();
+        return prefs[0];
+      } catch {
+        return null;
+      }
+    },
+  });
+
+  // Initialize budget from user preferences
+  useEffect(() => {
+    if (userPrefs?.annual_marketing_budget) {
+      setAnnualMarketingBudget(userPrefs.annual_marketing_budget.toString());
+    }
+  }, [userPrefs]);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -96,6 +118,36 @@ export default function SettingsPage() {
       toast.success(`Export completed`);
       setExportDialogOpen(false);
     }, 2000);
+  };
+
+  // Salva il budget annuale marketing
+  const handleSaveAnnualBudget = async () => {
+    try {
+      setIsSavingBudget(true);
+      const budgetValue = parseFloat(annualMarketingBudget) || 0;
+
+      if (userPrefs?.id) {
+        // Update existing preferences
+        await base44.entities.UserPreferences.update(userPrefs.id, {
+          annual_marketing_budget: budgetValue
+        });
+      } else {
+        // Create new preferences
+        await base44.entities.UserPreferences.create({
+          annual_marketing_budget: budgetValue
+        });
+      }
+
+      // Invalida la cache per aggiornare i dati globalmente
+      await refetchPrefs();
+      queryClient.invalidateQueries({ queryKey: ['userPreferences'] });
+      
+      toast.success('Budget annuale salvato con successo');
+    } catch (error) {
+      toast.error('Errore durante il salvataggio');
+    } finally {
+      setIsSavingBudget(false);
+    }
   };
 
   const isAdmin = currentUser?.role === 'admin';
@@ -239,6 +291,41 @@ export default function SettingsPage() {
                   <div>
                     <Label className="text-slate-500">Formato Data</Label>
                     <p className="font-medium">MMM d, yyyy</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Budget Marketing</CardTitle>
+                <CardDescription>Configura il budget annuale per le attività di marketing</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="annualBudget">Budget Annuale Marketing (€)</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="annualBudget"
+                        type="number"
+                        value={annualMarketingBudget}
+                        onChange={(e) => setAnnualMarketingBudget(e.target.value)}
+                        placeholder="0.00"
+                        step="0.01"
+                      />
+                      <Button 
+                        onClick={handleSaveAnnualBudget}
+                        disabled={isSavingBudget}
+                      >
+                        {isSavingBudget ? 'Salvataggio...' : 'Salva'}
+                      </Button>
+                    </div>
+                    {userPrefs?.annual_marketing_budget && (
+                      <p className="text-sm text-slate-500">
+                        Budget attuale: {userPrefs.annual_marketing_budget.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardContent>
