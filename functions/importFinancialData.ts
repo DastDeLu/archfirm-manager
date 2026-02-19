@@ -42,8 +42,8 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Step 1: Extract raw data from Excel/CSV
-    console.log('Extracting data from file...');
+    // Step 1: Extract raw data from Excel - multi-sheet structure
+    console.log('Extracting data from multi-sheet Excel file...');
     let extractResult;
     try {
       extractResult = await base44.asServiceRole.integrations.Core.ExtractDataFromUploadedFile({
@@ -51,11 +51,15 @@ Deno.serve(async (req) => {
         json_schema: {
           type: 'object',
           properties: {
-            rows: {
-              type: 'array',
-              items: {
-                type: 'object',
-                additionalProperties: true
+            sheets: {
+              type: 'object',
+              properties: {
+                'Foglio2 Ricavi': { type: 'array', items: { type: 'object', additionalProperties: true } },
+                'Foglio3 Spese': { type: 'array', items: { type: 'object', additionalProperties: true } },
+                'Foglio 5 previsionale incassi': { type: 'array', items: { type: 'object', additionalProperties: true } },
+                'Capitoli di spesa': { type: 'array', items: { type: 'object', additionalProperties: true } },
+                'BADGET PUBBLICITA': { type: 'array', items: { type: 'object', additionalProperties: true } },
+                'PREVISIONE CASSA': { type: 'array', items: { type: 'object', additionalProperties: true } }
               }
             }
           }
@@ -78,74 +82,96 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    const rawData = extractResult.output.rows || extractResult.output;
-    if (!rawData || rawData.length === 0) {
+    const sheetsData = extractResult.output?.sheets || extractResult.output;
+    if (!sheetsData) {
       return Response.json({ 
         success: false, 
         error: 'No data found in file' 
       }, { status: 400 });
     }
 
-    // Step 2: Use AI to analyze and map data to our schema
-    console.log(`Analyzing ${rawData.length} rows with AI...`);
+    // Step 2: Use AI to analyze multi-sheet data and map to entities
+    console.log('Analyzing multi-sheet Excel data with AI...');
     
-    const aiPrompt = `You are a financial data import assistant. Analyze the following spreadsheet data and map it to our entity schemas.
+    const aiPrompt = `You are a financial data import assistant for an architecture firm. Analyze this multi-sheet Excel workbook and map it to our entity schemas.
 
-**Available Entities:**
+**Excel Structure Provided:**
+- **Foglio2 Ricavi**: Monthly revenue tracking with Date, Item (Voce), Euro, Cash vs Bank Transfers
+- **Foglio3 Spese**: Monthly expenses in 4 categories (Spese fisse, Collaborazioni/stipendi, Contributi/Tasse, Spese Varie)
+- **Foglio 5 previsionale incassi**: Project pipeline with Service type (PG, PB, DL, PR), Client Name, Amount
+- **Capitoli di spesa**: Expense budgeting with Budget vs Actual
+- **BADGET PUBBLICITA**: Marketing budget breakdown
+- **PREVISIONE CASSA**: Cash flow forecast for 2026
 
-1. **Revenue** (ricavi):
+**Available Entities to Map:**
+
+1. **Revenue** (from Foglio2 Ricavi):
    - amount (number, required): importo in EUR
    - date (string, required): data in formato YYYY-MM-DD
-   - description (string): descrizione
-   - tag (string): uno tra ["Progettazione", "Direzione Lavori", "Provvigione", "Burocrazia", "Other"]
-   - chapter_name (string): nome del capitolo di entrata
+   - description (string): voce/item
+   - tag (string): "Progettazione", "Direzione Lavori", "Provvigione", "Burocrazia", or "Other"
+   - payment_method (string): "cash" if from Contanti, "bank_transfer" if from Bonifici, "other" otherwise
 
-2. **Expense** (spese):
+2. **Expense** (from Foglio3 Spese):
    - amount (number, required): importo in EUR
    - date (string, required): data in formato YYYY-MM-DD
-   - description (string): descrizione
-   - tag (string): uno tra ["Spese Fisse", "Collaborazioni", "Stipendi", "Spese variabili", "Tasse", "Other"]
-   - chapter_name (string): nome del capitolo di spesa
-   - payment_method (string): uno tra ["cash", "bank_transfer", "card", "other"]
+   - description (string): voce/item
+   - tag (string): "Spese Fisse", "Collaborazioni", "Stipendi", "Spese variabili", "Tasse", or "Other"
+   - payment_method (string): "cash" if from Contanti/Liquid, "bank_transfer" if from Banca, "other" otherwise
 
-3. **Client** (clienti):
-   - name (string, required): nome del cliente
-   - contact_person (string): persona di contatto
-   - email (string): email
-   - phone (string): telefono
+3. **Client** (from Foglio 5 previsionale incassi):
+   - name (string, required): client name from the sheet
+   - Extract unique client names
 
-4. **Project** (progetti):
-   - name (string, required): nome del progetto
-   - client_name (string, required): nome del cliente
-   - description (string): descrizione
-   - budget (number): budget totale
+4. **Project** (from Foglio 5 previsionale incassi):
+   - name (string, required): service description as project name
+   - client_name (string, required): client name
+   - description (string): service type (PG, PB, DL, PR)
+   - budget (number): total invoice amount
 
-5. **Chapter** (capitoli):
-   - name (string, required): nome del capitolo
-   - code (string): codice
-   - type (string): uno tra ["revenue", "expense"]
+5. **Fee** (from Foglio 5 previsionale incassi):
+   - project_name (string): service description
+   - client_name (string): client name
+   - total_amount (number): total invoice amount
+   - status (string): "agreed" by default
 
-**Raw Data:**
-${JSON.stringify(rawData.slice(0, 50), null, 2)}
+6. **MarketingBudget** (from BADGET PUBBLICITA):
+   - year (number): 2026
+   - channel (string): category name (Photo/Video, Website, Ads, etc.)
+   - yearly_budget (number): total budget
+   - spent (number): actual spend
+
+7. **Forecast** (from PREVISIONE CASSA):
+   - year (number): 2026
+   - month (number): extract month if available
+   - revenue_amount (number): expected revenue
+   - expense_amount (number): expected expenses
+
+**Sheets Data:**
+${JSON.stringify(sheetsData, null, 2)}
 
 **Task:**
-1. Identify which entity type each row represents (Revenue, Expense, Client, Project, or Chapter)
-2. Map the columns to our schema fields
-3. Ensure required fields are present
-4. Convert dates to YYYY-MM-DD format
-5. Normalize tag values to match our enums
-6. Extract chapter_name and client_name for later resolution
+1. Extract revenues from "Foglio2 Ricavi" - parse dates, amounts, descriptions, detect cash vs bank
+2. Extract expenses from "Foglio3 Spese" - identify categories, parse dates, amounts
+3. Extract clients and projects from "Foglio 5 previsionale incassi"
+4. Extract fees from "Foglio 5 previsionale incassi"
+5. Extract marketing budget from "BADGET PUBBLICITA"
+6. Extract forecasts from "PREVISIONE CASSA"
+7. Convert all dates to YYYY-MM-DD format
+8. Match tags to our enum values
 
-Return a JSON object with this structure:
+Return JSON:
 {
-  "revenues": [{ amount, date, description, tag, chapter_name }],
-  "expenses": [{ amount, date, description, tag, chapter_name, payment_method }],
-  "clients": [{ name, contact_person, email, phone }],
+  "revenues": [{ amount, date, description, tag, payment_method }],
+  "expenses": [{ amount, date, description, tag, payment_method }],
+  "clients": [{ name }],
   "projects": [{ name, client_name, description, budget }],
-  "chapters": [{ name, code, type }]
+  "fees": [{ project_name, client_name, total_amount, status }],
+  "marketing_budgets": [{ year, channel, yearly_budget, spent }],
+  "forecasts": [{ year, month, revenue_amount, expense_amount }]
 }
 
-Only include arrays that have data. Skip empty arrays.`;
+Only include arrays that have data.`;
 
     const aiResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt: aiPrompt,
@@ -156,7 +182,9 @@ Only include arrays that have data. Skip empty arrays.`;
           expenses: { type: 'array', items: { type: 'object' } },
           clients: { type: 'array', items: { type: 'object' } },
           projects: { type: 'array', items: { type: 'object' } },
-          chapters: { type: 'array', items: { type: 'object' } }
+          fees: { type: 'array', items: { type: 'object' } },
+          marketing_budgets: { type: 'array', items: { type: 'object' } },
+          forecasts: { type: 'array', items: { type: 'object' } }
         }
       }
     });
@@ -165,12 +193,7 @@ Only include arrays that have data. Skip empty arrays.`;
     console.log('AI mapped data:', JSON.stringify(mappedData, null, 2));
 
     // Step 3: Fetch existing entities for resolution
-    const [existingChapters, existingClients] = await Promise.all([
-      base44.asServiceRole.entities.Chapter.list(),
-      base44.asServiceRole.entities.Client.list()
-    ]);
-
-    const chapterMap = new Map(existingChapters.map(c => [c.name.toLowerCase(), c.id]));
+    const existingClients = await base44.asServiceRole.entities.Client.list();
     const clientMap = new Map(existingClients.map(c => [c.name.toLowerCase(), c.id]));
 
     const results = {
@@ -178,22 +201,11 @@ Only include arrays that have data. Skip empty arrays.`;
       expenses: 0,
       clients: 0,
       projects: 0,
-      chapters: 0
+      fees: 0,
+      marketing_budgets: 0,
+      forecasts: 0
     };
     const errors = [];
-
-    // Step 4: Create Chapters first (if any)
-    if (mappedData.chapters && mappedData.chapters.length > 0) {
-      for (const chapter of mappedData.chapters) {
-        try {
-          const created = await base44.asServiceRole.entities.Chapter.create(chapter);
-          chapterMap.set(chapter.name.toLowerCase(), created.id);
-          results.chapters++;
-        } catch (e) {
-          errors.push(`Chapter creation failed: ${e.message}`);
-        }
-      }
-    }
 
     // Step 5: Create Clients (if any)
     if (mappedData.clients && mappedData.clients.length > 0) {
@@ -236,7 +248,7 @@ Only include arrays that have data. Skip empty arrays.`;
       }
     }
 
-    // Step 7: Create Revenues (if any)
+    // Step 4: Create Revenues (if any)
     if (mappedData.revenues && mappedData.revenues.length > 0) {
       for (const revenue of mappedData.revenues) {
         try {
@@ -244,17 +256,9 @@ Only include arrays that have data. Skip empty arrays.`;
             amount: revenue.amount,
             date: revenue.date,
             description: revenue.description,
-            tag: revenue.tag || 'Other'
+            tag: revenue.tag || 'Other',
+            payment_method: revenue.payment_method || 'bank_transfer'
           };
-
-          // Resolve chapter_id if chapter_name provided
-          if (revenue.chapter_name) {
-            const chapterId = chapterMap.get(revenue.chapter_name.toLowerCase());
-            if (chapterId) {
-              revenueData.chapter_id = chapterId;
-              revenueData.chapter_name = revenue.chapter_name;
-            }
-          }
 
           await base44.asServiceRole.entities.Revenue.create(revenueData);
           results.revenues++;
@@ -264,7 +268,7 @@ Only include arrays that have data. Skip empty arrays.`;
       }
     }
 
-    // Step 8: Create Expenses (if any)
+    // Step 5: Create Expenses (if any)
     if (mappedData.expenses && mappedData.expenses.length > 0) {
       for (const expense of mappedData.expenses) {
         try {
@@ -276,19 +280,89 @@ Only include arrays that have data. Skip empty arrays.`;
             payment_method: expense.payment_method || 'bank_transfer'
           };
 
-          // Resolve chapter_id if chapter_name provided
-          if (expense.chapter_name) {
-            const chapterId = chapterMap.get(expense.chapter_name.toLowerCase());
-            if (chapterId) {
-              expenseData.chapter_id = chapterId;
-              expenseData.chapter_name = expense.chapter_name;
-            }
-          }
-
           await base44.asServiceRole.entities.Expense.create(expenseData);
           results.expenses++;
         } catch (e) {
           errors.push(`Expense creation failed: ${e.message}`);
+        }
+      }
+    }
+
+    // Step 6: Create Fees (if any)
+    if (mappedData.fees && mappedData.fees.length > 0) {
+      const projectMap = new Map();
+      
+      for (const fee of mappedData.fees) {
+        try {
+          // Get or create client
+          let clientId = clientMap.get(fee.client_name?.toLowerCase());
+          if (!clientId && fee.client_name) {
+            const newClient = await base44.asServiceRole.entities.Client.create({ name: fee.client_name });
+            clientId = newClient.id;
+            clientMap.set(fee.client_name.toLowerCase(), clientId);
+            results.clients++;
+          }
+
+          // Get or create project
+          let projectId = projectMap.get(fee.project_name?.toLowerCase());
+          if (!projectId && fee.project_name && clientId) {
+            const newProject = await base44.asServiceRole.entities.Project.create({
+              name: fee.project_name,
+              client_id: clientId,
+              client_name: fee.client_name,
+              status: 'in_progress'
+            });
+            projectId = newProject.id;
+            projectMap.set(fee.project_name.toLowerCase(), projectId);
+            results.projects++;
+          }
+
+          // Create fee
+          if (projectId) {
+            await base44.asServiceRole.entities.Fee.create({
+              project_id: projectId,
+              total_amount: fee.total_amount,
+              status: fee.status || 'agreed'
+            });
+            results.fees++;
+          }
+        } catch (e) {
+          errors.push(`Fee creation failed: ${e.message}`);
+        }
+      }
+    }
+
+    // Step 7: Create Marketing Budgets (if any)
+    if (mappedData.marketing_budgets && mappedData.marketing_budgets.length > 0) {
+      for (const budget of mappedData.marketing_budgets) {
+        try {
+          await base44.asServiceRole.entities.MarketingBudget.create({
+            year: budget.year || 2026,
+            channel: budget.channel,
+            yearly_budget: budget.yearly_budget,
+            spent: budget.spent || 0
+          });
+          results.marketing_budgets++;
+        } catch (e) {
+          errors.push(`Marketing budget creation failed: ${e.message}`);
+        }
+      }
+    }
+
+    // Step 8: Create Forecasts (if any)
+    if (mappedData.forecasts && mappedData.forecasts.length > 0) {
+      for (const forecast of mappedData.forecasts) {
+        try {
+          await base44.asServiceRole.entities.Forecast.create({
+            year: forecast.year || 2026,
+            month: forecast.month || 1,
+            revenue_amount: forecast.revenue_amount || 0,
+            expense_amount: forecast.expense_amount || 0,
+            prestazioni: 'Progettazione'
+          });
+          results.forecasts++;
+        } catch (e) {
+          errors.push(`Forecast creation failed: ${e.message}`);
         }
       }
     }
