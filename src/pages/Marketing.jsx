@@ -152,12 +152,18 @@ export default function Marketing() {
 
   // Totals
   const totals = useMemo(() => {
-    return budgets.reduce((acc, b) => ({
+    const monthlyTotals = budgets.reduce((acc, b) => ({
       budget: acc.budget + (b.budget || 0),
       spent: acc.spent + (b.spent || 0),
       conversions: acc.conversions + (b.conversions || 0),
     }), { budget: 0, spent: 0, conversions: 0 });
-  }, [budgets]);
+    
+    // Include annual budget in total budget
+    return {
+      ...monthlyTotals,
+      budget: monthlyTotals.budget + annualMarketingBudget
+    };
+  }, [budgets, annualMarketingBudget]);
 
   // Statistiche conversioni per canale social
   const socialConversionStats = useMemo(() => {
