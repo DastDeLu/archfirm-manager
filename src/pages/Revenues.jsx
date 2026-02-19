@@ -79,6 +79,7 @@ export default function Revenues() {
     mutationFn: (data) => base44.entities.Revenue.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
+      queryClient.invalidateQueries({ queryKey: ['cashData'] });
       closeDialog();
     },
   });
@@ -87,6 +88,7 @@ export default function Revenues() {
     mutationFn: ({ id, data }) => base44.entities.Revenue.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
+      queryClient.invalidateQueries({ queryKey: ['cashData'] });
       closeDialog();
     },
   });
@@ -95,6 +97,7 @@ export default function Revenues() {
     mutationFn: (id) => base44.entities.Revenue.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
+      queryClient.invalidateQueries({ queryKey: ['cashData'] });
     },
   });
 
