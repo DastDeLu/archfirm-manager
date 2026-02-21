@@ -133,6 +133,28 @@ export default function Dashboard() {
       {/* Cash Position */}
       <CashPosition />
 
+      {/* Expense Breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">Costi per Categoria</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            {expenseByTag.map((item, index) => (
+              <div key={item.name} className="p-4 bg-slate-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                  <Badge variant="outline" className="text-xs">{item.name}</Badge>
+                </div>
+                <p className="text-lg font-bold text-slate-900 mt-2">
+                  €{item.value.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard

@@ -374,33 +374,22 @@ export default function CapitoliSpesa() {
                                 </Badge>
                               </td>
                               <td className="px-4 py-4">
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleAddSpesa(voce)}
-                                    className="gap-2"
-                                  >
-                                    <Receipt className="h-4 w-4" />
-                                    Aggiungi Spesa
-                                  </Button>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="icon">
-                                        <MoreVertical className="h-4 w-4" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => handleEditVoce(voce)}>
-                                        <Edit className="h-4 w-4 mr-2" />
-                                        Modifica Voce
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleToggleStato(voce)}>
-                                        {voce.stato === 'attivo' ? 'Chiudi Voce' : 'Riapri Voce'}
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </div>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleEditVoce(voce)}>
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      Modifica Voce
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleToggleStato(voce)}>
+                                      {voce.stato === 'attivo' ? 'Chiudi Voce' : 'Riapri Voce'}
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </td>
                             </tr>
                           );
