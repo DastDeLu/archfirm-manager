@@ -164,7 +164,16 @@ export default function Fees() {
     fees.forEach(fee => {
       // By category
       const cat = fee.category || 'Other';
-      byCategory[cat] = (byCategory[cat] || 0) + (fee.amount || 0);
+      if (!byCategory[cat]) {
+        byCategory[cat] = { total: 0, toCollect: 0, collected: 0 };
+      }
+      byCategory[cat].total += fee.amount || 0;
+      
+      if (fee.payment_status === 'Da incassare') {
+        byCategory[cat].toCollect += fee.amount || 0;
+      } else if (fee.payment_status === 'Incassati') {
+        byCategory[cat].collected += fee.amount || 0;
+      }
 
       // By status
       byStatus[fee.payment_status] += fee.amount || 0;
@@ -259,14 +268,24 @@ export default function Fees() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {Object.entries(stats.byCategory).map(([category, amount]) => (
+            {Object.entries(stats.byCategory).map(([category, data]) => (
               <div key={category} className="p-4 bg-slate-50 rounded-lg">
                 <Badge className={categoryColors[category] || 'bg-slate-100 text-slate-700'}>
                   {category}
                 </Badge>
                 <p className="text-xl font-bold text-slate-900 mt-2">
-                  €{amount.toLocaleString('it-IT')}
+                  €{data.total.toLocaleString('it-IT')}
                 </p>
+                <div className="mt-3 space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-amber-600">Da incassare:</span>
+                    <span className="font-semibold text-amber-700">€{data.toCollect.toLocaleString('it-IT')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-emerald-600">Incassati:</span>
+                    <span className="font-semibold text-emerald-700">€{data.collected.toLocaleString('it-IT')}</span>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
