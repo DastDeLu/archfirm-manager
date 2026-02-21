@@ -28,9 +28,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, MoreHorizontal, Pencil, Trash2, ChevronRight, ChevronDown, Layers, Clock, Euro, FolderKanban, User } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, ChevronRight, ChevronDown, Layers, Clock, Euro, FolderKanban, User, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import QuickAddEmployee from '../components/forms/QuickAddEmployee';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 function WBSItem({ item, children, level, onEdit, onDelete, onAddChild }) {
   const [expanded, setExpanded] = useState(true);
@@ -138,12 +139,11 @@ function WBSItem({ item, children, level, onEdit, onDelete, onAddChild }) {
 }
 
 export default function WBS() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const projectId = urlParams.get('projectId');
-
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [parentItem, setParentItem] = useState(null);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [expandedProjects, setExpandedProjects] = useState({});
   const [formData, setFormData] = useState({
     name: '',
     code: '',
@@ -166,10 +166,9 @@ export default function WBS() {
     queryFn: () => base44.entities.Project.list(),
   });
 
-  const { data: wbsItems = [], isLoading } = useQuery({
-    queryKey: ['wbs', projectId],
-    queryFn: () => base44.entities.WBS.filter({ project_id: projectId }),
-    enabled: !!projectId,
+  const { data: allWbsItems = [], isLoading } = useQuery({
+    queryKey: ['wbs'],
+    queryFn: () => base44.entities.WBS.list(),
   });
 
   const { data: employees = [] } = useQuery({
@@ -177,12 +176,22 @@ export default function WBS() {
     queryFn: () => base44.entities.Employee.list(),
   });
 
-  const currentProject = projects.find(p => p.id === projectId);
+  // Group WBS items by project
+  const wbsByProject = useMemo(() => {
+    const grouped = {};
+    allWbsItems.forEach(item => {
+      if (!grouped[item.project_id]) {
+        grouped[item.project_id] = [];
+      }
+      grouped[item.project_id].push(item);
+    });
+    return grouped;
+  }, [allWbsItems]);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.WBS.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['wbs', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['wbs'] });
       closeDialog();
     },
   });
@@ -190,7 +199,7 @@ export default function WBS() {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.WBS.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['wbs', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['wbs'] });
       closeDialog();
     },
   });
@@ -198,7 +207,7 @@ export default function WBS() {
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.WBS.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['wbs', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['wbs'] });
     },
   });
 
@@ -249,10 +258,11 @@ export default function WBS() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!selectedProjectId) return;
     const level = parentItem ? (parentItem.level || 1) + 1 : 1;
     const data = {
       ...formData,
-      project_id: projectId,
+      project_id: selectedProjectId,
       parent_id: parentItem?.id || null,
       level,
       estimated_hours: formData.estimated_hours ? parseFloat(formData.estimated_hours) : 0,
@@ -267,16 +277,16 @@ export default function WBS() {
     }
   };
 
-  // Build tree structure
-  const wbsTree = useMemo(() => {
+  // Build tree structure for specific project
+  const buildTreeForProject = (items) => {
     const map = {};
     const roots = [];
 
-    wbsItems.forEach(item => {
+    items.forEach(item => {
       map[item.id] = { ...item, children: [] };
     });
 
-    wbsItems.forEach(item => {
+    items.forEach(item => {
       if (item.parent_id && map[item.parent_id]) {
         map[item.parent_id].children.push(map[item.id]);
       } else {
@@ -285,7 +295,7 @@ export default function WBS() {
     });
 
     return roots;
-  }, [wbsItems]);
+  };
 
   const renderTree = (items, level = 1) => {
     return items.map(item => (
@@ -302,113 +312,157 @@ export default function WBS() {
     ));
   };
 
-  // Calculate totals
-  const totals = useMemo(() => {
-    return wbsItems.reduce((acc, item) => ({
-      estimatedHours: acc.estimatedHours + (item.estimated_hours || 0),
-      actualHours: acc.actualHours + (item.actual_hours || 0),
-      estimatedCost: acc.estimatedCost + (item.estimated_cost || 0),
-      actualCost: acc.actualCost + (item.actual_cost || 0),
-    }), { estimatedHours: 0, actualHours: 0, estimatedCost: 0, actualCost: 0 });
-  }, [wbsItems]);
+  // Calculate project statistics
+  const getProjectStats = (projectId) => {
+    const items = wbsByProject[projectId] || [];
+    const uniqueAssignees = new Set(items.map(item => item.assigned_to_id).filter(Boolean));
+    
+    return {
+      totalEstimatedHours: items.reduce((sum, item) => sum + (item.estimated_hours || 0), 0),
+      totalCost: items.reduce((sum, item) => sum + (item.estimated_cost || 0), 0),
+      teamSize: uniqueAssignees.size,
+      assignees: Array.from(uniqueAssignees).map(id => {
+        const item = items.find(i => i.assigned_to_id === id);
+        return { id, name: item?.assigned_to_name || 'Unknown' };
+      })
+    };
+  };
 
-  if (!projectId) {
-    return (
-      <div className="text-center py-12">
-        <FolderKanban className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-        <h2 className="text-xl font-semibold text-slate-900 mb-2">Seleziona un Progetto</h2>
-        <p className="text-slate-500 mb-6">Seleziona un progetto dalla pagina Progetti per visualizzare la WBS.</p>
-        <Button asChild>
-          <a href={createPageUrl('Projects')}>Vai ai Progetti</a>
-        </Button>
-      </div>
-    );
-  }
+  const toggleProject = (projectId) => {
+    setExpandedProjects(prev => ({
+      ...prev,
+      [projectId]: !prev[projectId]
+    }));
+  };
 
   return (
     <div>
       <PageHeader 
-        title={`WBS: ${currentProject?.name || 'Caricamento...'}`}
-        description="Struttura di Scomposizione del Lavoro - Gestisci fasi, sotto-fasi e attività"
-      >
-        <Button onClick={() => openDialog()} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Aggiungi Fase
-        </Button>
-      </PageHeader>
+        title="WBS - Struttura di Scomposizione del Lavoro"
+        description="Gestisci fasi, sotto-fasi e attività raggruppate per progetto"
+      />
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-              <Clock className="h-4 w-4" />
-              Ore Stimate
-            </div>
-            <p className="text-2xl font-bold">{totals.estimatedHours}h</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-              <Clock className="h-4 w-4" />
-              Ore Effettive
-            </div>
-            <p className={cn(
-              "text-2xl font-bold",
-              totals.actualHours > totals.estimatedHours ? "text-red-600" : "text-emerald-600"
-            )}>
-              {totals.actualHours}h
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-              <Euro className="h-4 w-4" />
-              Costo Stimato
-            </div>
-            <p className="text-2xl font-bold">€{totals.estimatedCost.toLocaleString('it-IT')}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-              <Euro className="h-4 w-4" />
-              Costo Effettivo
-            </div>
-            <p className={cn(
-              "text-2xl font-bold",
-              totals.actualCost > totals.estimatedCost ? "text-red-600" : "text-emerald-600"
-            )}>
-              €{totals.actualCost.toLocaleString('it-IT')}
-            </p>
-          </CardContent>
-        </Card>
+      {/* Projects List with WBS */}
+      <div className="space-y-4">
+        {isLoading ? (
+          <div className="py-8 text-center text-slate-500">Caricamento...</div>
+        ) : projects.length === 0 ? (
+          <div className="text-center py-12">
+            <FolderKanban className="h-12 w-12 mx-auto text-slate-300 mb-4" />
+            <h2 className="text-xl font-semibold text-slate-900 mb-2">Nessun Progetto</h2>
+            <p className="text-slate-500 mb-6">Crea un progetto per iniziare a gestire la WBS.</p>
+            <Button asChild>
+              <a href={createPageUrl('Projects')}>Vai ai Progetti</a>
+            </Button>
+          </div>
+        ) : (
+          projects.map(project => {
+            const projectWbs = wbsByProject[project.id] || [];
+            const stats = getProjectStats(project.id);
+            const wbsTree = buildTreeForProject(projectWbs);
+            const isExpanded = expandedProjects[project.id] ?? true;
+
+            return (
+              <Card key={project.id}>
+                <Collapsible open={isExpanded} onOpenChange={() => toggleProject(project.id)}>
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <CollapsibleTrigger asChild>
+                        <button className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                          {isExpanded ? (
+                            <ChevronDown className="h-5 w-5 text-slate-500" />
+                          ) : (
+                            <ChevronRight className="h-5 w-5 text-slate-500" />
+                          )}
+                          <FolderKanban className="h-5 w-5 text-blue-600" />
+                          <CardTitle className="text-lg">{project.name}</CardTitle>
+                          <Badge variant="outline" className="ml-2">
+                            {projectWbs.length} task{projectWbs.length !== 1 ? 's' : ''}
+                          </Badge>
+                        </button>
+                      </CollapsibleTrigger>
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          setSelectedProjectId(project.id);
+                          openDialog();
+                        }}
+                        className="gap-2"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Aggiungi Task
+                      </Button>
+                    </div>
+
+                    {/* Project Statistics */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+                      <div className="p-3 bg-blue-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-xs text-blue-700 mb-1">
+                          <Clock className="h-3 w-3" />
+                          Ore Stimate Totali
+                        </div>
+                        <p className="text-xl font-bold text-blue-900">{stats.totalEstimatedHours}h</p>
+                      </div>
+                      <div className="p-3 bg-emerald-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-xs text-emerald-700 mb-1">
+                          <Euro className="h-3 w-3" />
+                          Costo Totale
+                        </div>
+                        <p className="text-xl font-bold text-emerald-900">
+                          €{stats.totalCost.toLocaleString('it-IT')}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-purple-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-xs text-purple-700 mb-1">
+                          <Users className="h-3 w-3" />
+                          Dimensione Team
+                        </div>
+                        <p className="text-xl font-bold text-purple-900">{stats.teamSize}</p>
+                      </div>
+                      <div className="p-3 bg-amber-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-xs text-amber-700 mb-1">
+                          <User className="h-3 w-3" />
+                          Assegnati
+                        </div>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {stats.assignees.length === 0 ? (
+                            <span className="text-xs text-slate-500">Nessuno</span>
+                          ) : (
+                            stats.assignees.slice(0, 3).map(assignee => (
+                              <Badge key={assignee.id} variant="outline" className="text-xs">
+                                {assignee.name}
+                              </Badge>
+                            ))
+                          )}
+                          {stats.assignees.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{stats.assignees.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  <CollapsibleContent>
+                    <CardContent>
+                      {projectWbs.length === 0 ? (
+                        <div className="py-8 text-center text-slate-500">
+                          Nessun task ancora. Clicca "Aggiungi Task" per iniziare.
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {renderTree(wbsTree)}
+                        </div>
+                      )}
+                    </CardContent>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
+            );
+          })
+        )}
       </div>
-
-      {/* WBS Tree */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Layers className="h-5 w-5" />
-            Struttura di Scomposizione del Lavoro
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="py-8 text-center text-slate-500">Caricamento...</div>
-          ) : wbsTree.length === 0 ? (
-            <div className="py-8 text-center text-slate-500">
-              Nessun elemento WBS ancora. Clicca "Aggiungi Fase" per creare la prima fase.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {renderTree(wbsTree)}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
