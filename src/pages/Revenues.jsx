@@ -57,6 +57,7 @@ export default function Revenues() {
     date: format(new Date(), 'yyyy-MM-dd'),
     description: '',
     tag: 'Progettazione',
+    payment_method: 'bank_transfer',
     project_id: '',
     project_name: ''
   });
@@ -109,6 +110,7 @@ export default function Revenues() {
         date: revenue.date || format(new Date(), 'yyyy-MM-dd'),
         description: revenue.description || '',
         tag: revenue.tag || 'Progettazione',
+        payment_method: revenue.payment_method || 'bank_transfer',
         project_id: revenue.project_id || '',
         project_name: revenue.project_name || ''
       });
@@ -119,6 +121,7 @@ export default function Revenues() {
         date: format(new Date(), 'yyyy-MM-dd'),
         description: '',
         tag: 'Progettazione',
+        payment_method: 'bank_transfer',
         project_id: '',
         project_name: ''
       });
@@ -376,21 +379,38 @@ export default function Revenues() {
                   placeholder="Descrizione ricavo"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="tag">Tag *</Label>
-                <Select
-                  value={formData.tag}
-                  onValueChange={(value) => setFormData({ ...formData, tag: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleziona tag" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TAGS.map(tag => (
-                      <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tag">Tag *</Label>
+                  <Select
+                    value={formData.tag}
+                    onValueChange={(value) => setFormData({ ...formData, tag: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleziona tag" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TAGS.map(tag => (
+                        <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="payment_method">Metodo Pagamento *</Label>
+                  <Select
+                    value={formData.payment_method}
+                    onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleziona metodo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bank_transfer">Banca</SelectItem>
+                      <SelectItem value="cash">Contanti</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="project">Progetto</Label>

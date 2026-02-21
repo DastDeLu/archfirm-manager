@@ -28,7 +28,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, MoreHorizontal, Pencil, Trash2, Building2, Mail, Phone, MapPin } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, Building2, Mail, Phone, MapPin, FolderKanban, Receipt } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 
 export default function Clients() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -178,6 +180,18 @@ export default function Clients() {
             <DropdownMenuItem onClick={() => openDialog(row)}>
               <Pencil className="h-4 w-4 mr-2" />
               Modifica
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to={createPageUrl(`Projects?client_id=${row.id}`)}>
+                <FolderKanban className="h-4 w-4 mr-2" />
+                Visualizza Progetti
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to={createPageUrl(`Fees?client_id=${row.id}`)}>
+                <Receipt className="h-4 w-4 mr-2" />
+                Previsionale Incassi
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={() => deleteMutation.mutate(row.id)}

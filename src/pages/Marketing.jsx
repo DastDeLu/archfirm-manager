@@ -165,17 +165,34 @@ export default function Marketing() {
     };
   }, [budgets, annualMarketingBudget]);
 
-  // Statistiche conversioni per canale social
+  // Query per Revenues
+  const { data: revenues = [] } = useQuery({
+    queryKey: ['revenues'],
+    queryFn: () => base44.entities.Revenue.list(),
+  });
+
+  // Statistiche conversioni per canale social CON RICAVI
   const socialConversionStats = useMemo(() => {
     const conversionsByChannel = budgets.reduce((acc, item) => {
       const channel = item.channel || 'Non specificato';
       if (!acc[channel]) {
-        acc[channel] = { conversions: 0, spent: 0 };
+        acc[channel] = { conversions: 0, spent: 0, revenue: 0 };
       }
       acc[channel].conversions += item.conversions || 0;
       acc[channel].spent += item.spent || 0;
       return acc;
     }, {});
+
+    // Associa revenues ai canali (se hanno un campo channel o descrizione matching)
+    revenues.forEach(rev => {
+      const desc = rev.description || '';
+      // Cerca se la descrizione del ricavo menziona un canale marketing
+      Object.keys(conversionsByChannel).forEach(channel => {
+        if (desc.toLowerCase().includes(channel.toLowerCase())) {
+          conversionsByChannel[channel].revenue += rev.amount || 0;
+        }
+      });
+    });
 
     const totalConversions = Object.values(conversionsByChannel).reduce(
       (sum, ch) => sum + ch.conversions,
@@ -186,15 +203,17 @@ export default function Marketing() {
       channel,
       conversions: data.conversions,
       spent: data.spent,
+      revenue: data.revenue,
       percentage: totalConversions > 0 ? (data.conversions / totalConversions) * 100 : 0,
-      costPerConversion: data.conversions > 0 ? data.spent / data.conversions : 0
+      costPerConversion: data.conversions > 0 ? data.spent / data.conversions : 0,
+      roi: data.spent > 0 ? ((data.revenue - data.spent) / data.spent) * 100 : 0
     }));
 
     channelStats.sort((a, b) => b.conversions - a.conversions);
     const topPerformer = channelStats.length > 0 && totalConversions > 0 ? channelStats[0].channel : null;
 
     return { channelStats, totalConversions, topPerformer };
-  }, [budgets]);
+  }, [budgets, revenues]);
 
   const costPerConversion = totals.conversions > 0 
     ? (totals.spent / totals.conversions).toFixed(2)
@@ -333,14 +352,19 @@ export default function Marketing() {
                         </Badge>
                       )}
                     </div>
-                    <span className="text-sm text-slate-600">
-                      {stat.conversions} conversioni ({stat.percentage.toFixed(1)}%)
-                    </span>
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-slate-900">
+                        {stat.conversions} conversioni
+                      </div>
+                      <div className="text-xs text-emerald-600 font-semibold">
+                        Ricavi: €{stat.revenue.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                      </div>
+                    </div>
                   </div>
                   <Progress value={stat.percentage} className="h-2" />
                   <div className="flex justify-between text-xs text-slate-500">
                     <span>Speso: €{stat.spent.toLocaleString('it-IT', { minimumFractionDigits: 2 })}</span>
-                    <span>Costo/Conv: €{stat.costPerConversion.toFixed(2)}</span>
+                    <span>ROI: {stat.roi >= 0 ? '+' : ''}{stat.roi.toFixed(1)}%</span>
                   </div>
                 </div>
               ))}
