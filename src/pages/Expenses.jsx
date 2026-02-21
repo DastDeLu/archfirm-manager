@@ -34,15 +34,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 
-const TAGS = ['Spese Fisse', 'Collaborazioni', 'Stipendi', 'Spese variabili', 'Tasse', 'Other'];
+const TAGS = [
+  'Raw Material Purchases',
+  'Production Costs',
+  'Personnel Costs',
+  'General Costs',
+  'Administrative Costs',
+  'Mortgages and Loans',
+  'Tax Charges'
+];
 
 const tagColors = {
-  'Spese Fisse': 'bg-purple-100 text-purple-700',
-  'Collaborazioni': 'bg-blue-100 text-blue-700',
-  'Stipendi': 'bg-emerald-100 text-emerald-700',
-  'Spese variabili': 'bg-amber-100 text-amber-700',
-  'Tasse': 'bg-red-100 text-red-700',
-  'Other': 'bg-slate-100 text-slate-700',
+  'Raw Material Purchases': 'bg-amber-100 text-amber-700',
+  'Production Costs': 'bg-orange-100 text-orange-700',
+  'Personnel Costs': 'bg-emerald-100 text-emerald-700',
+  'General Costs': 'bg-blue-100 text-blue-700',
+  'Administrative Costs': 'bg-purple-100 text-purple-700',
+  'Mortgages and Loans': 'bg-red-100 text-red-700',
+  'Tax Charges': 'bg-rose-100 text-rose-700',
 };
 
 export default function Expenses() {
@@ -123,7 +132,7 @@ export default function Expenses() {
         amount: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         description: '',
-        tag: 'Spese Fisse',
+        tag: 'General Costs',
         expense_type: 'variable',
         payment_method: 'bank_transfer',
         nature: '',
