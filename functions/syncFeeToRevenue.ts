@@ -34,6 +34,27 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.entities.Revenue.create(revenueData);
 
+    // Add to cash flow based on payment method
+    if (feeRecord.payment_method === 'Banca') {
+      // Add to Bank Cash
+      await base44.asServiceRole.entities.BankCash.create({
+        amount: feeRecord.amount,
+        date: feeRecord.date || new Date().toISOString().split('T')[0],
+        description: `Compenso ${feeRecord.category} - ${feeRecord.client_name}`,
+        category: feeRecord.category,
+        type: 'deposit'
+      });
+    } else if (feeRecord.payment_method === 'Contanti') {
+      // Add to Petty Cash
+      await base44.asServiceRole.entities.PettyCash.create({
+        amount: feeRecord.amount,
+        date: feeRecord.date || new Date().toISOString().split('T')[0],
+        description: `Compenso ${feeRecord.category} - ${feeRecord.client_name}`,
+        category: feeRecord.category,
+        type: 'in'
+      });
+    }
+
     return Response.json({ 
       success: true,
       message: 'Revenue created and cash flow updated',
