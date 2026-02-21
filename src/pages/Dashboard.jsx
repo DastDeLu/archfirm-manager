@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import StatCard from '../components/ui/StatCard';
 import CashPosition from '../components/treasury/CashPosition';
+import FeesWidget from '../components/dashboard/FeesWidget';
 import { format, startOfMonth, endOfMonth, isAfter, parseISO } from 'date-fns';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -280,7 +281,7 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Link to={createPageUrl('Clients')}>
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="flex items-center gap-4 py-4">
@@ -322,6 +323,8 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+
+        <FeesWidget />
       </div>
 
       {/* Recent Activity */}
