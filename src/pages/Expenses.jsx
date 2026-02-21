@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MoreHorizontal, Pencil, Trash2, TrendingDown, Filter, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, TrendingDown, Filter, ArrowUpCircle, ArrowDownCircle, BarChart3, Calendar, Receipt } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 
@@ -184,6 +185,24 @@ export default function Expenses() {
 
   const totalAmount = filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
 
+  // Summary stats by category - all expenses
+  const summaryByTag = useMemo(() => {
+    const summary = {};
+    expenses.forEach(exp => {
+      const tag = exp.tag || 'Other';
+      if (!summary[tag]) {
+        summary[tag] = { total: 0, count: 0 };
+      }
+      summary[tag].total += exp.amount || 0;
+      summary[tag].count += 1;
+    });
+    return summary;
+  }, [expenses]);
+
+  const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const variableExpenses = expenses.filter(e => e.expense_type === 'variable').reduce((sum, e) => sum + (e.amount || 0), 0);
+  const fixedExpenses = expenses.filter(e => e.expense_type === 'fixed').reduce((sum, e) => sum + (e.amount || 0), 0);
+
   const columns = [
     {
       header: 'Data',
@@ -283,7 +302,96 @@ export default function Expenses() {
         </Button>
       </PageHeader>
 
-      {/* Summary Cards */}
+      {/* Summary Cards by Type */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Totale Costi</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">
+                  €{totalExpenses.toLocaleString('it-IT')}
+                </p>
+              </div>
+              <div className="p-3 bg-red-50 rounded-lg">
+                <TrendingDown className="h-6 w-6 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Costi Variabili</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">
+                  €{variableExpenses.toLocaleString('it-IT')}
+                </p>
+              </div>
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <TrendingDown className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Costi Fissi</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">
+                  €{fixedExpenses.toLocaleString('it-IT')}
+                </p>
+              </div>
+              <div className="p-3 bg-purple-50 rounded-lg">
+                <TrendingDown className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Numero Spese</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">
+                  {filteredExpenses.length}
+                </p>
+              </div>
+              <div className="p-3 bg-amber-50 rounded-lg">
+                <Filter className="h-6 w-6 text-amber-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Category Breakdown */}
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Filter className="h-5 w-5 text-slate-600" />
+            <CardTitle className="text-base font-semibold">Totali per Categoria</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(summaryByTag).map(([tag, data]) => (
+              <div key={tag} className="p-4 bg-slate-50 rounded-lg">
+                <Badge className={tagColors[tag] || 'bg-slate-100 text-slate-700'}>
+                  {tag}
+                </Badge>
+                <p className="text-xl font-bold text-slate-900 mt-2">
+                  €{data.total.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">{data.count} spese</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Filtered Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="pt-4">
