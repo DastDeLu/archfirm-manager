@@ -35,23 +35,23 @@ import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 
 const TAGS = [
-  'Raw Material Purchases',
-  'Production Costs',
-  'Personnel Costs',
-  'General Costs',
-  'Administrative Costs',
-  'Mortgages and Loans',
-  'Tax Charges'
+  'Acquisti materie prime',
+  'Costi Produttivi',
+  'Costi del Personale',
+  'Costi Generali',
+  'Costi Amministrativi',
+  'Mutui e Prestiti',
+  'Oneri Tributari'
 ];
 
 const tagColors = {
-  'Raw Material Purchases': 'bg-amber-100 text-amber-700',
-  'Production Costs': 'bg-orange-100 text-orange-700',
-  'Personnel Costs': 'bg-emerald-100 text-emerald-700',
-  'General Costs': 'bg-blue-100 text-blue-700',
-  'Administrative Costs': 'bg-purple-100 text-purple-700',
-  'Mortgages and Loans': 'bg-red-100 text-red-700',
-  'Tax Charges': 'bg-rose-100 text-rose-700',
+  'Acquisti materie prime': 'bg-amber-100 text-amber-700',
+  'Costi Produttivi': 'bg-orange-100 text-orange-700',
+  'Costi del Personale': 'bg-emerald-100 text-emerald-700',
+  'Costi Generali': 'bg-blue-100 text-blue-700',
+  'Costi Amministrativi': 'bg-purple-100 text-purple-700',
+  'Mutui e Prestiti': 'bg-red-100 text-red-700',
+  'Oneri Tributari': 'bg-rose-100 text-rose-700',
 };
 
 export default function Expenses() {
@@ -132,7 +132,7 @@ export default function Expenses() {
         amount: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         description: '',
-        tag: 'General Costs',
+        tag: 'Costi Generali',
         expense_type: 'variable',
         payment_method: 'bank_transfer',
         nature: '',
