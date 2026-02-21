@@ -3,20 +3,21 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { fee } = await req.json();
+    const { event, data: feeRecord, old_data } = await req.json();
 
-    if (!fee || !fee.id) {
+    if (!feeRecord || !feeRecord.id) {
       return Response.json({ error: 'Fee data required' }, { status: 400 });
     }
 
-    // Fetch the full fee record
-    const feeRecord = await base44.asServiceRole.entities.Fee.get(fee.id);
+    // Only process if status changed FROM "Da incassare" TO "Incassati"
+    const statusChangedToCollected = 
+      old_data?.payment_status === 'Da incassare' && 
+      feeRecord.payment_status === 'Incassati';
 
-    // Only process if status changed to "Incassati"
-    if (feeRecord.payment_status !== 'Incassati') {
+    if (!statusChangedToCollected) {
       return Response.json({ 
         success: true, 
-        message: 'Not yet collected, no action needed' 
+        message: 'No status change to collected, no action needed' 
       });
     }
 
@@ -35,7 +36,8 @@ Deno.serve(async (req) => {
 
     return Response.json({ 
       success: true,
-      message: 'Revenue created and cash flow updated'
+      message: 'Revenue created and cash flow updated',
+      revenue: revenueData
     });
 
   } catch (error) {
