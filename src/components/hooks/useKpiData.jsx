@@ -126,18 +126,20 @@ export function useKpiData() {
     const result = {};
     kpiResults.forEach(kpi => {
       const definition = KPI_DEFINITIONS[kpi.id];
-      result[kpi.id] = {
-        id: kpi.id,
-        label: kpi.label,
-        category: definition.category,
-        value: kpi.value,
-        formattedValue: formatKpiValue(kpi.value, definition.format),
-        status: kpi.status === 'green' ? 'ok' : kpi.status === 'yellow' ? 'attention' : 'critical',
-        icon: kpi.icon,
-        target: getKpiTarget(kpi.id),
-        formula: definition.formula,
-        thresholds: definition.thresholds,
-      };
+      if (definition) {
+        result[kpi.id] = {
+          id: kpi.id,
+          label: kpi.label,
+          category: definition.category || 'generale',
+          value: kpi.value,
+          formattedValue: formatKpiValue(kpi.value, definition.format),
+          status: kpi.status === 'green' ? 'ok' : kpi.status === 'yellow' ? 'attention' : 'critical',
+          icon: kpi.icon,
+          target: getKpiTarget(kpi.id),
+          formula: definition.formula,
+          thresholds: definition.thresholds,
+        };
+      }
     });
 
     return result;
