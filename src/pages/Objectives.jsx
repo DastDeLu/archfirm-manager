@@ -334,13 +334,13 @@ export default function Objectives() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Categoria</Label>
+                  <Label htmlFor="category">KPI di Riferimento</Label>
                   <Select
                     value={formData.category}
                     onValueChange={(value) => setFormData({ ...formData, category: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleziona categoria" />
+                      <SelectValue placeholder="Seleziona KPI" />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(CATEGORY_LABELS).map(([key, label]) => (

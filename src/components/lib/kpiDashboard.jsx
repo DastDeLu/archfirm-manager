@@ -198,17 +198,17 @@ export function getKpiTarget(kpiId, thresholds = null, lessIsBetter = null, form
   }
 }
 
+// Mappa diretta dei 5 KPI per la creazione di obiettivi
 export const KPI_CATEGORIES = {
-  finanziari: ['cassaAttuale', 'cassaFineAnno', 'indiceIncasso'],
-  economici: ['indiceSpese'],
-  operativi: ['backlogMesi'],
+  cassaAttuale: 'Cassa Attuale',
+  cassaFineAnno: 'Cassa Prevista Fine Anno',
+  indiceIncasso: 'Ritardo Incassi',
+  indiceSpese: 'Spese vs Budget',
+  backlogMesi: 'Backlog',
 };
 
-export const CATEGORY_LABELS = {
-  finanziari: 'KPI Finanziari',
-  economici: 'KPI Economici',
-  operativi: 'KPI Operativi',
-};
+// Manteniamo per retrocompatibilità
+export const CATEGORY_LABELS = KPI_CATEGORIES;
 
 /**
  * Calcola i 5 KPI fondamentali con logica a semaforo
