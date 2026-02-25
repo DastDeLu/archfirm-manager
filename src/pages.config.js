@@ -68,6 +68,7 @@ import SettingsPage from './pages/SettingsPage';
 import Treasury from './pages/Treasury';
 import WBS from './pages/WBS';
 import WBSProjects from './pages/WBSProjects';
+import Automations from './pages/Automations';
 import __Layout from './Layout.jsx';
 
 
@@ -93,6 +94,7 @@ export const PAGES = {
     "Treasury": Treasury,
     "WBS": WBS,
     "WBSProjects": WBSProjects,
+    "Automations": Automations,
 }
 
 export const pagesConfig = {
