@@ -154,15 +154,21 @@ export function getKpiStatus(kpiId, value, thresholds = null, lessIsBetter = nul
 /**
  * Formats KPI value based on format type
  * @param {number} value - Value to format
- * @param {string} format - Format type (currency, percentage)
+ * @param {string} format - Format type (currency, percentage, ratio, months)
  * @returns {string}
  */
 export function formatKpiValue(value, format) {
   if (format === 'currency') {
-    return `€${value.toLocaleString('it-IT')}`;
+    return `€${value.toLocaleString('it-IT', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   }
   if (format === 'percentage') {
     return `${value.toFixed(1)}%`;
+  }
+  if (format === 'ratio') {
+    return `${value.toFixed(2)}`;
+  }
+  if (format === 'months') {
+    return `${value.toFixed(1)} mesi`;
   }
   return value.toString();
 }
@@ -193,35 +199,93 @@ export function getKpiTarget(kpiId, thresholds = null, lessIsBetter = null, form
 }
 
 export const KPI_CATEGORIES = {
-  finanziari: ['fatturato', 'cassa', 'indiceIncasso'],
-  economici: ['marginePercentuale', 'ebitdaPercentuale', 'costiFissiSuRicavi'],
-  operativi: ['backlog', 'oreNonFatturatoPercentuale', 'ricavoPerOra'],
-  decisioni: ['dividendoSostenibile'],
+  finanziari: ['cassaAttuale', 'cassaFineAnno', 'indiceIncasso'],
+  economici: ['indiceSpese'],
+  operativi: ['backlogMesi'],
 };
 
 export const CATEGORY_LABELS = {
   finanziari: 'KPI Finanziari',
   economici: 'KPI Economici',
   operativi: 'KPI Operativi',
-  decisioni: 'Supporto Decisioni',
 };
 
-// Mock data for KPI Dashboard
+/**
+ * Calcola i 5 KPI fondamentali con logica a semaforo
+ * @param {Object} input - Oggetto con i valori di input
+ * @param {number} input.Cassa_Attuale - Saldo attuale in cassa
+ * @param {number} input.Cassa_Fine_Anno_Prevista - Previsione cassa a fine anno
+ * @param {number} input.Indice_Incassi - Rapporto incassi reali/attesi (0-1 o 0-100)
+ * @param {number} input.Indice_Spese - Rapporto spese reali/attese
+ * @param {number} input.Backlog_Mesi - Mesi di copertura del backlog
+ * @returns {Array<Object>} Array di oggetti KPI con id, label, value, status, icon
+ */
+export function calculateKPIStatus(input) {
+  const {
+    Cassa_Attuale,
+    Cassa_Fine_Anno_Prevista,
+    Indice_Incassi,
+    Indice_Spese,
+    Backlog_Mesi,
+  } = input;
+
+  // Normalizza Indice_Incassi se è espresso come percentuale (0-100)
+  const indiceIncassiNormalized = Indice_Incassi > 1 ? Indice_Incassi : Indice_Incassi * 100;
+
+  return [
+    {
+      id: 'cassaAttuale',
+      label: 'Cassa Attuale',
+      value: Cassa_Attuale,
+      status: Cassa_Attuale >= 65000 ? 'green' : Cassa_Attuale >= 55000 ? 'yellow' : 'red',
+      icon: Cassa_Attuale >= 65000 ? '🟢' : Cassa_Attuale >= 55000 ? '🟡' : '🔴',
+    },
+    {
+      id: 'cassaFineAnno',
+      label: 'Cassa Prevista Fine Anno',
+      value: Cassa_Fine_Anno_Prevista,
+      status: Cassa_Fine_Anno_Prevista >= 70000 ? 'green' : Cassa_Fine_Anno_Prevista >= 55000 ? 'yellow' : 'red',
+      icon: Cassa_Fine_Anno_Prevista >= 70000 ? '🟢' : Cassa_Fine_Anno_Prevista >= 55000 ? '🟡' : '🔴',
+    },
+    {
+      id: 'indiceIncasso',
+      label: 'Ritardo Incassi',
+      value: indiceIncassiNormalized,
+      status: indiceIncassiNormalized >= 90 ? 'green' : indiceIncassiNormalized >= 80 ? 'yellow' : 'red',
+      icon: indiceIncassiNormalized >= 90 ? '🟢' : indiceIncassiNormalized >= 80 ? '🟡' : '🔴',
+    },
+    {
+      id: 'indiceSpese',
+      label: 'Spese vs Budget',
+      value: Indice_Spese,
+      status: Indice_Spese <= 1.00 ? 'green' : Indice_Spese <= 1.10 ? 'yellow' : 'red',
+      icon: Indice_Spese <= 1.00 ? '🟢' : Indice_Spese <= 1.10 ? '🟡' : '🔴',
+    },
+    {
+      id: 'backlogMesi',
+      label: 'Backlog (Copertura)',
+      value: Backlog_Mesi,
+      status: Backlog_Mesi >= 4 ? 'green' : 'red',
+      icon: Backlog_Mesi >= 4 ? '🟢' : '🔴',
+    },
+  ];
+}
+
+// Esempio di utilizzo con dati di test
 export const mockKpiData = {
-  fatturato: 85000,
-  marginePercentuale: 38,
-  ebitdaPercentuale: 33,
-  cassa: 67000,
-  indiceIncasso: 92,
-  backlog: 125000,
-  oreNonFatturatoPercentuale: 18,
-  ricavoPerOra: 95,
-  costiFissiSuRicavi: 28,
-  dividendoSostenibile: 15000,
-  
-  // Additional context data
-  oreEffettive: 650,
-  oreFatturate: 533,
-  costiFissi: 23800,
-  ricaviTotali: 85000,
+  Cassa_Attuale: 73404,
+  Cassa_Fine_Anno_Prevista: 52000,
+  Indice_Incassi: 0.85, // può essere 0.85 o 85
+  Indice_Spese: 1.15,
+  Backlog_Mesi: 5,
 };
+
+// Risultato dell'esempio:
+// calculateKPIStatus(mockKpiData) restituisce:
+// [
+//   { id: 'cassaAttuale', label: 'Cassa Attuale', value: 73404, status: 'green', icon: '🟢' },
+//   { id: 'cassaFineAnno', label: 'Cassa Prevista Fine Anno', value: 52000, status: 'red', icon: '🔴' },
+//   { id: 'indiceIncasso', label: 'Ritardo Incassi', value: 85, status: 'yellow', icon: '🟡' },
+//   { id: 'indiceSpese', label: 'Spese vs Budget', value: 1.15, status: 'red', icon: '🔴' },
+//   { id: 'backlogMesi', label: 'Backlog (Copertura)', value: 5, status: 'green', icon: '🟢' }
+// ]
