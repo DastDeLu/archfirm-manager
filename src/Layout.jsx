@@ -27,6 +27,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import GlobalSearch from './components/search/GlobalSearch';
 import ControlDashboardSidebarWidget from './components/dashboard/ControlDashboardSidebarWidget';
+import NotificationCenter from './components/notifications/NotificationCenter';
 import { BudgetProvider } from './components/budget/BudgetContext';
 import { calculateCashForecast } from './components/utils/cashForecast.jsx';
 
@@ -68,34 +69,9 @@ const navItems = [
         },
 ];
 
-function CashDisplay({ bankCash, pettyCash, forecast, cashForecastAlerts }) {
-  const criticalAlerts = cashForecastAlerts?.filter(a => a.level === 'critical') || [];
-  const attentionAlerts = cashForecastAlerts?.filter(a => a.level === 'attention') || [];
-
+function CashDisplay({ bankCash, pettyCash, forecast }) {
   return (
     <div className="px-4 py-5 border-b border-slate-200/60">
-      {/* Alerts Summary */}
-      {(criticalAlerts.length > 0 || attentionAlerts.length > 0) && (
-        <div className="mb-3 space-y-2">
-          {criticalAlerts.map(alert => (
-            <div key={alert.id} className="p-2 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Shield className="h-3 w-3 text-red-600" />
-                <span className="text-xs font-medium text-red-900">{alert.id}</span>
-              </div>
-            </div>
-          ))}
-          {attentionAlerts.map(alert => (
-            <div key={alert.id} className="p-2 bg-amber-50 border border-amber-200 rounded-lg">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-3 w-3 text-amber-600" />
-                <span className="text-xs font-medium text-amber-900">{alert.id}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
       <div className="space-y-3">
         <div className="flex items-center justify-between p-3 bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-xl">
           <div className="flex items-center gap-2.5">
@@ -368,7 +344,6 @@ export default function Layout({ children, currentPageName }) {
               bankCash={cashData.bankCash} 
               pettyCash={cashData.pettyCash} 
               forecast={cashData.forecast}
-              cashForecastAlerts={cashData.cashForecastAlerts}
             />
             <nav className="p-3 space-y-1">
               {navItems.map(item => (
@@ -403,7 +378,6 @@ export default function Layout({ children, currentPageName }) {
           bankCash={cashData.bankCash} 
           pettyCash={cashData.pettyCash} 
           forecast={cashData.forecast}
-          cashForecastAlerts={cashData.cashForecastAlerts}
         />
 
         <ControlDashboardSidebarWidget />
