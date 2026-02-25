@@ -10,7 +10,7 @@ import {
   TrendingUp, TrendingDown, Wallet, Receipt, Building2, FolderKanban, 
   ArrowRight, AlertCircle, Calendar, Euro, Percent, AlertTriangle, CheckCircle
 } from 'lucide-react';
-import { calculateCashForecast } from '../components/utils/cashForecast';
+import { calculateCashForecast } from '../components/utils/cashForecast.jsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

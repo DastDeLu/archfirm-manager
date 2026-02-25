@@ -26,7 +26,7 @@ import {
 } from 'recharts';
 import { Plus, Pencil, TrendingUp, TrendingDown, Calendar, Euro, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { calculateCashForecast } from '../components/utils/cashForecast';
+import { calculateCashForecast } from '../components/utils/cashForecast.jsx';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',

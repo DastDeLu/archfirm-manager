@@ -28,7 +28,7 @@ import { cn } from '@/lib/utils';
 import GlobalSearch from './components/search/GlobalSearch';
 import ControlDashboardSidebarWidget from './components/dashboard/ControlDashboardSidebarWidget';
 import { BudgetProvider } from './components/budget/BudgetContext';
-import { calculateCashForecast } from './components/utils/cashForecast';
+import { calculateCashForecast } from './components/utils/cashForecast.jsx';
 
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: 'Dashboard' },
