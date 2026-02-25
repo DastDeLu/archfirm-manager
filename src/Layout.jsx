@@ -396,7 +396,12 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </div>
 
-        <CashDisplay {...cashData} />
+        <CashDisplay 
+          bankCash={cashData.bankCash} 
+          pettyCash={cashData.pettyCash} 
+          forecast={cashData.forecast}
+          cashForecastAlerts={cashData.cashForecastAlerts}
+        />
 
         <ControlDashboardSidebarWidget />
 
