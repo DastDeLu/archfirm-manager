@@ -445,18 +445,21 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold text-slate-900">{currentPageName}</h2>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSearchOpen(true)}
-            className="gap-2 text-slate-500"
-          >
-            <Search className="h-4 w-4" />
-            <span>Search</span>
-            <kbd className="ml-2 pointer-events-none h-5 select-none items-center gap-1 rounded border bg-slate-100 px-1.5 text-[10px] font-medium hidden sm:inline-flex">
-              ⌘K
-            </kbd>
-          </Button>
+          <div className="flex items-center gap-2">
+            <NotificationCenter />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSearchOpen(true)}
+              className="gap-2 text-slate-500"
+            >
+              <Search className="h-4 w-4" />
+              <span>Search</span>
+              <kbd className="ml-2 pointer-events-none h-5 select-none items-center gap-1 rounded border bg-slate-100 px-1.5 text-[10px] font-medium hidden sm:inline-flex">
+                ⌘K
+              </kbd>
+            </Button>
+          </div>
         </div>
         <div className="p-4 lg:p-6">
           {children}

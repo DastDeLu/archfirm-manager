@@ -60,6 +60,7 @@ import Fees from './pages/Fees';
 import Forecast from './pages/Forecast';
 import KpiTargets from './pages/KpiTargets';
 import Marketing from './pages/Marketing';
+import Objectives from './pages/Objectives';
 import Projects from './pages/Projects';
 import Quotes from './pages/Quotes';
 import Revenues from './pages/Revenues';
@@ -67,7 +68,6 @@ import SettingsPage from './pages/SettingsPage';
 import Treasury from './pages/Treasury';
 import WBS from './pages/WBS';
 import WBSProjects from './pages/WBSProjects';
-import Objectives from './pages/Objectives';
 import __Layout from './Layout.jsx';
 
 
@@ -85,6 +85,7 @@ export const PAGES = {
     "Forecast": Forecast,
     "KpiTargets": KpiTargets,
     "Marketing": Marketing,
+    "Objectives": Objectives,
     "Projects": Projects,
     "Quotes": Quotes,
     "Revenues": Revenues,
@@ -92,7 +93,6 @@ export const PAGES = {
     "Treasury": Treasury,
     "WBS": WBS,
     "WBSProjects": WBSProjects,
-    "Objectives": Objectives,
 }
 
 export const pagesConfig = {
