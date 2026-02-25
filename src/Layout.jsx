@@ -340,9 +340,12 @@ export default function Layout({ children, currentPageName }) {
           </div>
           <span className="font-semibold text-slate-900">ArchFirm</span>
         </div>
-        <button onClick={() => setSearchOpen(true)} className="p-2 rounded-lg hover:bg-slate-100">
-          <Search className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-1">
+          <NotificationCenter />
+          <button onClick={() => setSearchOpen(true)} className="p-2 rounded-lg hover:bg-slate-100">
+            <Search className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       {/* Mobile sidebar overlay */}

@@ -301,75 +301,9 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Cash Forecast Alerts */}
-      {cashForecastData.alerts.filter(a => a.level !== 'ok').length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {cashForecastData.alerts.filter(a => a.level !== 'ok').map(alert => (
-            <Card 
-              key={alert.id}
-              className={cn(
-                "border-2",
-                alert.level === 'critical' ? 'border-red-200 bg-red-50/50' : 'border-amber-200 bg-amber-50/50'
-              )}
-            >
-              <CardContent className="pt-4">
-                <div className="flex items-start gap-3">
-                  <div className={cn(
-                    "p-2 rounded-lg",
-                    alert.level === 'critical' ? 'bg-red-100' : 'bg-amber-100'
-                  )}>
-                    {alert.level === 'critical' ? (
-                      <AlertCircle className="h-5 w-5 text-red-600" />
-                    ) : (
-                      <AlertTriangle className="h-5 w-5 text-amber-600" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className={cn(
-                      "text-sm font-semibold mb-1",
-                      alert.level === 'critical' ? 'text-red-900' : 'text-amber-900'
-                    )}>
-                      {alert.id.charAt(0).toUpperCase() + alert.id.slice(1)}
-                    </p>
-                    <p className={cn(
-                      "text-xs",
-                      alert.level === 'critical' ? 'text-red-700' : 'text-amber-700'
-                    )}>
-                      {alert.message}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
 
-      {/* Alerts */}
-      {overdueInstallments.length > 0 && (
-        <Card className="border-red-200 bg-red-50/50">
-          <CardContent className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-red-600" />
-              </div>
-              <div>
-                <p className="font-medium text-red-900">
-                  {overdueInstallments.length} Rata{overdueInstallments.length > 1 ? 'e' : ''} Scaduta{overdueInstallments.length > 1 ? 'e' : ''}
-                </p>
-                <p className="text-sm text-red-700">
-                  Totale: €{overdueInstallments.reduce((sum, i) => sum + (i.amount || 0), 0).toLocaleString('it-IT')}
-                </p>
-              </div>
-            </div>
-            <Link to={createPageUrl('Fees')}>
-              <Button variant="outline" size="sm" className="text-red-700 border-red-200 hover:bg-red-100">
-                Vedi Dettagli <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      )}
+
+
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
