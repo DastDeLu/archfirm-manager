@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Target, ArrowRight, TrendingUp, AlertTriangle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { calculateObjectiveStatus } from '../objectives/objectiveLogic';
+import { KPI_CATEGORIES } from '../lib/kpiDashboard';
+import { useKpiData } from '../hooks/useKpiData';
 
 export default function KpiWidget() {
   const { data: objectives = [], isLoading } = useQuery({
@@ -15,7 +17,15 @@ export default function KpiWidget() {
     queryFn: () => base44.entities.Objective.list('-created_date', 100),
   });
 
-  const activeObjectives = objectives.filter(o => o.status === 'active').slice(0, 5);
+  const { kpis } = useKpiData();
+
+  // Filtra solo gli obiettivi che sono collegati ai 5 KPI
+  const kpiObjectives = objectives.filter(o => 
+    o.status === 'active' && Object.keys(KPI_CATEGORIES).includes(o.category)
+  ).slice(0, 5);
+
+  // Se non ci sono obiettivi KPI, mostra i primi 5 obiettivi attivi
+  const activeObjectives = kpiObjectives.length > 0 ? kpiObjectives : objectives.filter(o => o.status === 'active').slice(0, 5);
 
   const stats = {
     total: activeObjectives.length,
@@ -79,6 +89,9 @@ export default function KpiWidget() {
             <div className="space-y-2">
               {activeObjectives.map(obj => {
                 const { status, percentage } = calculateObjectiveStatus(obj);
+                const kpiData = obj.category && kpis[obj.category];
+                const isKpiLinked = !!kpiData;
+                
                 return (
                   <div
                     key={obj.id}
@@ -86,20 +99,25 @@ export default function KpiWidget() {
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className={cn(
-                        'w-2 h-2 rounded-full flex-shrink-0',
-                        status === 'on_track' ? 'bg-emerald-500' :
-                        status === 'at_risk' ? 'bg-amber-500' : 'bg-red-500'
-                      )} />
+                        'flex items-center justify-center flex-shrink-0',
+                        isKpiLinked ? 'text-lg' : 'w-2 h-2 rounded-full',
+                        !isKpiLinked && (status === 'on_track' ? 'bg-emerald-500' :
+                        status === 'at_risk' ? 'bg-amber-500' : 'bg-red-500')
+                      )}>
+                        {isKpiLinked ? kpiData.icon : null}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-slate-900 text-sm truncate">{obj.name}</p>
                         <p className="text-xs text-slate-500">
-                          {obj.category || 'Generale'}
+                          {KPI_CATEGORIES[obj.category] || obj.category || 'Generale'}
                         </p>
                       </div>
                     </div>
                     <div className="text-right ml-2">
                       <p className="text-sm font-bold text-slate-900">{percentage.toFixed(0)}%</p>
-                      <p className="text-xs text-slate-500">completato</p>
+                      {isKpiLinked && (
+                        <p className="text-xs text-slate-600 font-medium">{kpiData.formattedValue}</p>
+                      )}
                     </div>
                   </div>
                 );
