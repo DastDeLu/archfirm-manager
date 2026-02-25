@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Zap, Mail, Bell, Edit2, Trash2, TrendingUp, Calendar } from 'lucide-react';
-import { PageHeader } from '@/components/ui/PageHeader';
+import PageHeader from '@/components/ui/PageHeader';
 import AutomationRuleForm from '../components/automation/AutomationRuleForm';
 
 export default function Automations() {
