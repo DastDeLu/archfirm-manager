@@ -8,8 +8,9 @@ import {
 } from 'recharts';
 import {
   TrendingUp, TrendingDown, Wallet, Receipt, Building2, FolderKanban, 
-  ArrowRight, AlertCircle, Calendar, Euro, Percent
+  ArrowRight, AlertCircle, Calendar, Euro, Percent, AlertTriangle, CheckCircle
 } from 'lucide-react';
+import { calculateCashForecast } from '../components/utils/cashForecast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -128,6 +129,39 @@ export default function Dashboard() {
     return { won, lost, rate };
   }, [quotes]);
 
+  // Calculate cash forecast
+  const cashForecastData = React.useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    const previousYear = currentYear - 1;
+    
+    const ytdRevenues = revenues.filter(r => r.date?.startsWith(String(currentYear)));
+    const ytdExpenses = expenses.filter(e => e.date?.startsWith(String(currentYear)));
+    const cfIncassiYTD = ytdRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+    const cfSpeseYTD = ytdExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    
+    const riporti = installments
+      .filter(i => i.status !== 'paid' && i.status !== 'cancelled')
+      .reduce((sum, i) => sum + (i.amount || 0), 0);
+    
+    const previousYearRevenues = revenues.filter(r => r.date?.startsWith(String(previousYear)));
+    const baseAnnoPrecedente = previousYearRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+    
+    const cassaAttuale = totalRevenue - totalExpenses;
+    
+    return calculateCashForecast({
+      cassaAttuale,
+      riporti,
+      percentualeIncasso: 0.70,
+      baseAnnoPrecedente,
+      growthRate: 0.35,
+      speseAnnuePreviste: 117000,
+      cfIncassiYTD,
+      cfSpeseYTD,
+      meseCorrente: currentMonth
+    });
+  }, [revenues, expenses, installments, totalRevenue, totalExpenses]);
+
   return (
     <div className="space-y-6">
       {/* Cash Position */}
@@ -197,6 +231,50 @@ export default function Dashboard() {
             trend={conversionStats.won > conversionStats.lost ? 'up' : undefined}
             trendValue={`${conversionStats.won}/${conversionStats.won + conversionStats.lost} vinti`}
           />
+        </div>
+      )}
+
+      {/* Cash Forecast Alerts */}
+      {cashForecastData.alerts.filter(a => a.level !== 'ok').length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {cashForecastData.alerts.filter(a => a.level !== 'ok').map(alert => (
+            <Card 
+              key={alert.id}
+              className={cn(
+                "border-2",
+                alert.level === 'critical' ? 'border-red-200 bg-red-50/50' : 'border-amber-200 bg-amber-50/50'
+              )}
+            >
+              <CardContent className="pt-4">
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    "p-2 rounded-lg",
+                    alert.level === 'critical' ? 'bg-red-100' : 'bg-amber-100'
+                  )}>
+                    {alert.level === 'critical' ? (
+                      <AlertCircle className="h-5 w-5 text-red-600" />
+                    ) : (
+                      <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className={cn(
+                      "text-sm font-semibold mb-1",
+                      alert.level === 'critical' ? 'text-red-900' : 'text-amber-900'
+                    )}>
+                      {alert.id.charAt(0).toUpperCase() + alert.id.slice(1)}
+                    </p>
+                    <p className={cn(
+                      "text-xs",
+                      alert.level === 'critical' ? 'text-red-700' : 'text-amber-700'
+                    )}>
+                      {alert.message}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
 

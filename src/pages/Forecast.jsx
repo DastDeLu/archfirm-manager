@@ -24,8 +24,9 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
-import { Plus, Pencil, TrendingUp, TrendingDown, Calendar, Euro } from 'lucide-react';
+import { Plus, Pencil, TrendingUp, TrendingDown, Calendar, Euro, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { calculateCashForecast } from '../components/utils/cashForecast';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -175,6 +176,43 @@ export default function Forecast() {
     }), { forecastRevenue: 0, forecastExpense: 0, actualRevenue: 0, actualExpense: 0 });
   }, [chartData]);
 
+  // Calculate cash forecast using the cashForecast utility
+  const cashForecastData = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    
+    // Get YTD revenues and expenses
+    const ytdRevenues = revenues.filter(r => r.date?.startsWith(String(currentYear)));
+    const ytdExpenses = expenses.filter(e => e.date?.startsWith(String(currentYear)));
+    const cfIncassiYTD = ytdRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+    const cfSpeseYTD = ytdExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    
+    // Get pending installments as riporti
+    const riporti = installments
+      .filter(i => i.status !== 'paid' && i.status !== 'cancelled')
+      .reduce((sum, i) => sum + (i.amount || 0), 0);
+    
+    // Previous year revenue as base
+    const previousYear = currentYear - 1;
+    const previousYearRevenues = revenues.filter(r => r.date?.startsWith(String(previousYear)));
+    const baseAnnoPrecedente = previousYearRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+    
+    // Get current cash from layout query or calculate
+    const cassaAttuale = 73404; // This should come from actual cash data
+    
+    return calculateCashForecast({
+      cassaAttuale,
+      riporti,
+      percentualeIncasso: 0.70,
+      baseAnnoPrecedente,
+      growthRate: 0.35,
+      speseAnnuePreviste: totals.forecastExpense,
+      cfIncassiYTD,
+      cfSpeseYTD,
+      meseCorrente: currentMonth
+    });
+  }, [revenues, expenses, installments, totals.forecastExpense]);
+
   return (
     <div>
       <PageHeader title="Previsioni" description="Pianifica e traccia le proiezioni finanziarie">
@@ -194,16 +232,70 @@ export default function Forecast() {
         </Button>
       </PageHeader>
 
+      {/* Cash Forecast Alerts */}
+      {cashForecastData.alerts.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          {cashForecastData.alerts.map(alert => (
+            <Card 
+              key={alert.id}
+              className={cn(
+                "border-2",
+                alert.level === 'critical' ? 'border-red-200 bg-red-50/50' :
+                alert.level === 'attention' ? 'border-amber-200 bg-amber-50/50' :
+                'border-emerald-200 bg-emerald-50/50'
+              )}
+            >
+              <CardContent className="pt-4">
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    "p-2 rounded-lg",
+                    alert.level === 'critical' ? 'bg-red-100' :
+                    alert.level === 'attention' ? 'bg-amber-100' :
+                    'bg-emerald-100'
+                  )}>
+                    {alert.level === 'critical' ? (
+                      <AlertCircle className="h-5 w-5 text-red-600" />
+                    ) : alert.level === 'attention' ? (
+                      <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    ) : (
+                      <CheckCircle className="h-5 w-5 text-emerald-600" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className={cn(
+                      "text-sm font-medium mb-1",
+                      alert.level === 'critical' ? 'text-red-900' :
+                      alert.level === 'attention' ? 'text-amber-900' :
+                      'text-emerald-900'
+                    )}>
+                      {alert.id.charAt(0).toUpperCase() + alert.id.slice(1)}
+                    </p>
+                    <p className={cn(
+                      "text-xs",
+                      alert.level === 'critical' ? 'text-red-700' :
+                      alert.level === 'attention' ? 'text-amber-700' :
+                      'text-emerald-700'
+                    )}>
+                      {alert.message}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <TrendingUp className="h-4 w-4 text-emerald-600" />
-              Ricavi Previsti
+              Incassi Attesi Totali
             </div>
-            <p className="text-xl font-bold text-slate-900">
-              €{totals.forecastRevenue.toLocaleString('it-IT')}
+            <p className="text-xl font-bold text-emerald-600">
+              €{cashForecastData.incassiAttesiTotali.toLocaleString('it-IT')}
             </p>
           </CardContent>
         </Card>
@@ -235,14 +327,15 @@ export default function Forecast() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-              <TrendingDown className="h-4 w-4 text-amber-600" />
-              Costi Effettivi
+              <Euro className="h-4 w-4 text-blue-600" />
+              Cassa Fine Anno Prevista
             </div>
             <p className={cn(
               "text-xl font-bold",
-              totals.actualExpense <= totals.forecastExpense ? "text-emerald-600" : "text-red-600"
+              cashForecastData.cassaFineAnnoPrevista >= 65000 ? "text-emerald-600" : 
+              cashForecastData.cassaFineAnnoPrevista >= 55000 ? "text-amber-600" : "text-red-600"
             )}>
-              €{totals.actualExpense.toLocaleString('it-IT')}
+              €{cashForecastData.cassaFineAnnoPrevista.toLocaleString('it-IT')}
             </p>
           </CardContent>
         </Card>

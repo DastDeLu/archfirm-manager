@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils';
 import GlobalSearch from './components/search/GlobalSearch';
 import ControlDashboardSidebarWidget from './components/dashboard/ControlDashboardSidebarWidget';
 import { BudgetProvider } from './components/budget/BudgetContext';
+import { calculateCashForecast } from './components/utils/cashForecast';
 
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: 'Dashboard' },
@@ -67,9 +68,34 @@ const navItems = [
         },
 ];
 
-function CashDisplay({ bankCash, pettyCash, forecast }) {
+function CashDisplay({ bankCash, pettyCash, forecast, cashForecastAlerts }) {
+  const criticalAlerts = cashForecastAlerts?.filter(a => a.level === 'critical') || [];
+  const attentionAlerts = cashForecastAlerts?.filter(a => a.level === 'attention') || [];
+
   return (
     <div className="px-4 py-5 border-b border-slate-200/60">
+      {/* Alerts Summary */}
+      {(criticalAlerts.length > 0 || attentionAlerts.length > 0) && (
+        <div className="mb-3 space-y-2">
+          {criticalAlerts.map(alert => (
+            <div key={alert.id} className="p-2 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Shield className="h-3 w-3 text-red-600" />
+                <span className="text-xs font-medium text-red-900">{alert.id}</span>
+              </div>
+            </div>
+          ))}
+          {attentionAlerts.map(alert => (
+            <div key={alert.id} className="p-2 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-3 w-3 text-amber-600" />
+                <span className="text-xs font-medium text-amber-900">{alert.id}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="space-y-3">
         <div className="flex items-center justify-between p-3 bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-xl">
           <div className="flex items-center gap-2.5">
@@ -207,17 +233,20 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   // React Query per i dati della cassa - si aggiorna automaticamente
-  const { data: cashData = { bankCash: 0, pettyCash: 0, forecast: 0 } } = useQuery({
+  const { data: cashData = { bankCash: 0, pettyCash: 0, forecast: 0, cashForecastAlerts: [] } } = useQuery({
     queryKey: ['cashData'],
     queryFn: async () => {
-      const [revenues, expenses, forecasts, openingBalances] = await Promise.all([
+      const [revenues, expenses, forecasts, openingBalances, installments] = await Promise.all([
         base44.entities.Revenue.list(),
         base44.entities.Expense.list(),
         base44.entities.Forecast.list(),
-        base44.entities.OpeningBalance.list()
+        base44.entities.OpeningBalance.list(),
+        base44.entities.Installment.list()
       ]);
 
       const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth() + 1;
+      const previousYear = currentYear - 1;
 
       // Get opening balances for current year
       const bankOpening = openingBalances.find(ob => ob.type === 'bank' && ob.year === currentYear)?.amount || 0;
@@ -246,13 +275,42 @@ export default function Layout({ children, currentPageName }) {
       const pettyTotal = pettyOpening + pettyRevenues - pettyExpenses;
 
       // Forecast calculation
-      const currentMonth = new Date().getMonth() + 1;
       const currentForecast = forecasts.find(f => f.month === currentMonth && f.year === currentYear);
       const forecastNet = currentForecast 
         ? (currentForecast.revenue_amount || 0) - (currentForecast.expense_amount || 0)
         : 0;
 
-      return { bankCash: bankTotal, pettyCash: pettyTotal, forecast: forecastNet };
+      // Calculate cash forecast
+      const ytdRevenues = revenues.filter(r => r.date?.startsWith(String(currentYear)));
+      const ytdExpenses = expenses.filter(e => e.date?.startsWith(String(currentYear)));
+      const cfIncassiYTD = ytdRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+      const cfSpeseYTD = ytdExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+      
+      const riporti = installments
+        .filter(i => i.status !== 'paid' && i.status !== 'cancelled')
+        .reduce((sum, i) => sum + (i.amount || 0), 0);
+      
+      const previousYearRevenues = revenues.filter(r => r.date?.startsWith(String(previousYear)));
+      const baseAnnoPrecedente = previousYearRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+
+      const cashForecast = calculateCashForecast({
+        cassaAttuale: bankTotal,
+        riporti,
+        percentualeIncasso: 0.70,
+        baseAnnoPrecedente,
+        growthRate: 0.35,
+        speseAnnuePreviste: 117000,
+        cfIncassiYTD,
+        cfSpeseYTD,
+        meseCorrente: currentMonth
+      });
+
+      return { 
+        bankCash: bankTotal, 
+        pettyCash: pettyTotal, 
+        forecast: forecastNet,
+        cashForecastAlerts: cashForecast.alerts
+      };
     },
     refetchInterval: 30000,
   });
@@ -303,7 +361,12 @@ export default function Layout({ children, currentPageName }) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <CashDisplay {...cashData} />
+            <CashDisplay 
+              bankCash={cashData.bankCash} 
+              pettyCash={cashData.pettyCash} 
+              forecast={cashData.forecast}
+              cashForecastAlerts={cashData.cashForecastAlerts}
+            />
             <nav className="p-3 space-y-1">
               {navItems.map(item => (
                 <NavItem 
