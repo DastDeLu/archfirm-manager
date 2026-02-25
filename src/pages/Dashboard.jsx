@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import StatCard from '../components/ui/StatCard';
 import CashPosition from '../components/treasury/CashPosition';
 import FeesWidget from '../components/dashboard/FeesWidget';
+import KpiWidget from '../components/dashboard/KpiWidget';
 import { format, startOfMonth, endOfMonth, isAfter, parseISO } from 'date-fns';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -492,6 +493,9 @@ export default function Dashboard() {
 
         <FeesWidget />
       </div>
+
+      {/* KPI Objectives Widget */}
+      <KpiWidget />
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
