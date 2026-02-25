@@ -2,22 +2,31 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { useKpiData } from '../components/hooks/useKpiData';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { KPI_CATEGORIES, CATEGORY_LABELS } from '../components/lib/kpiDashboard';
 import PageHeader from '../components/ui/PageHeader';
 import KpiCard from '../components/dashboard/KpiCard';
 import KpiHistoryChart from '../components/dashboard/KpiHistoryChart';
+import ObjectiveSummary from '../components/objectives/ObjectiveSummary';
+import ObjectiveCard from '../components/objectives/ObjectiveCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Settings, TrendingUp } from 'lucide-react';
+import { Activity, Settings, TrendingUp, Target } from 'lucide-react';
 
 export default function ControlDashboard() {
   const { kpis, isLoading, error } = useKpiData();
   const [selectedKpiForHistory, setSelectedKpiForHistory] = useState(null);
 
-  if (isLoading) {
+  const { data: objectives = [], isLoading: objectivesLoading } = useQuery({
+    queryKey: ['objectives'],
+    queryFn: () => base44.entities.Objective.list('-created_date', 100),
+  });
+
+  if (isLoading || objectivesLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500">Caricamento KPI...</div>
+        <div className="text-slate-500">Caricamento...</div>
       </div>
     );
   }
@@ -30,11 +39,13 @@ export default function ControlDashboard() {
     );
   }
 
+  const activeObjectives = objectives.filter(o => o.status === 'active');
+
   return (
     <div>
       <PageHeader 
-        title="Cruscotto di Controllo Mensile" 
-        description="Dashboard KPI con logica semaforo per monitoraggio performance"
+        title="Cruscotto di Controllo" 
+        description="Monitora obiettivi e KPI con logica semaforo in tempo reale"
       >
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -50,13 +61,41 @@ export default function ControlDashboard() {
         </div>
       </PageHeader>
 
-      <Tabs defaultValue="current" className="mb-6">
+      <Tabs defaultValue="objectives" className="mb-6">
         <TabsList>
-          <TabsTrigger value="current">Vista Corrente</TabsTrigger>
+          <TabsTrigger value="objectives">Obiettivi</TabsTrigger>
+          <TabsTrigger value="kpis">KPI</TabsTrigger>
           <TabsTrigger value="history">Andamento Storico</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="current" className="mt-6">
+        <TabsContent value="objectives" className="mt-6 space-y-6">
+          <ObjectiveSummary objectives={objectives} />
+          
+          {activeObjectives.length === 0 ? (
+            <div className="text-center py-12">
+              <Target className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-500 mb-4">Nessun obiettivo attivo</p>
+              <Button asChild>
+                <Link to={createPageUrl('Objectives')}>
+                  Crea il tuo primo obiettivo
+                </Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {activeObjectives.map(objective => (
+                <ObjectiveCard
+                  key={objective.id}
+                  objective={objective}
+                  onEdit={() => {}}
+                  onUpdateProgress={() => {}}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="kpis" className="mt-6">
 
       <div className="space-y-8">
         {Object.entries(KPI_CATEGORIES).map(([categoryId, kpiIds]) => (
