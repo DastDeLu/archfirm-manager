@@ -14,6 +14,7 @@ import { calculateCashForecast } from '../components/utils/cashForecast.jsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import StatCard from '../components/ui/StatCard';
 import CashPosition from '../components/treasury/CashPosition';
 import FeesWidget from '../components/dashboard/FeesWidget';
