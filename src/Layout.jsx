@@ -62,7 +62,7 @@ const navItems = [
           icon: Settings, 
           children: [
             { name: 'Dashboard Confronto', path: 'DashboardConfronto' },
-            { name: 'Obiettivi KPI', path: 'KpiTargets' },
+            { name: 'Obiettivi', path: 'Objectives' },
             { name: 'Impostazioni', path: 'SettingsPage' },
           ]
         },
