@@ -64,6 +64,7 @@ const navItems = [
           children: [
             { name: 'Dashboard Confronto', path: 'DashboardConfronto' },
             { name: 'Obiettivi', path: 'Objectives' },
+            { name: 'Automazioni', path: 'Automations' },
             { name: 'Impostazioni', path: 'SettingsPage' },
           ]
         },

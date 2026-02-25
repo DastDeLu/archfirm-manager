@@ -26,6 +26,17 @@ export default function NotificationCenter() {
     queryFn: () => base44.entities.Installment.list(),
   });
 
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['user-notifications'],
+    queryFn: async () => {
+      const user = await base44.auth.me();
+      return base44.entities.Notification.filter({ 
+        recipient_email: user.email,
+        is_read: false 
+      });
+    },
+  });
+
   const today = new Date();
   const next7Days = addDays(today, 7);
 
@@ -46,7 +57,7 @@ export default function NotificationCenter() {
     return isBefore(dueDate, today) || isBefore(dueDate, next7Days);
   });
 
-  const totalNotifications = criticalKpis.length + upcomingObjectives.length + overdueInstallments.length;
+  const totalNotifications = criticalKpis.length + upcomingObjectives.length + overdueInstallments.length + notifications.length;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -83,6 +94,38 @@ export default function NotificationCenter() {
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
+              {/* Notifiche da Automazioni */}
+              {notifications.map(notif => (
+                <div key={notif.id} className="p-3 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-start gap-3">
+                    <div className={cn(
+                      'p-2 rounded-lg',
+                      notif.type === 'error' && 'bg-red-100',
+                      notif.type === 'warning' && 'bg-amber-100',
+                      notif.type === 'success' && 'bg-green-100',
+                      notif.type === 'info' && 'bg-blue-100'
+                    )}>
+                      <AlertCircle className={cn(
+                        'h-4 w-4',
+                        notif.type === 'error' && 'text-red-600',
+                        notif.type === 'warning' && 'text-amber-600',
+                        notif.type === 'success' && 'text-green-600',
+                        notif.type === 'info' && 'text-blue-600'
+                      )} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm text-slate-900">{notif.title}</p>
+                      <p className="text-xs text-slate-600 mt-1">{notif.message}</p>
+                      {notif.category && (
+                        <Badge variant="outline" className="mt-2 text-xs">
+                          {notif.category}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
               {/* KPI Critici */}
               {criticalKpis.map(kpi => (
                 <div key={kpi.id} className="p-3 hover:bg-slate-50 transition-colors">
