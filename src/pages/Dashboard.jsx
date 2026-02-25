@@ -134,40 +134,7 @@ export default function Dashboard() {
     return { won, lost, rate };
   }, [quotes]);
 
-  // Top social channel performance
-  const topSocialPerformance = React.useMemo(() => {
-    const channelStats = marketingBudgets.reduce((acc, item) => {
-      const channel = item.channel || 'Non specificato';
-      if (!acc[channel]) {
-        acc[channel] = { conversions: 0, spent: 0, revenue: 0 };
-      }
-      acc[channel].conversions += item.conversions || 0;
-      acc[channel].spent += item.spent || 0;
-      return acc;
-    }, {});
-
-    revenues.forEach(rev => {
-      const desc = rev.description || '';
-      Object.keys(channelStats).forEach(channel => {
-        if (desc.toLowerCase().includes(channel.toLowerCase())) {
-          channelStats[channel].revenue += rev.amount || 0;
-        }
-      });
-    });
-
-    const channelArray = Object.entries(channelStats).map(([channel, data]) => ({
-      channel,
-      conversions: data.conversions,
-      spent: data.spent,
-      revenue: data.revenue,
-      roi: data.spent > 0 ? ((data.revenue - data.spent) / data.spent) * 100 : 0
-    }));
-
-    channelArray.sort((a, b) => b.conversions - a.conversions);
-    return channelArray[0] || null;
-  }, [marketingBudgets, revenues]);
-
-  // Calculate cash forecast
+  // Calculate cash forecast + marketing stats
   const cashForecastData = React.useMemo(() => {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
@@ -187,7 +154,7 @@ export default function Dashboard() {
     
     const cassaAttuale = totalRevenue - totalExpenses;
     
-    return calculateCashForecast({
+    const forecast = calculateCashForecast({
       cassaAttuale,
       riporti,
       percentualeIncasso: 0.70,
@@ -198,12 +165,94 @@ export default function Dashboard() {
       cfSpeseYTD,
       meseCorrente: currentMonth
     });
-  }, [revenues, expenses, installments, totalRevenue, totalExpenses]);
+
+    // Calculate marketing stats
+    const totalSpent = marketingBudgets.reduce((sum, b) => sum + (b.spent || 0), 0);
+    const conversionsByChannel = marketingBudgets.reduce((acc, item) => {
+      const channel = item.channel || 'Non specificato';
+      if (!acc[channel]) {
+        acc[channel] = { conversions: 0, spent: 0, revenue: 0 };
+      }
+      acc[channel].conversions += item.conversions || 0;
+      acc[channel].spent += item.spent || 0;
+      return acc;
+    }, {});
+
+    // Link revenues to channels
+    revenues.forEach(rev => {
+      const desc = rev.description || '';
+      Object.keys(conversionsByChannel).forEach(channel => {
+        if (desc.toLowerCase().includes(channel.toLowerCase())) {
+          conversionsByChannel[channel].revenue += rev.amount || 0;
+        }
+      });
+    });
+
+    const channelStats = Object.entries(conversionsByChannel).map(([channel, data]) => ({
+      channel,
+      conversions: data.conversions,
+      spent: data.spent,
+      revenue: data.revenue,
+      roi: data.spent > 0 ? ((data.revenue - data.spent) / data.spent) * 100 : 0
+    }));
+
+    channelStats.sort((a, b) => b.conversions - a.conversions);
+    const topChannelData = channelStats.length > 0 ? channelStats[0] : null;
+    
+    return {
+      ...forecast,
+      marketingROI: topChannelData?.roi || 0,
+      topChannel: topChannelData?.channel || null,
+      topChannelConversions: topChannelData?.conversions || 0
+    };
+  }, [revenues, expenses, installments, totalRevenue, totalExpenses, marketingBudgets]);
 
   return (
     <div className="space-y-6">
       {/* Cash Position */}
       <CashPosition />
+
+      {/* Marketing ROI & Top Performer */}
+      {quotes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">Performance Marketing</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
+                  <TrendingUp className="h-4 w-4 text-emerald-600" />
+                  ROI Marketing
+                </div>
+                <p className={cn(
+                  "text-3xl font-bold",
+                  cashForecastData.marketingROI >= 0 ? "text-emerald-600" : "text-red-600"
+                )}>
+                  {cashForecastData.marketingROI >= 0 ? '+' : ''}{cashForecastData.marketingROI.toFixed(1)}%
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Ritorno sull'investimento marketing
+                </p>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                  Canale Top Performance
+                </div>
+                <p className="text-2xl font-bold text-blue-600">
+                  {cashForecastData.topChannel || 'N/A'}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {cashForecastData.topChannelConversions > 0 
+                    ? `${cashForecastData.topChannelConversions} conversioni` 
+                    : 'Nessuna conversione'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -237,8 +286,8 @@ export default function Dashboard() {
       </div>
 
       {/* Conversion Rate Card */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {quotes.length > 0 && (
+      {quotes.length > 0 && (
+        <div className="grid grid-cols-1 gap-4">
           <StatCard
             title="Tasso Conversione Preventivi"
             value={`${conversionStats.rate}%`}
@@ -247,40 +296,8 @@ export default function Dashboard() {
             trend={conversionStats.won > conversionStats.lost ? 'up' : undefined}
             trendValue={`${conversionStats.won}/${conversionStats.won + conversionStats.lost} vinti`}
           />
-        )}
-        {topSocialPerformance && (
-          <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2 text-sm text-amber-700 mb-1">
-                  <TrendingUp className="h-4 w-4" />
-                  Top Social Channel
-                </div>
-                <Badge className="bg-amber-100 text-amber-700">
-                  {topSocialPerformance.channel}
-                </Badge>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mt-3">
-                <div>
-                  <p className="text-xs text-amber-600 mb-1">Conversioni</p>
-                  <p className="text-2xl font-bold text-amber-900">
-                    {topSocialPerformance.conversions}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-amber-600 mb-1">ROI</p>
-                  <p className={cn(
-                    "text-2xl font-bold",
-                    topSocialPerformance.roi >= 0 ? "text-emerald-600" : "text-red-600"
-                  )}>
-                    {topSocialPerformance.roi >= 0 ? '+' : ''}{topSocialPerformance.roi.toFixed(1)}%
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Cash Forecast Alerts */}
       {cashForecastData.alerts.filter(a => a.level !== 'ok').length > 0 && (

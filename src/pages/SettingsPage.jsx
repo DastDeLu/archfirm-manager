@@ -152,7 +152,7 @@ export default function SettingsPage() {
 
   const isAdmin = currentUser?.role === 'admin';
 
-  const [changeRoleDialogOpen, setChangeRoleDialogOpen] = useState(false);
+  const [editRoleDialogOpen, setEditRoleDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [newRole, setNewRole] = useState('user');
 
@@ -161,7 +161,7 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('Ruolo aggiornato con successo');
-      setChangeRoleDialogOpen(false);
+      setEditRoleDialogOpen(false);
       setSelectedUser(null);
     },
     onError: () => {
@@ -169,10 +169,10 @@ export default function SettingsPage() {
     }
   });
 
-  const handleChangeRole = (user) => {
+  const handleEditRole = (user) => {
     setSelectedUser(user);
     setNewRole(user.role || 'user');
-    setChangeRoleDialogOpen(true);
+    setEditRoleDialogOpen(true);
   };
 
   const handleUpdateRole = () => {
@@ -218,12 +218,12 @@ export default function SettingsPage() {
       cell: (row) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="icon">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleChangeRole(row)}>
+            <DropdownMenuItem onClick={() => handleEditRole(row)}>
               <Shield className="h-4 w-4 mr-2" />
               Cambia Ruolo
             </DropdownMenuItem>
@@ -540,17 +540,20 @@ export default function SettingsPage() {
       {/* Import Dialog */}
       <ImportDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} />
 
-      {/* Change Role Dialog */}
-      <Dialog open={changeRoleDialogOpen} onOpenChange={setChangeRoleDialogOpen}>
+      {/* Edit Role Dialog */}
+      <Dialog open={editRoleDialogOpen} onOpenChange={setEditRoleDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Cambia Ruolo Utente</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {selectedUser && (
-              <div className="p-4 bg-slate-50 rounded-lg">
-                <p className="font-medium text-slate-900">{selectedUser.full_name || 'Nessun nome'}</p>
-                <p className="text-sm text-slate-500">{selectedUser.email}</p>
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                <User className="h-5 w-5 text-slate-600" />
+                <div>
+                  <p className="font-medium text-slate-900">{selectedUser.full_name || 'Nessun nome'}</p>
+                  <p className="text-xs text-slate-500">{selectedUser.email}</p>
+                </div>
               </div>
             )}
             <div className="space-y-2">
@@ -567,7 +570,11 @@ export default function SettingsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setChangeRoleDialogOpen(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setEditRoleDialogOpen(false)}
+            >
               Annulla
             </Button>
             <Button 
