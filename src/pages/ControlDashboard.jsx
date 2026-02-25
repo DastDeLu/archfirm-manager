@@ -42,7 +42,7 @@ export default function ControlDashboard() {
             <span>Aggiornato in tempo reale</span>
           </div>
           <Button variant="outline" size="sm" asChild>
-            <Link to={createPageUrl('KpiTargets')}>
+            <Link to={createPageUrl('Objectives')}>
               <Settings className="h-4 w-4 mr-2" />
               Gestisci Obiettivi
             </Link>
