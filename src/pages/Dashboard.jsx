@@ -57,6 +57,11 @@ export default function Dashboard() {
     queryFn: () => base44.entities.Quote.list(),
   });
 
+  const { data: marketingBudgets = [] } = useQuery({
+    queryKey: ['marketing'],
+    queryFn: () => base44.entities.MarketingBudget.list(),
+  });
+
   const loading = loadingRevenues || loadingExpenses || loadingFees || loadingProjects;
 
   // Calculate totals
@@ -129,6 +134,39 @@ export default function Dashboard() {
     return { won, lost, rate };
   }, [quotes]);
 
+  // Top social channel performance
+  const topSocialPerformance = React.useMemo(() => {
+    const channelStats = marketingBudgets.reduce((acc, item) => {
+      const channel = item.channel || 'Non specificato';
+      if (!acc[channel]) {
+        acc[channel] = { conversions: 0, spent: 0, revenue: 0 };
+      }
+      acc[channel].conversions += item.conversions || 0;
+      acc[channel].spent += item.spent || 0;
+      return acc;
+    }, {});
+
+    revenues.forEach(rev => {
+      const desc = rev.description || '';
+      Object.keys(channelStats).forEach(channel => {
+        if (desc.toLowerCase().includes(channel.toLowerCase())) {
+          channelStats[channel].revenue += rev.amount || 0;
+        }
+      });
+    });
+
+    const channelArray = Object.entries(channelStats).map(([channel, data]) => ({
+      channel,
+      conversions: data.conversions,
+      spent: data.spent,
+      revenue: data.revenue,
+      roi: data.spent > 0 ? ((data.revenue - data.spent) / data.spent) * 100 : 0
+    }));
+
+    channelArray.sort((a, b) => b.conversions - a.conversions);
+    return channelArray[0] || null;
+  }, [marketingBudgets, revenues]);
+
   // Calculate cash forecast
   const cashForecastData = React.useMemo(() => {
     const currentYear = new Date().getFullYear();
@@ -167,28 +205,6 @@ export default function Dashboard() {
       {/* Cash Position */}
       <CashPosition />
 
-      {/* Expense Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-semibold">Costi per Categoria</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            {expenseByTag.map((item, index) => (
-              <div key={item.name} className="p-4 bg-slate-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                  <Badge variant="outline" className="text-xs">{item.name}</Badge>
-                </div>
-                <p className="text-lg font-bold text-slate-900 mt-2">
-                  €{item.value.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
@@ -221,8 +237,8 @@ export default function Dashboard() {
       </div>
 
       {/* Conversion Rate Card */}
-      {quotes.length > 0 && (
-        <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {quotes.length > 0 && (
           <StatCard
             title="Tasso Conversione Preventivi"
             value={`${conversionStats.rate}%`}
@@ -231,8 +247,40 @@ export default function Dashboard() {
             trend={conversionStats.won > conversionStats.lost ? 'up' : undefined}
             trendValue={`${conversionStats.won}/${conversionStats.won + conversionStats.lost} vinti`}
           />
-        </div>
-      )}
+        )}
+        {topSocialPerformance && (
+          <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 text-sm text-amber-700 mb-1">
+                  <TrendingUp className="h-4 w-4" />
+                  Top Social Channel
+                </div>
+                <Badge className="bg-amber-100 text-amber-700">
+                  {topSocialPerformance.channel}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div>
+                  <p className="text-xs text-amber-600 mb-1">Conversioni</p>
+                  <p className="text-2xl font-bold text-amber-900">
+                    {topSocialPerformance.conversions}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-amber-600 mb-1">ROI</p>
+                  <p className={cn(
+                    "text-2xl font-bold",
+                    topSocialPerformance.roi >= 0 ? "text-emerald-600" : "text-red-600"
+                  )}>
+                    {topSocialPerformance.roi >= 0 ? '+' : ''}{topSocialPerformance.roi.toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {/* Cash Forecast Alerts */}
       {cashForecastData.alerts.filter(a => a.level !== 'ok').length > 0 && (
