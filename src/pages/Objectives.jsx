@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import ObjectiveCard from '../components/objectives/ObjectiveCard';
 import ObjectiveSummary from '../components/objectives/ObjectiveSummary';
 import PageHeader from '../components/ui/PageHeader';
+import { CATEGORY_LABELS } from '../components/lib/kpiDashboard';
 
 export default function Objectives() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -196,7 +197,9 @@ export default function Objectives() {
             <SelectContent>
               <SelectItem value="all">Tutte le categorie</SelectItem>
               {categories.map(cat => (
-                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                <SelectItem key={cat} value={cat}>
+                  {CATEGORY_LABELS[cat] || cat}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -332,12 +335,19 @@ export default function Objectives() {
 
                 <div className="space-y-2">
                   <Label htmlFor="category">Categoria</Label>
-                  <Input
-                    id="category"
+                  <Select
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    placeholder="es. Finanziario, Marketing"
-                  />
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleziona categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="col-span-2 space-y-2">

@@ -15,6 +15,7 @@ import {
   getStatusIcon 
 } from './objectiveLogic';
 import { cn } from '@/lib/utils';
+import { CATEGORY_LABELS } from '../lib/kpiDashboard';
 
 export default function ObjectiveCard({ objective, onEdit, onUpdateProgress }) {
   const { status, percentage, message } = calculateObjectiveStatus(objective);
@@ -39,7 +40,7 @@ export default function ObjectiveCard({ objective, onEdit, onUpdateProgress }) {
             </CardTitle>
             {objective.category && (
               <Badge variant="outline" className="mt-2 text-xs">
-                {objective.category}
+                {CATEGORY_LABELS[objective.category] || objective.category}
               </Badge>
             )}
           </div>
