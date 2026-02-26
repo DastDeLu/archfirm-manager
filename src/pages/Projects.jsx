@@ -136,6 +136,18 @@ export default function Projects() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Check for duplicate project names
+    const duplicateProject = projects.find(p => 
+      p.name.toLowerCase().trim() === formData.name.toLowerCase().trim() && 
+      (!editingProject || p.id !== editingProject.id)
+    );
+    
+    if (duplicateProject) {
+      alert(`⚠️ Esiste già un progetto con il nome "${formData.name}".\nScegli un nome diverso per continuare.`);
+      return;
+    }
+    
     const data = {
       ...formData,
       budget: formData.budget ? parseFloat(formData.budget) : null

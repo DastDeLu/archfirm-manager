@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import Automations from './pages/Automations';
 import Baselines from './pages/Baselines';
 import CapitoliSpesa from './pages/CapitoliSpesa';
 import Chapters from './pages/Chapters';
@@ -68,11 +69,11 @@ import SettingsPage from './pages/SettingsPage';
 import Treasury from './pages/Treasury';
 import WBS from './pages/WBS';
 import WBSProjects from './pages/WBSProjects';
-import Automations from './pages/Automations';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Automations": Automations,
     "Baselines": Baselines,
     "CapitoliSpesa": CapitoliSpesa,
     "Chapters": Chapters,
@@ -94,7 +95,6 @@ export const PAGES = {
     "Treasury": Treasury,
     "WBS": WBS,
     "WBSProjects": WBSProjects,
-    "Automations": Automations,
 }
 
 export const pagesConfig = {
