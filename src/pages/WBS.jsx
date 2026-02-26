@@ -103,39 +103,30 @@ function WBSItem({ item, children, level, onEdit, onDelete, onAddChild }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8"
-            onClick={() => onAddChild(item)}
-            title="Aggiungi sotto-elemento"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8"
-            onClick={() => onEdit(item)}
-            title="Modifica"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={() => {
-              if (confirm(`Eliminare "${item.name}"?`)) {
-                onDelete(item.id);
-              }
-            }}
-            title="Elimina"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onAddChild(item)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Aggiungi Figlio
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEdit(item)}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Modifica
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => onDelete(item.id)}
+              className="text-red-600"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Elimina
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {expanded && hasChildren && (
