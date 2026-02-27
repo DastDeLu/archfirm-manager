@@ -317,11 +317,30 @@ export default function CapitoliSpesa() {
             <Card key={categoria.id}>
               <CardHeader className="border-b">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg font-semibold">{categoria.nome}</CardTitle>
-                    {categoria.descrizione && (
-                      <p className="text-sm text-slate-500 mt-1">{categoria.descrizione}</p>
-                    )}
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <CardTitle className="text-lg font-semibold">{categoria.nome}</CardTitle>
+                      {categoria.descrizione && (
+                        <p className="text-sm text-slate-500 mt-1">{categoria.descrizione}</p>
+                      )}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuItem onClick={() => handleEditCategoria(categoria)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Modifica Categoria
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDeleteCategoria(categoria)} className="text-red-600">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Elimina Categoria
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-slate-500">Budget Totale Categoria</p>
