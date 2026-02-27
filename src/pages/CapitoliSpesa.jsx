@@ -541,10 +541,15 @@ export default function CapitoliSpesa() {
                 <Label>Nome Voce *</Label>
                 <Input
                   value={formData.nome}
-                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                  onChange={(e) => { setFormData({ ...formData, nome: e.target.value }); setNomeError(''); }}
                   placeholder="es. Internet studio"
                   required
                 />
+                {nomeError && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />{nomeError}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Budget Totale (€) *</Label>
