@@ -88,6 +88,7 @@ export default function Fees() {
     mutationFn: (id) => base44.entities.Fee.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fees'] });
+      queryClient.invalidateQueries({ queryKey: ['cashData'] });
     },
   });
 
