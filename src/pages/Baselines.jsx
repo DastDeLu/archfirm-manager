@@ -199,7 +199,7 @@ export default function Baselines() {
       ) : filteredBaselines.length === 0 ? (
         <div className="text-center py-12">
           <Target className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-          <p className="text-slate-500">Nessun budget impostato per {activeType === 'revenue' ? 'ricavi' : activeType === 'expense' ? 'costi' : 'capitoli'}</p>
+          <p className="text-slate-500">Nessun budget impostato per {activeType === 'revenue' ? 'ricavi' : 'costi'}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
