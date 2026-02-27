@@ -144,6 +144,32 @@ export default function CapitoliSpesa() {
     },
   });
 
+  const deleteVoceMutation = useMutation({
+    mutationFn: (id) => base44.entities.VoceSpesa.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vociSpesa'] });
+      toast.success('Voce eliminata');
+    },
+  });
+
+  const updateCategoriaMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.CategoriaSpesa.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categorieSpesa'] });
+      setCategoriaDialogOpen(false);
+      setEditingCategoria(null);
+      setCategoriaForm({ nome: '', descrizione: '', ordine: '' });
+    },
+  });
+
+  const deleteCategoriaMutation = useMutation({
+    mutationFn: (id) => base44.entities.CategoriaSpesa.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categorieSpesa'] });
+      toast.success('Categoria eliminata');
+    },
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = {
