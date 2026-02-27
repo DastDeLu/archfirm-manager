@@ -14,21 +14,21 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
+  DialogFooter } from
+'@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  SelectValue } from
+'@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  DropdownMenuTrigger } from
+'@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, MoreHorizontal, Pencil, Trash2, TrendingDown, Filter, ArrowUpCircle, ArrowDownCircle, BarChart3, Calendar, Receipt } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,14 +37,14 @@ import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddChapter from '../components/forms/QuickAddChapter';
 
 const TAGS = [
-  'Acquisti materie prime',
-  'Costi Produttivi',
-  'Costi del Personale',
-  'Costi Generali',
-  'Costi Amministrativi',
-  'Mutui e Prestiti',
-  'Oneri Tributari'
-];
+'Acquisti materie prime',
+'Costi Produttivi',
+'Costi del Personale',
+'Costi Generali',
+'Costi Amministrativi',
+'Mutui e Prestiti',
+'Oneri Tributari'];
+
 
 const tagColors = {
   'Acquisti materie prime': 'bg-amber-100 text-amber-700',
@@ -53,7 +53,7 @@ const tagColors = {
   'Costi Generali': 'bg-blue-100 text-blue-700',
   'Costi Amministrativi': 'bg-purple-100 text-purple-700',
   'Mutui e Prestiti': 'bg-red-100 text-red-700',
-  'Oneri Tributari': 'bg-rose-100 text-rose-700',
+  'Oneri Tributari': 'bg-rose-100 text-rose-700'
 };
 
 export default function Expenses() {
@@ -82,12 +82,12 @@ export default function Expenses() {
 
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ['expenses'],
-    queryFn: () => base44.entities.Expense.list('-date'),
+    queryFn: () => base44.entities.Expense.list('-date')
   });
 
   const { data: chapters = [] } = useQuery({
     queryKey: ['expense-chapters'],
-    queryFn: () => base44.entities.Chapter.filter({ type: 'expense' }),
+    queryFn: () => base44.entities.Chapter.filter({ type: 'expense' })
   });
 
   const createMutation = useMutation({
@@ -96,7 +96,7 @@ export default function Expenses() {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
       closeDialog();
-    },
+    }
   });
 
   const updateMutation = useMutation({
@@ -105,7 +105,7 @@ export default function Expenses() {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
       closeDialog();
-    },
+    }
   });
 
   const deleteMutation = useMutation({
@@ -113,7 +113,7 @@ export default function Expenses() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
-    },
+    }
   });
 
   const openDialog = (expense = null) => {
@@ -157,9 +157,9 @@ export default function Expenses() {
   };
 
   const handleChapterChange = (chapterId) => {
-    const chapter = chapters.find(c => c.id === chapterId);
-    setFormData({ 
-      ...formData, 
+    const chapter = chapters.find((c) => c.id === chapterId);
+    setFormData({
+      ...formData,
       chapter_id: chapterId,
       chapter_name: chapter?.name || ''
     });
@@ -183,19 +183,19 @@ export default function Expenses() {
   };
 
   const previousYear = currentYear - 1;
-  
-  const filteredExpenses = activeTag === 'all' 
-    ? expenses 
-    : expenses.filter(e => e.tag === activeTag);
+
+  const filteredExpenses = activeTag === 'all' ?
+  expenses :
+  expenses.filter((e) => e.tag === activeTag);
 
   const yearlyData = useMemo(() => {
-    const currentYearExpenses = expenses.filter(e => e.date?.startsWith(String(currentYear)));
-    const previousYearExpenses = expenses.filter(e => e.date?.startsWith(String(previousYear)));
-    
+    const currentYearExpenses = expenses.filter((e) => e.date?.startsWith(String(currentYear)));
+    const previousYearExpenses = expenses.filter((e) => e.date?.startsWith(String(previousYear)));
+
     const currentTotal = currentYearExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
     const previousTotal = previousYearExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
     const delta = currentTotal - previousTotal;
-    const deltaPercent = previousTotal > 0 ? ((delta / previousTotal) * 100).toFixed(1) : 0;
+    const deltaPercent = previousTotal > 0 ? (delta / previousTotal * 100).toFixed(1) : 0;
 
     return { currentTotal, previousTotal, delta, deltaPercent };
   }, [expenses, currentYear, previousYear]);
@@ -205,7 +205,7 @@ export default function Expenses() {
   // Summary stats by category - all expenses
   const summaryByTag = useMemo(() => {
     const summary = {};
-    expenses.forEach(exp => {
+    expenses.forEach((exp) => {
       const tag = exp.tag || 'Other';
       if (!summary[tag]) {
         summary[tag] = { total: 0, count: 0 };
@@ -217,64 +217,64 @@ export default function Expenses() {
   }, [expenses]);
 
   const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-  const variableExpenses = expenses.filter(e => e.expense_type === 'variable').reduce((sum, e) => sum + (e.amount || 0), 0);
-  const fixedExpenses = expenses.filter(e => e.expense_type === 'fixed').reduce((sum, e) => sum + (e.amount || 0), 0);
+  const variableExpenses = expenses.filter((e) => e.expense_type === 'variable').reduce((sum, e) => sum + (e.amount || 0), 0);
+  const fixedExpenses = expenses.filter((e) => e.expense_type === 'fixed').reduce((sum, e) => sum + (e.amount || 0), 0);
 
   const columns = [
-    {
-      header: 'Data',
-      cell: (row) => (
-        <span className="text-slate-600">
+  {
+    header: 'Data',
+    cell: (row) =>
+    <span className="text-slate-600">
           {row.date ? format(new Date(row.date), 'MMM d, yyyy') : '-'}
         </span>
-      ),
-    },
-    {
-      header: 'Descrizione',
-      cell: (row) => (
-        <div>
+
+  },
+  {
+    header: 'Descrizione',
+    cell: (row) =>
+    <div>
           <p className="font-medium text-slate-900">{row.description || 'Nessuna descrizione'}</p>
-          {row.expense_type === 'fixed' && row.nature && (
-            <p className="text-xs text-slate-500">{row.nature}</p>
-          )}
-          {row.expense_type === 'fixed' && row.payment_frequency && (
-            <Badge variant="outline" className="text-xs mt-1">
+          {row.expense_type === 'fixed' && row.nature &&
+      <p className="text-xs text-slate-500">{row.nature}</p>
+      }
+          {row.expense_type === 'fixed' && row.payment_frequency &&
+      <Badge variant="outline" className="text-xs mt-1">
               {row.payment_frequency}
             </Badge>
-          )}
+      }
         </div>
-      ),
-    },
-    {
-      header: 'Tag',
-      cell: (row) => (
-        <Badge className={tagColors[row.tag || 'Other']}>
+
+  },
+  {
+    header: 'Tag',
+    cell: (row) =>
+    <Badge className={tagColors[row.tag || 'Other']}>
           {row.tag || 'Other'}
         </Badge>
-      ),
-    },
-    {
-      header: 'Capitolo',
-      cell: (row) => (
-        <span className="text-slate-600">{row.chapter_name || '-'}</span>
-      ),
-    },
-    {
-      header: 'Importo',
-      cell: (row) => (
-        <span className="font-semibold text-red-600">
+
+  },
+  {
+    header: 'Capitolo',
+    cell: (row) =>
+    <span className="text-slate-600">{row.chapter_name || '-'}</span>
+
+  },
+  {
+    header: 'Importo',
+    cell: (row) =>
+    <span className="font-semibold text-red-600">
           -€{(row.amount || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}
         </span>
-      ),
-    },
-    {
-      header: '',
-      headerClassName: 'w-12',
-      cell: (row) => (
-        <ContextMenuWrapper
-          onEdit={() => openDialog(row)}
-          onDelete={() => deleteMutation.mutate(row.id)}
-        >
+
+  },
+  {
+    header: '',
+    headerClassName: 'w-12',
+    cell: (row) =>
+    <ContextMenuWrapper
+      onEdit={() => openDialog(row)}
+      onDelete={() => deleteMutation.mutate(row.id)}>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -286,19 +286,19 @@ export default function Expenses() {
                 <Pencil className="h-4 w-4 mr-2" />
                 Modifica
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => deleteMutation.mutate(row.id)}
-                className="text-red-600"
-              >
+              <DropdownMenuItem
+            onClick={() => deleteMutation.mutate(row.id)}
+            className="text-red-600">
+
                 <Trash2 className="h-4 w-4 mr-2" />
                 Elimina
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </ContextMenuWrapper>
-      ),
-    },
-  ];
+
+  }];
+
 
   return (
     <div>
@@ -308,9 +308,9 @@ export default function Expenses() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {[currentYear - 1, currentYear, currentYear + 1].map(year => (
-              <SelectItem key={year} value={String(year)}>{year}</SelectItem>
-            ))}
+            {[currentYear - 1, currentYear, currentYear + 1].map((year) =>
+            <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+            )}
           </SelectContent>
         </Select>
         <Button onClick={() => openDialog()} className="gap-2">
@@ -393,8 +393,8 @@ export default function Expenses() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(summaryByTag).map(([tag, data]) => (
-              <div key={tag} className="p-4 bg-slate-50 rounded-lg">
+            {Object.entries(summaryByTag).map(([tag, data]) =>
+            <div key={tag} className="p-4 bg-slate-50 rounded-lg">
                 <Badge className={tagColors[tag] || 'bg-slate-100 text-slate-700'}>
                   {tag}
                 </Badge>
@@ -403,7 +403,7 @@ export default function Expenses() {
                 </p>
                 <p className="text-xs text-slate-500 mt-1">{data.count} spese</p>
               </div>
-            ))}
+            )}
           </div>
         </CardContent>
       </Card>
@@ -447,11 +447,11 @@ export default function Expenses() {
         <Card className={yearlyData.delta <= 0 ? "border-emerald-200 bg-emerald-50/30" : "border-red-200 bg-red-50/30"}>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-              {yearlyData.delta <= 0 ? (
-                <ArrowDownCircle className="h-4 w-4 text-emerald-600" />
-              ) : (
-                <ArrowUpCircle className="h-4 w-4 text-red-600" />
-              )}
+              {yearlyData.delta <= 0 ?
+              <ArrowDownCircle className="h-4 w-4 text-emerald-600" /> :
+
+              <ArrowUpCircle className="h-4 w-4 text-red-600" />
+              }
               YoY Delta
             </div>
             <p className={`text-2xl font-bold ${yearlyData.delta <= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
@@ -468,9 +468,9 @@ export default function Expenses() {
       <Tabs value={activeTag} onValueChange={setActiveTag} className="mb-4">
         <TabsList>
           <TabsTrigger value="all">Tutti</TabsTrigger>
-          {TAGS.map(tag => (
-            <TabsTrigger key={tag} value={tag}>{tag}</TabsTrigger>
-          ))}
+          {TAGS.map((tag) =>
+          <TabsTrigger key={tag} value={tag}>{tag}</TabsTrigger>
+          )}
         </TabsList>
       </Tabs>
 
@@ -478,8 +478,8 @@ export default function Expenses() {
         columns={columns}
         data={filteredExpenses}
         loading={isLoading}
-        emptyMessage="Nessuna spesa registrata. Clicca 'Aggiungi Spesa' per iniziare."
-      />
+        emptyMessage="Nessuna spesa registrata. Clicca 'Aggiungi Spesa' per iniziare." />
+
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -500,8 +500,8 @@ export default function Expenses() {
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                     placeholder="0.00"
                     step="0.01"
-                    required
-                  />
+                    required />
+
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="date">Data *</Label>
@@ -510,33 +510,33 @@ export default function Expenses() {
                     type="date"
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    required
-                  />
+                    required />
+
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Descrizione</Label>
-                <Input
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Descrizione spesa"
-                />
-              </div>
+              
+
+
+
+
+
+
+
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="tag">Tag *</Label>
                   <Select
                     value={formData.tag}
-                    onValueChange={(value) => setFormData({ ...formData, tag: value })}
-                  >
+                    onValueChange={(value) => setFormData({ ...formData, tag: value })}>
+
                     <SelectTrigger>
                       <SelectValue placeholder="Seleziona tag" />
                     </SelectTrigger>
                     <SelectContent>
-                      {TAGS.map(tag => (
-                        <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                      ))}
+                      {TAGS.map((tag) =>
+                      <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -544,8 +544,8 @@ export default function Expenses() {
                   <Label htmlFor="expense_type">Tipo *</Label>
                   <Select
                     value={formData.expense_type}
-                    onValueChange={(value) => setFormData({ ...formData, expense_type: value })}
-                  >
+                    onValueChange={(value) => setFormData({ ...formData, expense_type: value })}>
+
                     <SelectTrigger>
                       <SelectValue placeholder="Seleziona tipo" />
                     </SelectTrigger>
@@ -560,8 +560,8 @@ export default function Expenses() {
                 <Label htmlFor="payment_method">Metodo Pagamento *</Label>
                 <Select
                   value={formData.payment_method}
-                  onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
-                >
+                  onValueChange={(value) => setFormData({ ...formData, payment_method: value })}>
+
                   <SelectTrigger>
                     <SelectValue placeholder="Seleziona metodo" />
                   </SelectTrigger>
@@ -573,24 +573,24 @@ export default function Expenses() {
                   </SelectContent>
                 </Select>
               </div>
-              {formData.expense_type === 'fixed' && (
-                <>
+              {formData.expense_type === 'fixed' &&
+              <>
                   <div className="space-y-2">
                     <Label htmlFor="nature">Natura/Descrizione *</Label>
                     <Input
-                      id="nature"
-                      value={formData.nature}
-                      onChange={(e) => setFormData({ ...formData, nature: e.target.value })}
-                      placeholder="Natura della spesa fissa"
-                      required
-                    />
+                    id="nature"
+                    value={formData.nature}
+                    onChange={(e) => setFormData({ ...formData, nature: e.target.value })}
+                    placeholder="Natura della spesa fissa"
+                    required />
+
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="payment_frequency">Frequenza Pagamento *</Label>
                     <Select
-                      value={formData.payment_frequency}
-                      onValueChange={(value) => setFormData({ ...formData, payment_frequency: value })}
-                    >
+                    value={formData.payment_frequency}
+                    onValueChange={(value) => setFormData({ ...formData, payment_frequency: value })}>
+
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -604,33 +604,33 @@ export default function Expenses() {
                     </Select>
                   </div>
                 </>
-              )}
+              }
 
-              {vociSpesa.length > 0 && (
-                <div className="space-y-2">
+              {vociSpesa.length > 0 &&
+              <div className="space-y-2">
                   <Label>Voce di Spesa (opzionale)</Label>
                   <Select
-                    value={formData.id_voce_spesa}
-                    onValueChange={(val) => setFormData(prev => ({ ...prev, id_voce_spesa: val === '__none__' ? '' : val }))}
-                  >
+                  value={formData.id_voce_spesa}
+                  onValueChange={(val) => setFormData((prev) => ({ ...prev, id_voce_spesa: val === '__none__' ? '' : val }))}>
+
                     <SelectTrigger>
                       <SelectValue placeholder="Collega a voce di spesa" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="__none__">Nessuna</SelectItem>
-                      {categorie.map(cat => {
-                        const voci = vociSpesa.filter(v => v.id_categoria === cat.id);
-                        if (!voci.length) return null;
-                        return voci.map(voce => (
-                          <SelectItem key={voce.id} value={voce.id}>
+                      {categorie.map((cat) => {
+                      const voci = vociSpesa.filter((v) => v.id_categoria === cat.id);
+                      if (!voci.length) return null;
+                      return voci.map((voce) =>
+                      <SelectItem key={voce.id} value={voce.id}>
                             {cat.nome} › {voce.nome}
                           </SelectItem>
-                        ));
-                      })}
+                      );
+                    })}
                     </SelectContent>
                   </Select>
                 </div>
-              )}
+              }
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
@@ -648,9 +648,9 @@ export default function Expenses() {
         onOpenChange={setQuickAddChapterOpen}
         onChapterCreated={(chapter) => {
           queryClient.setQueryData(['expense-chapters'], (old) => [...(old || []), chapter]);
-          setFormData(prev => ({ ...prev, chapter_id: chapter.id, chapter_name: chapter.name }));
-        }}
-      />
-    </div>
-  );
+          setFormData((prev) => ({ ...prev, chapter_id: chapter.id, chapter_name: chapter.name }));
+        }} />
+
+    </div>);
+
 }
