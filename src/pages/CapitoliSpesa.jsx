@@ -37,10 +37,13 @@ export default function CapitoliSpesa() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [categoriaDialogOpen, setCategoriaDialogOpen] = useState(false);
+  const [editingCategoria, setEditingCategoria] = useState(null);
   const [spesaDialogOpen, setSpesaDialogOpen] = useState(false);
   const [editingVoce, setEditingVoce] = useState(null);
   const [editingBudget, setEditingBudget] = useState(null);
   const [selectedVoce, setSelectedVoce] = useState(null);
+  const [nomeError, setNomeError] = useState('');
+  const [categoriaError, setCategoriaError] = useState('');
   const [formData, setFormData] = useState({
     id_categoria: '',
     nome: '',
