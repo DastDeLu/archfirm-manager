@@ -673,11 +673,14 @@ export default function CapitoliSpesa() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog Nuova Categoria */}
-      <Dialog open={categoriaDialogOpen} onOpenChange={setCategoriaDialogOpen}>
+      {/* Dialog Nuova/Modifica Categoria */}
+      <Dialog open={categoriaDialogOpen} onOpenChange={(open) => {
+        setCategoriaDialogOpen(open);
+        if (!open) { setEditingCategoria(null); setCategoriaForm({ nome: '', descrizione: '', ordine: '' }); setCategoriaError(''); }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Nuova Categoria</DialogTitle>
+            <DialogTitle>{editingCategoria ? 'Modifica Categoria' : 'Nuova Categoria'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCategoriaSubmit}>
             <div className="space-y-4 py-4">
@@ -685,10 +688,15 @@ export default function CapitoliSpesa() {
                 <Label>Nome Categoria *</Label>
                 <Input
                   value={categoriaForm.nome}
-                  onChange={(e) => setCategoriaForm({ ...categoriaForm, nome: e.target.value })}
+                  onChange={(e) => { setCategoriaForm({ ...categoriaForm, nome: e.target.value }); setCategoriaError(''); }}
                   placeholder="es. Costi produttivi"
                   required
                 />
+                {categoriaError && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />{categoriaError}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Descrizione</Label>
