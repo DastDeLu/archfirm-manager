@@ -357,9 +357,14 @@ export default function Quotes() {
                 <Input
                   id="project_name"
                   value={formData.project_name}
-                  onChange={(e) => setFormData({ ...formData, project_name: e.target.value })}
+                  onChange={(e) => { setFormData({ ...formData, project_name: e.target.value }); setProjectNameError(''); }}
                   required
                 />
+                {projectNameError && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />{projectNameError}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="amount">Importo (€) *</Label>
