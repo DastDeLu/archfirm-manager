@@ -37,9 +37,25 @@ export function useKpiData() {
   });
 
   const { data: quotes = [] } = useQuery({
-    queryKey: ['quotes'],
-    queryFn: () => base44.entities.Quote.list(),
-  });
+     queryKey: ['quotes'],
+     queryFn: () => base44.entities.Quote.list(),
+   });
+
+   // Dipendenza da cashData per invalidare quando i dati finanziari cambiano
+   const { data: cashData } = useQuery({
+     queryKey: ['cashData'],
+     queryFn: async () => {
+       const [revs, exps, forecasts, openingBals, installs] = await Promise.all([
+         base44.entities.Revenue.list(),
+         base44.entities.Expense.list(),
+         base44.entities.Forecast.list(),
+         base44.entities.OpeningBalance.list(),
+         base44.entities.Installment.list()
+       ]);
+       return { revs, exps, forecasts, openingBals, installs };
+     },
+     staleTime: 30000,
+   });
 
   const kpiData = useMemo(() => {
     const currentYear = new Date().getFullYear();
@@ -143,7 +159,7 @@ export function useKpiData() {
     });
 
     return result;
-  }, [revenues, expenses, installments, openingBalances, quotes]);
+    }, [revenues, expenses, installments, openingBalances, quotes, cashData]);
 
   return {
     kpis: kpiData,

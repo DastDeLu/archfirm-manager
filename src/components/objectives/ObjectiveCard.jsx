@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
-  TrendingUp, TrendingDown, Calendar, Edit, Target, AlertCircle 
+  TrendingUp, TrendingDown, Calendar, Edit, Target, AlertCircle, Trash2
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -17,7 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import { CATEGORY_LABELS } from '../lib/kpiDashboard';
 
-export default function ObjectiveCard({ objective, onEdit, onUpdateProgress }) {
+export default function ObjectiveCard({ objective, onEdit, onUpdateProgress, onDelete }) {
   const { status, percentage, message } = calculateObjectiveStatus(objective);
   const colors = getStatusColor(status);
   const icon = getStatusIcon(status);
@@ -44,14 +44,24 @@ export default function ObjectiveCard({ objective, onEdit, onUpdateProgress }) {
               </Badge>
             )}
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => onEdit(objective)}
-            className="h-8 w-8"
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-1">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => onEdit(objective)}
+              className="h-8 w-8"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => onDelete()}
+              className="h-8 w-8 text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
       

@@ -47,6 +47,7 @@ export default function Objectives() {
     mutationFn: (data) => base44.entities.Objective.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['objectives'] });
+      queryClient.invalidateQueries({ queryKey: ['objectives-notifications'] });
       toast.success('Obiettivo creato con successo');
       closeDialog();
     },
@@ -57,11 +58,22 @@ export default function Objectives() {
     mutationFn: ({ id, data }) => base44.entities.Objective.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['objectives'] });
+      queryClient.invalidateQueries({ queryKey: ['objectives-notifications'] });
       toast.success('Obiettivo aggiornato');
       closeDialog();
       closeProgressDialog();
     },
     onError: () => toast.error('Errore durante l\'aggiornamento')
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Objective.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['objectives'] });
+      queryClient.invalidateQueries({ queryKey: ['objectives-notifications'] });
+      toast.success('Obiettivo eliminato');
+    },
+    onError: () => toast.error('Errore durante l\'eliminazione')
   });
 
   const openDialog = (objective = null) => {
@@ -233,15 +245,16 @@ export default function Objectives() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredObjectives.map(objective => (
-            <ObjectiveCard
-              key={objective.id}
-              objective={objective}
-              onEdit={openDialog}
-              onUpdateProgress={openProgressDialog}
-            />
-          ))}
-        </div>
+           {filteredObjectives.map(objective => (
+             <ObjectiveCard
+               key={objective.id}
+               objective={objective}
+               onEdit={openDialog}
+               onUpdateProgress={openProgressDialog}
+               onDelete={() => deleteMutation.mutate(objective.id)}
+             />
+           ))}
+         </div>
       )}
 
       {/* Create/Edit Dialog */}

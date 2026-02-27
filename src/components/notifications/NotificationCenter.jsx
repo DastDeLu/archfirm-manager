@@ -15,11 +15,12 @@ export default function NotificationCenter() {
   const [open, setOpen] = useState(false);
   const { kpis } = useKpiData();
 
-  // Fetch scadenze
-  const { data: objectives = [] } = useQuery({
-    queryKey: ['objectives-notifications'],
-    queryFn: () => base44.entities.Objective.list(),
-  });
+  // Fetch scadenze - sincronizzato con objectives principal
+   const { data: objectives = [] } = useQuery({
+     queryKey: ['objectives-notifications'],
+     queryFn: () => base44.entities.Objective.list(),
+     refetchInterval: 10000,
+   });
 
   const { data: installments = [] } = useQuery({
     queryKey: ['installments-notifications'],
