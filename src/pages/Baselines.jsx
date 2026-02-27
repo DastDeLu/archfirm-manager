@@ -308,7 +308,6 @@ export default function Baselines() {
                     <SelectContent>
                       <SelectItem value="revenue">Ricavi</SelectItem>
                       <SelectItem value="expense">Costi</SelectItem>
-                      <SelectItem value="chapter">Capitolo</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
