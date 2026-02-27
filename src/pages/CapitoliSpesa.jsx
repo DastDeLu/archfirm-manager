@@ -477,6 +477,10 @@ export default function CapitoliSpesa() {
                                     <DropdownMenuItem onClick={() => handleToggleStato(voce)}>
                                       {voce.stato === 'attivo' ? 'Chiudi Voce' : 'Riapri Voce'}
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleDeleteVoce(voce)} className="text-red-600">
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Elimina Voce
+                                    </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </td>
