@@ -59,6 +59,7 @@ export default function Expenses() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [quickAddChapterOpen, setQuickAddChapterOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [activeTag, setActiveTag] = useState('all');
   const [formData, setFormData] = useState({
