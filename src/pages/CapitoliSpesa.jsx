@@ -170,13 +170,24 @@ export default function CapitoliSpesa() {
     },
   });
 
+  const { vociSpesa: allVoci } = useBudget();
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    setNomeError('');
+    // Controllo duplicati nome voce
+    const duplicate = allVoci.find(v => 
+      v.nome.trim().toLowerCase() === formData.nome.trim().toLowerCase() && 
+      (!editingVoce || v.id !== editingVoce.id)
+    );
+    if (duplicate) {
+      setNomeError(`Esiste già una voce con il nome "${formData.nome}". Scegli un nome diverso.`);
+      return;
+    }
     const data = {
       ...formData,
       budget_totale: parseFloat(formData.budget_totale)
     };
-    
     if (editingVoce) {
       updateVoceMutation.mutate({ id: editingVoce.id, data });
     } else {
@@ -186,10 +197,22 @@ export default function CapitoliSpesa() {
 
   const handleCategoriaSubmit = (e) => {
     e.preventDefault();
-    createCategoriaMutation.mutate({
-      ...categoriaForm,
-      ordine: categoriaForm.ordine ? parseInt(categoriaForm.ordine) : 0
-    });
+    setCategoriaError('');
+    // Controllo duplicati nome categoria
+    const duplicate = categorie.find(c => 
+      c.nome.trim().toLowerCase() === categoriaForm.nome.trim().toLowerCase() &&
+      (!editingCategoria || c.id !== editingCategoria.id)
+    );
+    if (duplicate) {
+      setCategoriaError(`Esiste già una categoria con il nome "${categoriaForm.nome}". Scegli un nome diverso.`);
+      return;
+    }
+    const payload = { ...categoriaForm, ordine: categoriaForm.ordine ? parseInt(categoriaForm.ordine) : 0 };
+    if (editingCategoria) {
+      updateCategoriaMutation.mutate({ id: editingCategoria.id, data: payload });
+    } else {
+      createCategoriaMutation.mutate(payload);
+    }
   };
 
   const handleBudgetEdit = async (voce) => {
