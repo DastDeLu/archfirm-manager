@@ -635,6 +635,31 @@ export default function Expenses() {
                   </Button>
                 </div>
               </div>
+              {vociSpesa.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Voce di Spesa (opzionale)</Label>
+                  <Select
+                    value={formData.id_voce_spesa}
+                    onValueChange={(val) => setFormData(prev => ({ ...prev, id_voce_spesa: val === '__none__' ? '' : val }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Collega a voce di spesa" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Nessuna</SelectItem>
+                      {categorie.map(cat => {
+                        const voci = vociSpesa.filter(v => v.id_categoria === cat.id);
+                        if (!voci.length) return null;
+                        return voci.map(voce => (
+                          <SelectItem key={voce.id} value={voce.id}>
+                            {cat.nome} › {voce.nome}
+                          </SelectItem>
+                        ));
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
