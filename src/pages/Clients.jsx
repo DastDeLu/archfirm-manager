@@ -110,6 +110,15 @@ export default function Clients() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setNameError('');
+    const duplicate = clients.find(c =>
+      c.name.trim().toLowerCase() === formData.name.trim().toLowerCase() &&
+      (!editingClient || c.id !== editingClient.id)
+    );
+    if (duplicate) {
+      setNameError(`Esiste già un cliente con il nome "${formData.name}". Scegli un nome diverso.`);
+      return;
+    }
     if (editingClient) {
       updateMutation.mutate({ id: editingClient.id, data: formData });
     } else {
