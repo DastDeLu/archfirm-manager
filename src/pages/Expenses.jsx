@@ -33,6 +33,7 @@ import { Plus, MoreHorizontal, Pencil, Trash2, TrendingDown, Filter, ArrowUpCirc
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
+import QuickAddChapter from '../components/forms/QuickAddChapter';
 
 const TAGS = [
   'Acquisti materie prime',
