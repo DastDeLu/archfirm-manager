@@ -245,6 +245,24 @@ export default function CapitoliSpesa() {
     toggleStatoMutation.mutate({ id: voce.id, nuovoStato });
   };
 
+  const handleDeleteVoce = (voce) => {
+    if (window.confirm(`Eliminare la voce "${voce.nome}"? L'operazione non è reversibile.`)) {
+      deleteVoceMutation.mutate(voce.id);
+    }
+  };
+
+  const handleEditCategoria = (categoria) => {
+    setEditingCategoria(categoria);
+    setCategoriaForm({ nome: categoria.nome, descrizione: categoria.descrizione || '', ordine: categoria.ordine || '' });
+    setCategoriaDialogOpen(true);
+  };
+
+  const handleDeleteCategoria = (categoria) => {
+    if (window.confirm(`Eliminare la categoria "${categoria.nome}" e tutte le sue voci? L'operazione non è reversibile.`)) {
+      deleteCategoriaMutation.mutate(categoria.id);
+    }
+  };
+
   const handleAddSpesa = (voce) => {
     setSelectedVoce(voce);
     setSpesaDialogOpen(true);
