@@ -312,23 +312,7 @@ export default function Baselines() {
                   </Select>
                 </div>
               </div>
-              {formData.entity_type === 'chapter' && (
-                <div className="space-y-2">
-                  <Label>Capitolo *</Label>
-                  <Select value={formData.entity_id} onValueChange={handleChapterChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleziona capitolo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {chapters.map(chapter => (
-                        <SelectItem key={chapter.id} value={chapter.id}>
-                          {chapter.name} ({chapter.type})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+
               <div className="space-y-2">
                 <Label>Importo Budget (€) *</Label>
                 <Input
