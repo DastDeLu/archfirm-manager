@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useBudget } from '../components/budget/BudgetContext';
 import PageHeader from '../components/ui/PageHeader';
 import DataTable from '../components/ui/DataTable';
 import { Button } from '@/components/ui/button';
