@@ -642,6 +642,14 @@ export default function Expenses() {
           </form>
         </DialogContent>
       </Dialog>
+      <QuickAddChapter
+        open={quickAddChapterOpen}
+        onOpenChange={setQuickAddChapterOpen}
+        onChapterCreated={(chapter) => {
+          queryClient.invalidateQueries({ queryKey: ['expense-chapters'] });
+          setFormData({ ...formData, chapter_id: chapter.id, chapter_name: chapter.name });
+        }}
+      />
     </div>
   );
 }
