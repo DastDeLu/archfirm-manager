@@ -719,7 +719,7 @@ export default function CapitoliSpesa() {
               <Button type="button" variant="outline" onClick={() => setCategoriaDialogOpen(false)}>
                 Annulla
               </Button>
-              <Button type="submit">Crea</Button>
+              <Button type="submit">{editingCategoria ? 'Aggiorna' : 'Crea'}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
