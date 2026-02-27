@@ -129,7 +129,8 @@ export default function Expenses() {
         nature: expense.nature || '',
         payment_frequency: expense.payment_frequency || 'monthly',
         chapter_id: expense.chapter_id || '',
-        chapter_name: expense.chapter_name || ''
+        chapter_name: expense.chapter_name || '',
+        id_voce_spesa: expense.id_voce_spesa || ''
       });
     } else {
       setEditingExpense(null);
