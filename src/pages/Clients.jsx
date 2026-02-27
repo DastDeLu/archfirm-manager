@@ -28,7 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, MoreHorizontal, Pencil, Trash2, Building2, Mail, Phone, MapPin, FolderKanban, Receipt } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, Building2, Mail, Phone, MapPin, FolderKanban, Receipt, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 

@@ -30,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MoreHorizontal, Pencil, Trash2, FileText, TrendingUp, Target } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, FileText, TrendingUp, Target, AlertCircle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddClient from '../components/forms/QuickAddClient';
