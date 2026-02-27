@@ -246,10 +246,15 @@ export default function Clients() {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setNameError(''); }}
                   placeholder="Nome azienda"
                   required
                 />
+                {nameError && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />{nameError}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="contact_person">Persona di Contatto</Label>
