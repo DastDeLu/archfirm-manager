@@ -144,7 +144,8 @@ export default function Expenses() {
         nature: '',
         payment_frequency: 'monthly',
         chapter_id: '',
-        chapter_name: ''
+        chapter_name: '',
+        id_voce_spesa: ''
       });
     }
     setDialogOpen(true);
