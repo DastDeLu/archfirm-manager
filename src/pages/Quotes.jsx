@@ -47,6 +47,7 @@ export default function Quotes() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickAddClientOpen, setQuickAddClientOpen] = useState(false);
   const [editingQuote, setEditingQuote] = useState(null);
+  const [projectNameError, setProjectNameError] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [formData, setFormData] = useState({
     client_id: '',

@@ -35,6 +35,7 @@ import { createPageUrl } from '../utils';
 export default function Clients() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+  const [nameError, setNameError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     contact_person: '',
