@@ -191,7 +191,6 @@ export default function Baselines() {
         <TabsList>
           <TabsTrigger value="revenue">Ricavi</TabsTrigger>
           <TabsTrigger value="expense">Costi</TabsTrigger>
-          <TabsTrigger value="chapter">Capitoli</TabsTrigger>
         </TabsList>
       </Tabs>
 
