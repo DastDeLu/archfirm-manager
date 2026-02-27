@@ -58,6 +58,7 @@ const tagColors = {
 
 export default function Expenses() {
   const currentYear = new Date().getFullYear();
+  const { categorie, vociSpesa } = useBudget();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickAddChapterOpen, setQuickAddChapterOpen] = useState(false);
