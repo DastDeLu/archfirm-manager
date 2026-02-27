@@ -143,6 +143,16 @@ export default function Quotes() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setProjectNameError('');
+    const duplicate = quotes.find(q =>
+      q.project_name?.trim().toLowerCase() === formData.project_name.trim().toLowerCase() &&
+      q.client_id === formData.client_id &&
+      (!editingQuote || q.id !== editingQuote.id)
+    );
+    if (duplicate) {
+      setProjectNameError(`Esiste già un preventivo con il nome "${formData.project_name}" per questo cliente.`);
+      return;
+    }
     const data = {
       ...formData,
       amount: parseFloat(formData.amount)
