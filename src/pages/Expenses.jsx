@@ -646,8 +646,8 @@ export default function Expenses() {
         open={quickAddChapterOpen}
         onOpenChange={setQuickAddChapterOpen}
         onChapterCreated={(chapter) => {
-          queryClient.invalidateQueries({ queryKey: ['expense-chapters'] });
-          setFormData({ ...formData, chapter_id: chapter.id, chapter_name: chapter.name });
+          queryClient.setQueryData(['expense-chapters'], (old) => [...(old || []), chapter]);
+          setFormData(prev => ({ ...prev, chapter_id: chapter.id, chapter_name: chapter.name }));
         }}
       />
     </div>
