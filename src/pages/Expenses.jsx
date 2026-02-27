@@ -601,23 +601,34 @@ export default function Expenses() {
                 </>
               )}
               <div className="space-y-2">
-                <Label htmlFor="chapter">Capitolo *</Label>
-                <Select
-                  value={formData.chapter_id}
-                  onValueChange={handleChapterChange}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleziona capitolo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {chapters.map(chapter => (
-                      <SelectItem key={chapter.id} value={chapter.id}>
-                        {chapter.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="chapter">
+                  Capitolo {formData.expense_type !== 'fixed' ? '*' : '(opzionale)'}
+                </Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={formData.chapter_id}
+                    onValueChange={handleChapterChange}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Seleziona capitolo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {chapters.map(chapter => (
+                        <SelectItem key={chapter.id} value={chapter.id}>
+                          {chapter.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuickAddChapterOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
             <DialogFooter>
