@@ -26,13 +26,13 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   LineChart, Line
 } from 'recharts';
-import { Plus, Pencil, Megaphone, Target, Euro, TrendingUp, Users, Trophy } from 'lucide-react';
+import { Plus, Pencil, Target, Euro, TrendingUp, Users, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+  'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
 ];
 
 export default function Marketing() {
@@ -43,7 +43,6 @@ export default function Marketing() {
   const [formData, setFormData] = useState({
     month: new Date().getMonth() + 1,
     year: currentYear,
-    budget: '',
     spent: '',
     conversions: '',
     channel: '',
@@ -57,20 +56,13 @@ export default function Marketing() {
     queryFn: () => base44.entities.MarketingBudget.filter({ year: selectedYear }),
   });
 
-  // Leggi budget annuale da UserPreferences
-  const { data: userPrefs } = useQuery({
-    queryKey: ['userPreferences'],
-    queryFn: async () => {
-      try {
-        const prefs = await base44.entities.UserPreferences.list();
-        return prefs[0];
-      } catch {
-        return null;
-      }
-    },
+  // Leggi budget annuale dai saldi iniziali
+  const { data: openingBalances = [] } = useQuery({
+    queryKey: ['openingBalances', selectedYear],
+    queryFn: () => base44.entities.OpeningBalance.filter({ year: selectedYear }),
   });
 
-  const annualMarketingBudget = userPrefs?.annual_marketing_budget || 0;
+  const annualMarketingBudget = openingBalances.find(b => b.type === 'marketing_budget')?.amount || 0;
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.MarketingBudget.create(data),
@@ -94,7 +86,6 @@ export default function Marketing() {
       setFormData({
         month: budget.month,
         year: budget.year,
-        budget: budget.budget || '',
         spent: budget.spent || '',
         conversions: budget.conversions || '',
         channel: budget.channel || '',
@@ -105,7 +96,6 @@ export default function Marketing() {
       setFormData({
         month: new Date().getMonth() + 1,
         year: selectedYear,
-        budget: '',
         spent: '',
         conversions: '',
         channel: '',
@@ -124,7 +114,6 @@ export default function Marketing() {
     e.preventDefault();
     const data = {
       ...formData,
-      budget: parseFloat(formData.budget) || 0,
       spent: parseFloat(formData.spent) || 0,
       conversions: parseInt(formData.conversions) || 0
     };
@@ -142,7 +131,6 @@ export default function Marketing() {
       const budget = budgets.find(b => b.month === monthNum);
       return {
         month: month.substring(0, 3),
-        budget: budget?.budget || 0,
         spent: budget?.spent || 0,
         conversions: budget?.conversions || 0,
         data: budget
@@ -152,18 +140,16 @@ export default function Marketing() {
 
   // Totals
   const totals = useMemo(() => {
-    const monthlyTotals = budgets.reduce((acc, b) => ({
-      budget: acc.budget + (b.budget || 0),
+    return budgets.reduce((acc, b) => ({
       spent: acc.spent + (b.spent || 0),
       conversions: acc.conversions + (b.conversions || 0),
-    }), { budget: 0, spent: 0, conversions: 0 });
-    
-    // Include annual budget in total budget
-    return {
-      ...monthlyTotals,
-      budget: monthlyTotals.budget + annualMarketingBudget
-    };
-  }, [budgets, annualMarketingBudget]);
+    }), { spent: 0, conversions: 0 });
+  }, [budgets]);
+
+  const residuo = annualMarketingBudget - totals.spent;
+  const budgetUtilization = annualMarketingBudget > 0
+    ? ((totals.spent / annualMarketingBudget) * 100).toFixed(1)
+    : 0;
 
   // Query per Revenues
   const { data: revenues = [] } = useQuery({
@@ -183,10 +169,8 @@ export default function Marketing() {
       return acc;
     }, {});
 
-    // Associa revenues ai canali (se hanno un campo channel o descrizione matching)
     revenues.forEach(rev => {
       const desc = rev.description || '';
-      // Cerca se la descrizione del ricavo menziona un canale marketing
       Object.keys(conversionsByChannel).forEach(channel => {
         if (desc.toLowerCase().includes(channel.toLowerCase())) {
           conversionsByChannel[channel].revenue += rev.amount || 0;
@@ -195,8 +179,7 @@ export default function Marketing() {
     });
 
     const totalConversions = Object.values(conversionsByChannel).reduce(
-      (sum, ch) => sum + ch.conversions,
-      0
+      (sum, ch) => sum + ch.conversions, 0
     );
 
     const channelStats = Object.entries(conversionsByChannel).map(([channel, data]) => ({
@@ -215,12 +198,8 @@ export default function Marketing() {
     return { channelStats, totalConversions, topPerformer };
   }, [budgets, revenues]);
 
-  const costPerConversion = totals.conversions > 0 
+  const costPerConversion = totals.conversions > 0
     ? (totals.spent / totals.conversions).toFixed(2)
-    : 0;
-
-  const budgetUtilization = totals.budget > 0 
-    ? ((totals.spent / totals.budget) * 100).toFixed(1)
     : 0;
 
   return (
@@ -242,48 +221,33 @@ export default function Marketing() {
         </Button>
       </PageHeader>
 
-      {/* Annual Budget Card */}
-      {annualMarketingBudget > 0 && (
-        <Card className="mb-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2 text-sm text-blue-700 mb-1">
-                  <Megaphone className="h-4 w-4" />
-                  Budget Annuale Marketing
-                </div>
-                <p className="text-2xl font-bold text-blue-900">
-                  {annualMarketingBudget.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-blue-600 mb-1">Utilizzato</p>
-                <p className="text-lg font-semibold text-blue-900">
-                  {totals.spent.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
-                </p>
-                <Progress 
-                  value={annualMarketingBudget > 0 ? (totals.spent / annualMarketingBudget) * 100 : 0} 
-                  className="h-1.5 mt-2 w-32" 
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card>
+        {/* Budget Annuale */}
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
           <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-              <Target className="h-4 w-4 text-blue-600" />
-              Budget Totale
+            <div className="flex items-center gap-2 text-sm text-blue-700 mb-1">
+              <Target className="h-4 w-4" />
+              Budget Annuale
             </div>
-            <p className="text-2xl font-bold text-slate-900">
-              €{totals.budget.toLocaleString('it-IT')}
+            <p className="text-2xl font-bold text-blue-900">
+              €{annualMarketingBudget.toLocaleString('it-IT')}
             </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Residuo:{' '}
+              <span className={cn("font-semibold", residuo < 0 ? "text-red-600" : "text-blue-800")}>
+                €{residuo.toLocaleString('it-IT')}
+              </span>
+            </p>
+            <Progress
+              value={Math.min(parseFloat(budgetUtilization), 100)}
+              className="h-1.5 mt-2"
+            />
+            <p className="text-xs text-blue-600 mt-1">{budgetUtilization}% utilizzato</p>
           </CardContent>
         </Card>
+
+        {/* Spesa Totale */}
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
@@ -292,17 +256,14 @@ export default function Marketing() {
             </div>
             <p className={cn(
               "text-2xl font-bold",
-              totals.spent > totals.budget ? "text-red-600" : "text-amber-600"
+              residuo < 0 ? "text-red-600" : "text-amber-600"
             )}>
               €{totals.spent.toLocaleString('it-IT')}
             </p>
-            <Progress 
-              value={parseFloat(budgetUtilization)} 
-              className="h-1.5 mt-2" 
-            />
-            <p className="text-xs text-slate-500 mt-1">{budgetUtilization}% utilizzato</p>
           </CardContent>
         </Card>
+
+        {/* Conversioni */}
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
@@ -314,6 +275,8 @@ export default function Marketing() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Costo per Conversione */}
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
@@ -377,7 +340,7 @@ export default function Marketing() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-semibold">Budget vs Spesa</CardTitle>
+            <CardTitle className="text-base font-semibold">Spesa Mensile</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -386,13 +349,12 @@ export default function Marketing() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
                   <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v/1000}k`} />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value) => `€${value.toLocaleString('it-IT')}`}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                   />
                   <Legend />
-                  <Bar dataKey="budget" name="Budget" fill="#3b82f6" opacity={0.5} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="spent" name="Spent" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="spent" name="Speso" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -410,14 +372,12 @@ export default function Marketing() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
                   <YAxis stroke="#64748b" fontSize={12} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="conversions" 
-                    name="Conversions"
-                    stroke="#10b981" 
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                  <Line
+                    type="monotone"
+                    dataKey="conversions"
+                    name="Conversioni"
+                    stroke="#10b981"
                     strokeWidth={2}
                     dot={{ fill: '#10b981', strokeWidth: 2 }}
                   />
@@ -455,15 +415,8 @@ export default function Marketing() {
                 {item.data ? (
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Budget:</span>
-                      <span className="font-medium text-blue-600">€{item.budget.toLocaleString('it-IT')}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Spent:</span>
-                      <span className={cn(
-                        "font-medium",
-                        item.spent > item.budget ? "text-red-600" : "text-amber-600"
-                      )}>
+                      <span className="text-slate-500">Speso:</span>
+                      <span className="font-medium text-amber-600">
                         €{item.spent.toLocaleString('it-IT')}
                       </span>
                     </div>
@@ -481,7 +434,7 @@ export default function Marketing() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -526,18 +479,6 @@ export default function Marketing() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="budget">Budget (€) *</Label>
-                  <Input
-                    id="budget"
-                    type="number"
-                    value={formData.budget}
-                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                    placeholder="0.00"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="spent">Speso (€)</Label>
                   <Input
                     id="spent"
@@ -548,8 +489,6 @@ export default function Marketing() {
                     step="0.01"
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="conversions">Conversioni</Label>
                   <Input
@@ -560,15 +499,15 @@ export default function Marketing() {
                     placeholder="0"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="channel">Canale</Label>
-                  <Input
-                    id="channel"
-                    value={formData.channel}
-                    onChange={(e) => setFormData({ ...formData, channel: e.target.value })}
-                    placeholder="es. Google Ads"
-                  />
-                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="channel">Canale</Label>
+                <Input
+                  id="channel"
+                  value={formData.channel}
+                  onChange={(e) => setFormData({ ...formData, channel: e.target.value })}
+                  placeholder="es. Google Ads"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="notes">Note</Label>
