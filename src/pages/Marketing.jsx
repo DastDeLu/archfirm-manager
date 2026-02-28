@@ -26,9 +26,10 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   LineChart, Line
 } from 'recharts';
-import { Plus, Pencil, Target, Euro, TrendingUp, Users, Trophy } from 'lucide-react';
+import { Plus, Pencil, Target, Euro, TrendingUp, Users, Trophy, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 const MONTHS = [
   'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
