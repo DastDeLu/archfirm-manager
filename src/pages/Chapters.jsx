@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '../components/ui/PageHeader';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -29,11 +29,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, MoreHorizontal, Pencil, Trash2, BookOpen, TrendingUp, TrendingDown } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Chapters() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingChapter, setEditingChapter] = useState(null);
+  const [chapterToDelete, setChapterToDelete] = useState(null);
   const [activeType, setActiveType] = useState('revenue');
   const [formData, setFormData] = useState({
     name: '',
@@ -44,32 +46,52 @@ export default function Chapters() {
 
   const queryClient = useQueryClient();
 
-  const { data: chapters = [], isLoading } = useQuery({
+  const invalidateChapters = () => {
+    queryClient.invalidateQueries({ queryKey: ['chapters'] });
+    queryClient.invalidateQueries({ queryKey: ['expense-chapters'] });
+  };
+
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setEditingChapter(null);
+    setFormData({ name: '', code: '', type: activeType, description: '' });
+  };
+
+  const { data: chapters = [], isLoading, isError } = useQuery({
     queryKey: ['chapters'],
-    queryFn: () => base44.entities.Chapter.list(),
+    queryFn: async () => {
+      const res = await base44.entities.Chapter.list();
+      return Array.isArray(res) ? res : (res?.data ?? []);
+    },
   });
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Chapter.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chapters'] });
+      invalidateChapters();
+      toast.success('Capitolo creato con successo');
       closeDialog();
     },
+    onError: () => toast.error('Errore nella creazione del capitolo'),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Chapter.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chapters'] });
+      invalidateChapters();
+      toast.success('Capitolo aggiornato');
       closeDialog();
     },
+    onError: () => toast.error("Errore nell'aggiornamento del capitolo"),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Chapter.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chapters'] });
+      invalidateChapters();
+      toast.success('Capitolo eliminato');
     },
+    onError: () => toast.error("Errore nell'eliminazione del capitolo"),
   });
 
   const openDialog = (chapter = null) => {
@@ -83,35 +105,28 @@ export default function Chapters() {
       });
     } else {
       setEditingChapter(null);
-      setFormData({
-        name: '',
-        code: '',
-        type: activeType,
-        description: ''
-      });
+      setFormData({ name: '', code: '', type: activeType, description: '' });
     }
     setDialogOpen(true);
   };
 
-  const closeDialog = () => {
-    setDialogOpen(false);
-    setEditingChapter(null);
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingChapter) {
+    if (editingChapter?.id != null) {
       updateMutation.mutate({ id: editingChapter.id, data: formData });
     } else {
       createMutation.mutate(formData);
     }
   };
 
-  const filteredChapters = chapters.filter(c => c.type === activeType);
+  const filteredChapters = useMemo(
+    () => (Array.isArray(chapters) ? chapters : []).filter(c => c.type === activeType),
+    [chapters, activeType]
+  );
 
-  const columns = [
+  const columns = useMemo(() => [
     {
-      header: 'Chapter',
+      header: 'Capitolo',
       cell: (row) => (
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-lg ${row.type === 'revenue' ? 'bg-emerald-50' : 'bg-red-50'}`}>
@@ -123,24 +138,20 @@ export default function Chapters() {
           </div>
           <div>
             <p className="font-medium text-slate-900">{row.name}</p>
-            {row.code && (
-              <p className="text-xs text-slate-500 font-mono">{row.code}</p>
-            )}
+            {row.code && <p className="text-xs text-slate-500 font-mono">{row.code}</p>}
           </div>
         </div>
       ),
     },
     {
       header: 'Descrizione',
-      cell: (row) => (
-        <span className="text-slate-600">{row.description || '-'}</span>
-      ),
+      cell: (row) => <span className="text-slate-600">{row.description || '-'}</span>,
     },
     {
       header: 'Tipo',
       cell: (row) => (
         <Badge className={row.type === 'revenue' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}>
-          {row.type}
+          {row.type === 'revenue' ? 'Ricavi' : 'Costi'}
         </Badge>
       ),
     },
@@ -157,20 +168,17 @@ export default function Chapters() {
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => openDialog(row)}>
               <Pencil className="h-4 w-4 mr-2" />
-              Edit
+              Modifica
             </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => deleteMutation.mutate(row.id)}
-              className="text-red-600"
-            >
+            <DropdownMenuItem onClick={() => setChapterToDelete(row)} className="text-red-600">
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete
+              Elimina
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
     },
-  ];
+  ], []);
 
   return (
     <div>
@@ -194,6 +202,12 @@ export default function Chapters() {
         </TabsList>
       </Tabs>
 
+      {isError && (
+        <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">
+          Errore nel caricamento dei capitoli. Riprova più tardi.
+        </div>
+      )}
+
       <DataTable
         columns={columns}
         data={filteredChapters}
@@ -201,7 +215,8 @@ export default function Chapters() {
         emptyMessage={`Nessun capitolo ${activeType === 'revenue' ? 'ricavi' : 'costi'} ancora. Clicca 'Aggiungi Capitolo' per crearne uno.`}
       />
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* Create/Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -217,7 +232,7 @@ export default function Chapters() {
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Chapter name"
+                    placeholder="Nome capitolo"
                     required
                   />
                 </div>
@@ -238,7 +253,7 @@ export default function Chapters() {
                   onValueChange={(value) => setFormData({ ...formData, type: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder="Seleziona tipo" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="revenue">Ricavi</SelectItem>
@@ -247,25 +262,52 @@ export default function Chapters() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Descrizione</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Chapter description..."
+                  placeholder="Descrizione del capitolo..."
                   rows={3}
                 />
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                Annulla
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {editingChapter ? 'Update' : 'Create'}
+                {editingChapter ? 'Aggiorna' : 'Crea'}
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!chapterToDelete} onOpenChange={(open) => !open && setChapterToDelete(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Eliminare capitolo?</DialogTitle>
+          </DialogHeader>
+          <p className="text-slate-600">
+            Vuoi eliminare "<strong>{chapterToDelete?.name}</strong>"? Questa azione non può essere annullata.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setChapterToDelete(null)}>
+              Annulla
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (chapterToDelete?.id) deleteMutation.mutate(chapterToDelete.id);
+                setChapterToDelete(null);
+              }}
+              disabled={deleteMutation.isPending}
+            >
+              Elimina
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
