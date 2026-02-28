@@ -262,9 +262,21 @@ export default function Marketing() {
         {/* Spesa Totale */}
         <Card>
           <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-              <Euro className="h-4 w-4 text-amber-600" />
-              Spesa Totale
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <Euro className="h-4 w-4 text-amber-600" />
+                Spesa Totale
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-slate-400 hover:text-red-500"
+                title="Azzera spesa"
+                disabled={resetSpesaMutation.isPending || totals.spent === 0}
+                onClick={() => resetSpesaMutation.mutate()}
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+              </Button>
             </div>
             <p className={cn(
               "text-2xl font-bold",
