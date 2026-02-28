@@ -203,6 +203,17 @@ export default function Marketing() {
     ? (totals.spent / totals.conversions).toFixed(2)
     : 0;
 
+  const resetSpesaMutation = useMutation({
+    mutationFn: async () => {
+      await Promise.all(budgets.map(b => base44.entities.MarketingBudget.update(b.id, { spent: 0 })));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['marketing'] });
+      toast.success('Spesa totale azzerata');
+    },
+    onError: () => toast.error('Errore durante il reset della spesa'),
+  });
+
   return (
     <div>
       <PageHeader title="Marketing" description="Traccia budget, spesa e conversioni marketing">
