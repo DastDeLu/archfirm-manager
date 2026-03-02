@@ -179,6 +179,7 @@ export default function Quotes() {
   // Filter quotes
   const filteredQuotes = useMemo(() => {
     if (activeFilter === 'all') return quotes;
+    if (TAGS.includes(activeFilter)) return quotes.filter(q => q.tag === activeFilter);
     return quotes.filter(q => q.status === activeFilter);
   }, [quotes, activeFilter]);
 
@@ -195,7 +196,14 @@ export default function Quotes() {
 
     const conversionRate = (won + lost) > 0 ? ((won / (won + lost)) * 100).toFixed(1) : 0;
 
-    return { total, won, lost, active, wonValue, totalValue, activeValue, conversionRate };
+    // Tag totals
+    const tagTotals = TAGS.map(tag => ({
+      tag,
+      count: quotes.filter(q => q.tag === tag).length,
+      value: quotes.filter(q => q.tag === tag).reduce((sum, q) => sum + (q.amount || 0), 0),
+    }));
+
+    return { total, won, lost, active, wonValue, totalValue, activeValue, conversionRate, tagTotals };
   }, [quotes]);
 
   const columns = [
