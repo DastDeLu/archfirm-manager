@@ -90,20 +90,63 @@ export default function Expenses() {
     queryFn: () => base44.entities.Chapter.filter({ type: 'expense' })
   });
 
+  const updateVoceSpesa = async (idVoceSpesa, delta) => {
+    if (!idVoceSpesa || delta === 0) return;
+    const voci = await base44.entities.VoceSpesa.filter({ id: idVoceSpesa });
+    const voce = voci[0];
+    if (!voce) return;
+    const nuovoSpeso = Math.max(0, (voce.speso_reale || 0) + delta);
+    const nuovoResiduo = voce.budget_totale - nuovoSpeso;
+    await base44.entities.VoceSpesa.update(idVoceSpesa, {
+      speso_reale: nuovoSpeso,
+      residuo: nuovoResiduo,
+      data_aggiornamento: new Date().toISOString()
+    });
+  };
+
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Expense.create(data),
+    mutationFn: async (data) => {
+      const spesa = await base44.entities.Expense.create(data);
+      if (data.id_voce_spesa) {
+        await updateVoceSpesa(data.id_voce_spesa, data.amount);
+      }
+      return spesa;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
+      queryClient.invalidateQueries({ queryKey: ['vociSpesa'] });
       closeDialog();
     }
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Expense.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const oldExpense = expenses.find(e => e.id === id);
+      const spesa = await base44.entities.Expense.update(id, data);
+      // Se cambia la voce collegata o l'importo, aggiorna i budget
+      const oldVoce = oldExpense?.id_voce_spesa;
+      const newVoce = data.id_voce_spesa;
+      if (oldVoce && oldVoce !== newVoce) {
+        // Storna dalla vecchia voce
+        await updateVoceSpesa(oldVoce, -(oldExpense.amount || 0));
+      }
+      if (newVoce) {
+        if (oldVoce === newVoce) {
+          // Stessa voce, aggiusta la differenza
+          const delta = data.amount - (oldExpense?.amount || 0);
+          await updateVoceSpesa(newVoce, delta);
+        } else {
+          // Nuova voce, aggiungi il nuovo importo
+          await updateVoceSpesa(newVoce, data.amount);
+        }
+      }
+      return spesa;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
+      queryClient.invalidateQueries({ queryKey: ['vociSpesa'] });
       closeDialog();
     }
   });
