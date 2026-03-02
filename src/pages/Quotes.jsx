@@ -235,6 +235,14 @@ export default function Quotes() {
       ),
     },
     {
+      header: 'Tag',
+      cell: (row) => row.tag ? (
+        <Badge className={tagColors[row.tag] || 'bg-slate-100 text-slate-700'}>
+          {row.tag}
+        </Badge>
+      ) : <span className="text-slate-400 text-xs">-</span>,
+    },
+    {
       header: 'Stato',
       cell: (row) => (
         <Badge className={statusColors[row.status || 'draft']}>
