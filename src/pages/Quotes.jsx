@@ -410,6 +410,19 @@ export default function Quotes() {
                 )}
               </div>
               <div className="space-y-2">
+                <Label>Tag</Label>
+                <Select value={formData.tag} onValueChange={(v) => setFormData({ ...formData, tag: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleziona tag" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TAGS.map(t => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="amount">Importo (€) *</Label>
                 <Input
                   id="amount"
