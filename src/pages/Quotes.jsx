@@ -327,6 +327,21 @@ export default function Quotes() {
         </Card>
       </div>
 
+      {/* Tag totals */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        {stats.tagTotals?.map(({ tag, count, value }) => (
+          <button
+            key={tag}
+            onClick={() => setActiveFilter(activeFilter === tag ? 'all' : tag)}
+            className={`text-left p-3 rounded-xl border transition-all ${activeFilter === tag ? 'border-slate-900 bg-slate-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'}`}
+          >
+            <Badge className={tagColors[tag] || 'bg-slate-100 text-slate-700'} style={{ marginBottom: 4 }}>{tag}</Badge>
+            <p className="text-lg font-bold text-slate-900 mt-1">€{value.toLocaleString('it-IT')}</p>
+            <p className="text-xs text-slate-500">{count} {count === 1 ? 'preventivo' : 'preventivi'}</p>
+          </button>
+        ))}
+      </div>
+
       {/* Filters */}
       <Tabs value={activeFilter} onValueChange={setActiveFilter} className="mb-6">
         <TabsList>
