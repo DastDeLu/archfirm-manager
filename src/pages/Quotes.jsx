@@ -115,6 +115,7 @@ export default function Quotes() {
         project_name: quote.project_name || '',
         description: quote.description || '',
         amount: quote.amount || '',
+        tag: quote.tag || '',
         status: quote.status || 'draft',
         sent_date: quote.sent_date || '',
         valid_until: quote.valid_until || '',
