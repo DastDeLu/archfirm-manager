@@ -49,12 +49,22 @@ export default function Quotes() {
   const [editingQuote, setEditingQuote] = useState(null);
   const [projectNameError, setProjectNameError] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const TAGS = ['Progettazione', 'Direzione Lavori', 'Pratiche Burocratiche', 'Provvigione'];
+
+  const tagColors = {
+    'Progettazione': 'bg-blue-100 text-blue-700',
+    'Direzione Lavori': 'bg-purple-100 text-purple-700',
+    'Pratiche Burocratiche': 'bg-amber-100 text-amber-700',
+    'Provvigione': 'bg-emerald-100 text-emerald-700',
+  };
+
   const [formData, setFormData] = useState({
     client_id: '',
     client_name: '',
     project_name: '',
     description: '',
     amount: '',
+    tag: '',
     status: 'draft',
     sent_date: '',
     valid_until: '',
