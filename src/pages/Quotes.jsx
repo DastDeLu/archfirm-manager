@@ -129,6 +129,7 @@ export default function Quotes() {
         project_name: '',
         description: '',
         amount: '',
+        tag: '',
         status: 'draft',
         sent_date: '',
         valid_until: '',
