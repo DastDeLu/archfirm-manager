@@ -272,10 +272,7 @@ export default function Expenses() {
     header: 'Descrizione',
     cell: (row) =>
     <div>
-          <p className="font-medium text-slate-900">{row.description || 'Nessuna descrizione'}</p>
-          {row.expense_type === 'fixed' && row.nature &&
-      <p className="text-xs text-slate-500">{row.nature}</p>
-      }
+          <p className="font-medium text-slate-900">{row.description || row.nature || 'Nessuna descrizione'}</p>
           {row.expense_type === 'fixed' && row.payment_frequency &&
       <Badge variant="outline" className="text-xs mt-1">
               {row.payment_frequency}
