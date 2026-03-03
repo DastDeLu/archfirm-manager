@@ -626,10 +626,6 @@ export default function Expenses() {
 
 
 
-
-
-
-
                   <div className="space-y-2">
                     <Label htmlFor="payment_frequency">Frequenza Pagamento *</Label>
                     <Select
