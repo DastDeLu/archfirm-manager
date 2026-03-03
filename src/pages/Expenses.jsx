@@ -628,7 +628,6 @@ export default function Expenses() {
               </div>
               {formData.expense_type === 'fixed' &&
               <>
-                  
 
 
 
