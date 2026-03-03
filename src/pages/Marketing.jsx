@@ -323,6 +323,20 @@ export default function Marketing() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Spesa Sponsorizzate */}
+        <Card className="bg-gradient-to-br from-cyan-50 to-teal-50 border-cyan-200">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-sm text-cyan-700 mb-1">
+              <Megaphone className="h-4 w-4" />
+              Spesa Sponsorizzate
+            </div>
+            <p className="text-2xl font-bold text-cyan-800">
+              €{totaleSpesaSponsorizzate.toLocaleString('it-IT')}
+            </p>
+            <p className="text-xs text-cyan-600 mt-1">Da tag Sponsorizzate – {selectedYear}</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Performance per Canale Social */}
