@@ -652,7 +652,20 @@ export default function Expenses() {
                   <Label>Voce di Spesa (opzionale)</Label>
                   <Select
                   value={formData.id_voce_spesa}
-                  onValueChange={(val) => setFormData((prev) => ({ ...prev, id_voce_spesa: val === '__none__' ? '' : val }))}>
+                  onValueChange={(val) => {
+                    if (val === '__none__') {
+                      setFormData((prev) => ({ ...prev, id_voce_spesa: '', chapter_id: '', chapter_name: '' }));
+                    } else {
+                      const voce = vociSpesa.find((v) => v.id === val);
+                      const cat = categorie.find((c) => c.id === voce?.id_categoria);
+                      setFormData((prev) => ({
+                        ...prev,
+                        id_voce_spesa: val,
+                        chapter_id: cat?.id || '',
+                        chapter_name: cat?.nome || ''
+                      }));
+                    }
+                  }}>
 
                     <SelectTrigger>
                       <SelectValue placeholder="Collega a voce di spesa" />
@@ -670,6 +683,9 @@ export default function Expenses() {
                     })}
                     </SelectContent>
                   </Select>
+                  {formData.chapter_name && (
+                    <p className="text-xs text-slate-500">Capitolo: <span className="font-medium">{formData.chapter_name}</span></p>
+                  )}
                 </div>
               }
             </div>
