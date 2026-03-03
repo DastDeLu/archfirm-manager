@@ -210,9 +210,24 @@ export default function Expenses() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    let chapter_id = formData.chapter_id;
+    let chapter_name = formData.chapter_name;
+
+    // Se c'è una voce di spesa collegata, ricava il capitolo dalla categoria
+    if (formData.id_voce_spesa) {
+      const voce = vociSpesa.find((v) => v.id === formData.id_voce_spesa);
+      const cat = categorie.find((c) => c.id === voce?.id_categoria);
+      if (cat) {
+        chapter_id = cat.id;
+        chapter_name = cat.nome;
+      }
+    }
+
     const data = {
       ...formData,
-      amount: parseFloat(formData.amount)
+      amount: parseFloat(formData.amount),
+      chapter_id,
+      chapter_name,
     };
     if (editingExpense) {
       updateMutation.mutate({ id: editingExpense.id, data });
