@@ -26,7 +26,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   LineChart, Line
 } from 'recharts';
-import { Plus, Pencil, Target, Euro, TrendingUp, Users, Trophy, RotateCcw } from 'lucide-react';
+import { Plus, Pencil, Target, Euro, TrendingUp, Users, Trophy, RotateCcw, Megaphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
@@ -152,11 +152,22 @@ export default function Marketing() {
     ? ((totals.spent / annualMarketingBudget) * 100).toFixed(1)
     : 0;
 
-  // Query per Revenues
+  // Query per Revenues e Expenses (per Sponsorizzate)
   const { data: revenues = [] } = useQuery({
     queryKey: ['revenues'],
     queryFn: () => base44.entities.Revenue.list(),
   });
+
+  const { data: expenses = [] } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: () => base44.entities.Expense.list('-date'),
+  });
+
+  const totaleSpesaSponsorizzate = useMemo(() =>
+    expenses
+      .filter(e => e.tag === 'Sponsorizzate' && String(e.date || '').startsWith(String(selectedYear)))
+      .reduce((sum, e) => sum + (e.amount || 0), 0),
+  [expenses, selectedYear]);
 
   // Statistiche conversioni per canale social CON RICAVI
   const socialConversionStats = useMemo(() => {
