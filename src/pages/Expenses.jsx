@@ -122,7 +122,7 @@ export default function Expenses() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }) => {
-      const oldExpense = expenses.find(e => e.id === id);
+      const oldExpense = expenses.find((e) => e.id === id);
       const spesa = await base44.entities.Expense.update(id, data);
       // Se cambia la voce collegata o l'importo, aggiorna i budget
       const oldVoce = oldExpense?.id_voce_spesa;
@@ -573,8 +573,8 @@ export default function Expenses() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Descrizione della spesa"
-                />
+                  placeholder="Descrizione della spesa" />
+
               </div>
               }
 
@@ -630,16 +630,16 @@ export default function Expenses() {
               </div>
               {formData.expense_type === 'fixed' &&
               <>
-                  <div className="space-y-2">
-                    <Label htmlFor="nature">Natura/Descrizione *</Label>
-                    <Input
-                    id="nature"
-                    value={formData.nature}
-                    onChange={(e) => setFormData({ ...formData, nature: e.target.value })}
-                    placeholder="Natura della spesa fissa"
-                    required />
+                  
 
-                  </div>
+
+
+
+
+
+
+
+
                   <div className="space-y-2">
                     <Label htmlFor="payment_frequency">Frequenza Pagamento *</Label>
                     <Select
