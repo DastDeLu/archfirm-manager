@@ -298,6 +298,29 @@ export default function Forecast() {
         </div>
       )}
 
+      {/* Card Compensi */}
+      <Card className="mb-6 border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50">
+        <CardContent className="pt-4">
+          <p className="text-sm font-semibold text-indigo-700 mb-3">Dettaglio Compensi – {selectedYear}</p>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-xs text-slate-500">Ricavi Compensi</p>
+              <p className="text-lg font-bold text-emerald-600">€{compensiData.ricavi.toLocaleString('it-IT')}</p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500">Costi Compensi</p>
+              <p className="text-lg font-bold text-red-600">€{compensiData.costi.toLocaleString('it-IT')}</p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500">Netto Compensi</p>
+              <p className={cn("text-lg font-bold", compensiData.netto >= 0 ? "text-emerald-600" : "text-red-600")}>
+                {compensiData.netto >= 0 ? '+' : ''}€{compensiData.netto.toLocaleString('it-IT')}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card>
