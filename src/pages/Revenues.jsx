@@ -34,15 +34,7 @@ import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddProject from '../components/forms/QuickAddProject';
 
-const TAGS = ['Progettazione', 'Direzione Lavori', 'Provvigione', 'Burocrazia', 'Other'];
-
-const tagColors = {
-  'Progettazione': 'bg-purple-100 text-purple-700',
-  'Direzione Lavori': 'bg-blue-100 text-blue-700',
-  'Provvigione': 'bg-emerald-100 text-emerald-700',
-  'Burocrazia': 'bg-amber-100 text-amber-700',
-  'Other': 'bg-slate-100 text-slate-700',
-};
+import { REVENUE_TAGS as TAGS, REVENUE_TAG_COLORS as tagColors } from '../components/lib/transactionTags';
 
 export default function Revenues() {
   const currentYear = new Date().getFullYear();
