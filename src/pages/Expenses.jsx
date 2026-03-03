@@ -210,10 +210,6 @@ export default function Expenses() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // chapter_id is optional for fixed expenses
-    if (formData.expense_type !== 'fixed' && !formData.chapter_id) {
-      return;
-    }
     const data = {
       ...formData,
       amount: parseFloat(formData.amount)
