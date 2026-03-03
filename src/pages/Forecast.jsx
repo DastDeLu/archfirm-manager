@@ -176,6 +176,18 @@ export default function Forecast() {
     }), { forecastRevenue: 0, forecastExpense: 0, actualRevenue: 0, actualExpense: 0 });
   }, [chartData]);
 
+  // Calcolo Compensi
+  const compensiData = useMemo(() => {
+    const yearStr = String(selectedYear);
+    const ricavi = revenues
+      .filter(r => r.tag === 'Compensi' && (r.date || '').startsWith(yearStr))
+      .reduce((sum, r) => sum + (r.amount || 0), 0);
+    const costi = expenses
+      .filter(e => e.tag === 'Compensi' && (e.date || '').startsWith(yearStr))
+      .reduce((sum, e) => sum + (e.amount || 0), 0);
+    return { ricavi, costi, netto: ricavi - costi };
+  }, [revenues, expenses, selectedYear]);
+
   // Calculate cash forecast using the cashForecast utility
   const cashForecastData = useMemo(() => {
     const currentYear = new Date().getFullYear();
