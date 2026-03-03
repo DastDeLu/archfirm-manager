@@ -566,17 +566,15 @@ export default function Expenses() {
 
 
 
-              {formData.expense_type === 'variable' &&
               <div className="space-y-2">
                 <Label htmlFor="description">Descrizione</Label>
                 <Input
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Descrizione della spesa" />
-
+                  placeholder="Descrizione della spesa"
+                />
               </div>
-              }
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
