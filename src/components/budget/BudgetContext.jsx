@@ -28,23 +28,52 @@ export const BudgetProvider = ({ children }) => {
     queryFn: () => base44.entities.VoceSpesa.list('-data_aggiornamento'),
   });
 
+  // Fetch tutte le spese per calcolare speso_reale in tempo reale
+  const { data: tutteLeSpese = [] } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: () => base44.entities.Expense.list(),
+  });
+
+  // Calcola speso_reale per ogni voce direttamente dalle spese collegate
+  const spesoPerVoce = React.useMemo(() => {
+    const map = {};
+    tutteLeSpese.forEach(spesa => {
+      if (spesa.id_voce_spesa) {
+        map[spesa.id_voce_spesa] = (map[spesa.id_voce_spesa] || 0) + (spesa.amount || 0);
+      }
+    });
+    return map;
+  }, [tutteLeSpese]);
+
+  // Voci arricchite con speso_reale e residuo calcolati live
+  const vociSpesaLive = React.useMemo(() => {
+    return vociSpesa.map(voce => {
+      const spesoReale = spesoPerVoce[voce.id] || 0;
+      return {
+        ...voce,
+        speso_reale: spesoReale,
+        residuo: voce.budget_totale - spesoReale,
+      };
+    });
+  }, [vociSpesa, spesoPerVoce]);
+
   // Raggruppa voci per categoria
   const vociPerCategoria = React.useMemo(() => {
     const grouped = {};
     categorie.forEach(cat => {
-      grouped[cat.id] = vociSpesa.filter(voce => voce.id_categoria === cat.id);
+      grouped[cat.id] = vociSpesaLive.filter(voce => voce.id_categoria === cat.id);
     });
     return grouped;
-  }, [categorie, vociSpesa]);
+  }, [categorie, vociSpesaLive]);
 
   // Calcola statistiche per categoria
   const statistichePerCategoria = React.useMemo(() => {
     const stats = {};
     categorie.forEach(cat => {
-      stats[cat.id] = BudgetService.calcolaStatisticheCategoria(cat.id, vociSpesa);
+      stats[cat.id] = BudgetService.calcolaStatisticheCategoria(cat.id, vociSpesaLive);
     });
     return stats;
-  }, [categorie, vociSpesa]);
+  }, [categorie, vociSpesaLive]);
 
   /**
    * Registra un pagamento e aggiorna il budget
