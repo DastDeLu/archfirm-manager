@@ -130,7 +130,7 @@ export const BudgetProvider = ({ children }) => {
 
   const value = {
     categorie,
-    vociSpesa,
+    vociSpesa: vociSpesaLive,
     vociPerCategoria,
     statistichePerCategoria,
     aggiornaBudget,
