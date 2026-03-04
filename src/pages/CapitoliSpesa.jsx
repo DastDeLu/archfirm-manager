@@ -270,10 +270,14 @@ export default function CapitoliSpesa() {
 
   const handleSpesaSubmit = (e) => {
     e.preventDefault();
+    const cat = categorie.find(c => c.id === selectedVoce.id_categoria);
     createSpesaMutation.mutate({
       ...spesaForm,
       amount: parseFloat(spesaForm.amount),
-      id_voce_spesa: selectedVoce.id
+      id_voce_spesa: selectedVoce.id,
+      chapter_id: cat?.id || selectedVoce.id_categoria,
+      chapter_name: cat?.nome || '',
+      payment_method: 'bank_transfer',
     });
   };
 
