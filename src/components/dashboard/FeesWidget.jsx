@@ -45,7 +45,7 @@ export default function FeesWidget() {
               <p className="text-xs text-amber-600 mt-1">Compensi attesi</p>
             </div>
             <p className="text-xl font-bold text-amber-700">
-              €{stats.toCollect.toLocaleString('it-IT')}
+              {formatCurrency(stats.toCollect)}
             </p>
           </div>
           
@@ -55,7 +55,7 @@ export default function FeesWidget() {
               <p className="text-xs text-emerald-600 mt-1">Compensi ricevuti</p>
             </div>
             <p className="text-xl font-bold text-emerald-700">
-              €{stats.collected.toLocaleString('it-IT')}
+              {formatCurrency(stats.collected)}
             </p>
           </div>
           
@@ -63,7 +63,7 @@ export default function FeesWidget() {
             <div className="flex items-center gap-2 text-slate-600">
               <TrendingUp className="h-4 w-4" />
               <span className="text-sm font-medium">
-                Totale: €{(stats.toCollect + stats.collected).toLocaleString('it-IT')}
+                Totale: {formatCurrency(stats.toCollect + stats.collected)}
               </span>
             </div>
           </div>
