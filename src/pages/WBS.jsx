@@ -736,7 +736,9 @@ export default function WBS() {
         onOpenChange={setQuickAddEmployeeOpen}
         onEmployeeCreated={(employee) => {
           queryClient.invalidateQueries({ queryKey: ['employees'] });
-          setFormData({ ...formData, assigned_to_id: employee.id, assigned_to_name: employee.name });
+          if (formData.assignees.length < 2) {
+            setFormData({ ...formData, assignees: [...formData.assignees, { id: employee.id, name: employee.name }] });
+          }
         }}
       />
     </div>
