@@ -299,11 +299,15 @@ export default function WBS() {
     const level = parentItem ? (parentItem.level || 1) + 1 : 1;
     // Per padri con figli, usa i costi calcolati dai figli
     const computed = editingItem ? computedCosts[editingItem.id] : null;
+    // Sync legacy fields from assignees array (first assignee = primary)
+    const primaryAssignee = formData.assignees?.[0] || null;
     const data = {
       ...formData,
       project_id: selectedProjectId,
       parent_id: parentItem?.id || null,
       level,
+      assigned_to_id: primaryAssignee?.id || '',
+      assigned_to_name: primaryAssignee?.name || '',
       estimated_hours: computed ? computed.estimated_hours : (formData.estimated_hours ? parseFloat(formData.estimated_hours) : 0),
       actual_hours: computed ? computed.actual_hours : (formData.actual_hours ? parseFloat(formData.actual_hours) : 0),
       estimated_cost: computed ? computed.estimated_cost : (formData.estimated_cost ? parseFloat(formData.estimated_cost) : 0),
