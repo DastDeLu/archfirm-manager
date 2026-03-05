@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Receipt, TrendingUp } from 'lucide-react';
+import { formatCurrency } from '../lib/formatters';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 import { Button } from '@/components/ui/button';
