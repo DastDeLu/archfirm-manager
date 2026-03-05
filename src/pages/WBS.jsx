@@ -34,9 +34,14 @@ import { cn } from '@/lib/utils';
 import QuickAddEmployee from '../components/forms/QuickAddEmployee';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
-function WBSItem({ item, children, level, onEdit, onDelete, onAddChild }) {
+function WBSItem({ item, children, level, onEdit, onDelete, onAddChild, computedCosts }) {
   const [expanded, setExpanded] = useState(true);
   const hasChildren = children && children.length > 0;
+  // Usa costi calcolati se disponibili (padre con figli)
+  const displayEstHours = computedCosts?.[item.id]?.estimated_hours ?? item.estimated_hours ?? 0;
+  const displayActHours = computedCosts?.[item.id]?.actual_hours ?? item.actual_hours ?? 0;
+  const displayEstCost = computedCosts?.[item.id]?.estimated_cost ?? item.estimated_cost ?? 0;
+  const displayActCost = computedCosts?.[item.id]?.actual_cost ?? item.actual_cost ?? 0;
 
   const typeColors = {
     phase: 'bg-purple-100 text-purple-700 border-purple-200',
@@ -50,8 +55,8 @@ function WBSItem({ item, children, level, onEdit, onDelete, onAddChild }) {
     completed: 'bg-emerald-100 text-emerald-700',
   };
 
-  const hoursDiff = (item.actual_hours || 0) - (item.estimated_hours || 0);
-  const costDiff = (item.actual_cost || 0) - (item.estimated_cost || 0);
+  const hoursDiff = displayActHours - displayEstHours;
+  const costDiff = displayActCost - displayEstCost;
 
   return (
     <div className={cn("", level > 1 && "ml-6")}>
@@ -189,6 +194,24 @@ export default function WBS() {
     return grouped;
   }, [allWbsItems]);
 
+  // Calcola costi somma figli per ogni nodo padre
+  const computedCosts = useMemo(() => {
+    const result = {};
+    // Per ogni item, se ha figli, il costo stimato/effettivo = somma figli
+    allWbsItems.forEach(item => {
+      const children = allWbsItems.filter(i => i.parent_id === item.id);
+      if (children.length > 0) {
+        result[item.id] = {
+          estimated_cost: children.reduce((s, c) => s + (c.estimated_cost || 0), 0),
+          actual_cost: children.reduce((s, c) => s + (c.actual_cost || 0), 0),
+          estimated_hours: children.reduce((s, c) => s + (c.estimated_hours || 0), 0),
+          actual_hours: children.reduce((s, c) => s + (c.actual_hours || 0), 0),
+        };
+      }
+    });
+    return result;
+  }, [allWbsItems]);
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.WBS.create(data),
     onSuccess: () => {
@@ -257,19 +280,26 @@ export default function WBS() {
     setParentItem(null);
   };
 
+  // Check if the item being edited/created has children (for read-only cost fields)
+  const hasChildren = editingItem 
+    ? allWbsItems.some(i => i.parent_id === editingItem.id)
+    : false;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedProjectId) return;
     const level = parentItem ? (parentItem.level || 1) + 1 : 1;
+    // Per padri con figli, usa i costi calcolati dai figli
+    const computed = editingItem ? computedCosts[editingItem.id] : null;
     const data = {
       ...formData,
       project_id: selectedProjectId,
       parent_id: parentItem?.id || null,
       level,
-      estimated_hours: formData.estimated_hours ? parseFloat(formData.estimated_hours) : 0,
-      actual_hours: formData.actual_hours ? parseFloat(formData.actual_hours) : 0,
-      estimated_cost: formData.estimated_cost ? parseFloat(formData.estimated_cost) : 0,
-      actual_cost: formData.actual_cost ? parseFloat(formData.actual_cost) : 0,
+      estimated_hours: computed ? computed.estimated_hours : (formData.estimated_hours ? parseFloat(formData.estimated_hours) : 0),
+      actual_hours: computed ? computed.actual_hours : (formData.actual_hours ? parseFloat(formData.actual_hours) : 0),
+      estimated_cost: computed ? computed.estimated_cost : (formData.estimated_cost ? parseFloat(formData.estimated_cost) : 0),
+      actual_cost: computed ? computed.actual_cost : (formData.actual_cost ? parseFloat(formData.actual_cost) : 0),
     };
     if (editingItem) {
       updateMutation.mutate({ id: editingItem.id, data });
@@ -307,6 +337,7 @@ export default function WBS() {
         onEdit={openDialog}
         onDelete={(id) => deleteMutation.mutate(id)}
         onAddChild={(parent) => openDialog(null, parent)}
+        computedCosts={computedCosts}
       >
         {item.children && item.children.length > 0 && renderTree(item.children, level + 1)}
       </WBSItem>
@@ -511,50 +542,79 @@ export default function WBS() {
                   required
                 />
               </div>
+              {hasChildren && (
+                <div className="p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
+                  Ore e costi calcolati automaticamente dalla somma dei figli (sola lettura).
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="estimated_hours">Ore Stimate</Label>
-                  <Input
-                    id="estimated_hours"
-                    type="number"
-                    value={formData.estimated_hours}
-                    onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
-                    placeholder="0"
-                  />
+                  {hasChildren ? (
+                    <p className="text-sm font-semibold text-slate-700 py-2">
+                      {computedCosts[editingItem?.id]?.estimated_hours || 0}h
+                    </p>
+                  ) : (
+                    <Input
+                      id="estimated_hours"
+                      type="number"
+                      value={formData.estimated_hours}
+                      onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
+                      placeholder="0"
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="actual_hours">Ore Effettive</Label>
-                  <Input
-                    id="actual_hours"
-                    type="number"
-                    value={formData.actual_hours}
-                    onChange={(e) => setFormData({ ...formData, actual_hours: e.target.value })}
-                    placeholder="0"
-                  />
+                  {hasChildren ? (
+                    <p className="text-sm font-semibold text-slate-700 py-2">
+                      {computedCosts[editingItem?.id]?.actual_hours || 0}h
+                    </p>
+                  ) : (
+                    <Input
+                      id="actual_hours"
+                      type="number"
+                      value={formData.actual_hours}
+                      onChange={(e) => setFormData({ ...formData, actual_hours: e.target.value })}
+                      placeholder="0"
+                    />
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="estimated_cost">Costo Stimato (€)</Label>
-                  <Input
-                    id="estimated_cost"
-                    type="number"
-                    value={formData.estimated_cost}
-                    onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
-                    placeholder="0.00"
-                    step="0.01"
-                  />
+                  {hasChildren ? (
+                    <p className="text-sm font-semibold text-slate-700 py-2">
+                      {formatCurrency(computedCosts[editingItem?.id]?.estimated_cost || 0)}
+                    </p>
+                  ) : (
+                    <Input
+                      id="estimated_cost"
+                      type="number"
+                      value={formData.estimated_cost}
+                      onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
+                      placeholder="0.00"
+                      step="0.01"
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="actual_cost">Costo Effettivo (€)</Label>
-                  <Input
-                    id="actual_cost"
-                    type="number"
-                    value={formData.actual_cost}
-                    onChange={(e) => setFormData({ ...formData, actual_cost: e.target.value })}
-                    placeholder="0.00"
-                    step="0.01"
-                  />
+                  {hasChildren ? (
+                    <p className="text-sm font-semibold text-slate-700 py-2">
+                      {formatCurrency(computedCosts[editingItem?.id]?.actual_cost || 0)}
+                    </p>
+                  ) : (
+                    <Input
+                      id="actual_cost"
+                      type="number"
+                      value={formData.actual_cost}
+                      onChange={(e) => setFormData({ ...formData, actual_cost: e.target.value })}
+                      placeholder="0.00"
+                      step="0.01"
+                    />
+                  )}
                 </div>
               </div>
               <div className="space-y-2">

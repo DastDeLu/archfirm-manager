@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useBudget } from '../components/budget/BudgetContext';
 import PageHeader from '../components/ui/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -171,7 +171,18 @@ export default function CapitoliSpesa() {
     },
   });
 
-  const { vociSpesa: allVoci } = useBudget();
+  const { vociSpesa: allVoci, vociSpesa } = useBudget();
+
+  // Totale generale tra tutte le categorie
+  const totaleGenerale = useMemo(() => {
+    let budgetTotale = 0, spesoTotale = 0, residuoTotale = 0;
+    Object.values(statistichePerCategoria).forEach(s => {
+      budgetTotale += s.budgetTotale || 0;
+      spesoTotale += s.spesoTotale || 0;
+      residuoTotale += s.residuoTotale || 0;
+    });
+    return { budgetTotale, spesoTotale, residuoTotale };
+  }, [statistichePerCategoria]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -311,6 +322,31 @@ export default function CapitoliSpesa() {
           </Button>
         </div>
       </PageHeader>
+
+      {/* Totale Generale */}
+      {categorie.length > 0 && (
+        <Card className="border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100/50">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Totale Generale Capitoli</p>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <p className="text-xs text-slate-500">Budget Totale</p>
+                <p className="text-xl font-bold text-slate-900">{formatCurrency(totaleGenerale.budgetTotale)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">Speso Totale</p>
+                <p className="text-xl font-bold text-red-600">{formatCurrency(totaleGenerale.spesoTotale)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">Residuo Totale</p>
+                <p className={`text-xl font-bold ${totaleGenerale.residuoTotale < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                  {formatCurrency(totaleGenerale.residuoTotale)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Categorie e Tabelle */}
       <div className="space-y-6">
@@ -452,9 +488,9 @@ export default function CapitoliSpesa() {
                                   />
                                   <span className={cn(
                                     "text-xs font-medium whitespace-nowrap",
-                                    isOverbudget ? "text-red-600" : "text-slate-600"
+                                    isOverbudget ? "text-red-600 font-bold" : "text-slate-600"
                                   )}>
-                                    {percentuale.toFixed(0)}%
+                                    {percentuale.toFixed(0)}%{isOverbudget && ' ⚠'}
                                   </span>
                                 </div>
                               </td>
