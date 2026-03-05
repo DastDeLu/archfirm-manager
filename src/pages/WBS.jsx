@@ -100,12 +100,12 @@ function WBSItem({ item, children, level, onEdit, onDelete, onAddChild, computed
                 (Eff: {formatCurrency(displayActCost)})
               </span>
             </div>
-            {item.assigned_to_name && (
-              <div className="flex items-center gap-1">
+            {(item.assignees?.length > 0 ? item.assignees : item.assigned_to_name ? [{ name: item.assigned_to_name }] : []).map((a, i) => (
+              <div key={i} className="flex items-center gap-1">
                 <User className="h-3 w-3" />
-                <span>{item.assigned_to_name}</span>
+                <span>{a.name}</span>
               </div>
-            )}
+            ))}
           </div>
         </div>
 
