@@ -161,6 +161,7 @@ export default function WBS() {
     status: 'not_started',
     assigned_to_id: '',
     assigned_to_name: '',
+    assignees: [],
     order_index: 0
   });
   const [quickAddEmployeeOpen, setQuickAddEmployeeOpen] = useState(false);
