@@ -28,6 +28,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Plus, ChevronDown, Receipt, Pencil, Trash2, CheckCircle, Clock, Banknote, PiggyBank } from 'lucide-react';
+import { formatCurrency } from '../components/lib/formatters';
 import { cn } from '@/lib/utils';
 import QuickAddClient from '../components/forms/QuickAddClient';
 

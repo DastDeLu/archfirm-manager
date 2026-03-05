@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Plus, Edit, TrendingDown, TrendingUp, AlertCircle, Receipt, MoreVertical, Trash2 } from 'lucide-react';
+import { formatCurrency } from '../components/lib/formatters';
 import { cn } from '@/lib/utils';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';

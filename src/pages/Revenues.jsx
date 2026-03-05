@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, MoreHorizontal, Pencil, Trash2, TrendingUp, Euro, Filter, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { formatCurrency } from '../components/lib/formatters';
 import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddProject from '../components/forms/QuickAddProject';
