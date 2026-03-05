@@ -201,7 +201,7 @@ export default function Revenues() {
       header: 'Importo',
       cell: (row) => (
         <span className="font-semibold text-emerald-600">
-          +€{(row.amount || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+          +{formatCurrency(row.amount || 0)}
         </span>
       ),
     },
@@ -266,7 +266,7 @@ export default function Revenues() {
               {activeTag === 'all' ? 'Ricavi Totali' : `Ricavi ${activeTag}`}
             </div>
             <p className="text-2xl font-bold text-emerald-600">
-              €{totalAmount.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+              {formatCurrency(totalAmount)}
             </p>
             <p className="text-xs text-slate-500 mt-1">{filteredRevenues.length} voci</p>
           </CardContent>
@@ -277,7 +277,7 @@ export default function Revenues() {
               {currentYear}
             </div>
             <p className="text-2xl font-bold text-slate-900">
-              €{yearlyData.currentTotal.toLocaleString('it-IT')}
+              {formatCurrency(yearlyData.currentTotal)}
             </p>
             <p className="text-xs text-slate-500 mt-1">Anno corrente</p>
           </CardContent>
@@ -288,7 +288,7 @@ export default function Revenues() {
               {previousYear}
             </div>
             <p className="text-2xl font-bold text-slate-600">
-              €{yearlyData.previousTotal.toLocaleString('it-IT')}
+              {formatCurrency(yearlyData.previousTotal)}
             </p>
             <p className="text-xs text-slate-500 mt-1">Anno precedente</p>
           </CardContent>
@@ -304,7 +304,7 @@ export default function Revenues() {
               YoY Delta
             </div>
             <p className={`text-2xl font-bold ${yearlyData.delta >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-              {yearlyData.delta >= 0 ? '+' : ''}€{yearlyData.delta.toLocaleString('it-IT')}
+              {yearlyData.delta >= 0 ? '+' : ''}{formatCurrency(yearlyData.delta)}
             </p>
             <p className={`text-xs mt-1 ${yearlyData.delta >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
               {yearlyData.delta >= 0 ? '+' : ''}{yearlyData.deltaPercent}%

@@ -297,7 +297,7 @@ export default function Expenses() {
     header: 'Importo',
     cell: (row) =>
     <span className="font-semibold text-red-600">
-          -€{(row.amount || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+          -{formatCurrency(row.amount || 0)}
         </span>
 
   },
@@ -361,7 +361,7 @@ export default function Expenses() {
               <div>
                 <p className="text-sm font-medium text-slate-500">Totale Costi</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">
-                  €{totalExpenses.toLocaleString('it-IT')}
+                  {formatCurrency(totalExpenses)}
                 </p>
               </div>
               <div className="p-3 bg-red-50 rounded-lg">
@@ -376,7 +376,7 @@ export default function Expenses() {
               <div>
                 <p className="text-sm font-medium text-slate-500">Costi Variabili</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">
-                  €{variableExpenses.toLocaleString('it-IT')}
+                  {formatCurrency(variableExpenses)}
                 </p>
               </div>
               <div className="p-3 bg-blue-50 rounded-lg">
@@ -391,7 +391,7 @@ export default function Expenses() {
               <div>
                 <p className="text-sm font-medium text-slate-500">Costi Fissi</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">
-                  €{fixedExpenses.toLocaleString('it-IT')}
+                  {formatCurrency(fixedExpenses)}
                 </p>
               </div>
               <div className="p-3 bg-purple-50 rounded-lg">
@@ -433,7 +433,7 @@ export default function Expenses() {
                   {tag}
                 </Badge>
                 <p className="text-xl font-bold text-slate-900 mt-2">
-                  €{data.total.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                  {formatCurrency(data.total)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">{data.count} spese</p>
               </div>
@@ -451,7 +451,7 @@ export default function Expenses() {
               {activeTag === 'all' ? 'Spese Totali' : `Spese ${activeTag}`}
             </div>
             <p className="text-2xl font-bold text-red-600">
-              €{totalAmount.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+              {formatCurrency(totalAmount)}
             </p>
             <p className="text-xs text-slate-500 mt-1">{filteredExpenses.length} voci</p>
           </CardContent>
@@ -462,7 +462,7 @@ export default function Expenses() {
               {currentYear}
             </div>
             <p className="text-2xl font-bold text-slate-900">
-              €{yearlyData.currentTotal.toLocaleString('it-IT')}
+              {formatCurrency(yearlyData.currentTotal)}
             </p>
             <p className="text-xs text-slate-500 mt-1">Anno corrente</p>
           </CardContent>
@@ -473,7 +473,7 @@ export default function Expenses() {
               {previousYear}
             </div>
             <p className="text-2xl font-bold text-slate-600">
-              €{yearlyData.previousTotal.toLocaleString('it-IT')}
+              {formatCurrency(yearlyData.previousTotal)}
             </p>
             <p className="text-xs text-slate-500 mt-1">Anno precedente</p>
           </CardContent>
@@ -489,7 +489,7 @@ export default function Expenses() {
               YoY Delta
             </div>
             <p className={`text-2xl font-bold ${yearlyData.delta <= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-              {yearlyData.delta >= 0 ? '+' : ''}€{yearlyData.delta.toLocaleString('it-IT')}
+              {yearlyData.delta >= 0 ? '+' : ''}{formatCurrency(yearlyData.delta)}
             </p>
             <p className={`text-xs mt-1 ${yearlyData.delta <= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
               {yearlyData.delta >= 0 ? '+' : ''}{yearlyData.deltaPercent}%

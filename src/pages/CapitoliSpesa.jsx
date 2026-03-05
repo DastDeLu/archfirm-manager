@@ -350,15 +350,15 @@ export default function CapitoliSpesa() {
                   <div className="text-right">
                     <p className="text-sm text-slate-500">Budget Totale Categoria</p>
                     <p className="text-xl font-bold text-slate-900">
-                      €{stats?.budgetTotale.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                      {formatCurrency(stats?.budgetTotale)}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
-                      Speso: €{stats?.spesoTotale.toLocaleString('it-IT')} • 
+                      Speso: {formatCurrency(stats?.spesoTotale)} • 
                       Residuo: <span className={cn(
-                        "font-medium",
-                        stats?.residuoTotale < 0 ? "text-red-600" : "text-emerald-600"
+                       "font-medium",
+                       stats?.residuoTotale < 0 ? "text-red-600" : "text-emerald-600"
                       )}>
-                        €{stats?.residuoTotale.toLocaleString('it-IT')}
+                        {formatCurrency(stats?.residuoTotale)}
                       </span>
                     </p>
                   </div>
@@ -423,7 +423,7 @@ export default function CapitoliSpesa() {
                                     onClick={() => handleBudgetEdit(voce)}
                                     className="font-medium text-slate-900 hover:text-blue-600 flex items-center gap-1 ml-auto"
                                   >
-                                    €{voce.budget_totale.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                                    {formatCurrency(voce.budget_totale)}
                                     <Edit className="h-3 w-3" />
                                   </button>
                                 )}
@@ -433,12 +433,12 @@ export default function CapitoliSpesa() {
                                   "font-semibold",
                                   isOverbudget ? "text-red-600" : "text-emerald-600"
                                 )}>
-                                  €{voce.residuo.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                                  {formatCurrency(voce.residuo)}
                                 </span>
                               </td>
                               <td className="px-4 py-4 text-right">
                                 <span className="font-medium text-slate-900">
-                                  €{voce.speso_reale.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                                  {formatCurrency(voce.speso_reale)}
                                 </span>
                               </td>
                               <td className="px-4 py-4">

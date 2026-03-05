@@ -77,22 +77,22 @@ function WBSItem({ item, children, level, onEdit, onDelete, onAddChild }) {
           <div className="flex items-center gap-4 mt-1 text-xs text-slate-600">
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              <span>Est: {item.estimated_hours || 0}h</span>
+              <span>Stim: {item.estimated_hours || 0}h</span>
               <span className={cn(
-                "font-medium",
-                hoursDiff > 0 ? "text-red-600" : hoursDiff < 0 ? "text-emerald-600" : ""
+              "font-medium",
+              hoursDiff > 0 ? "text-red-600" : hoursDiff < 0 ? "text-emerald-600" : ""
               )}>
-                (Actual: {item.actual_hours || 0}h)
+              (Eff: {item.actual_hours || 0}h)
               </span>
             </div>
             <div className="flex items-center gap-1">
               <Euro className="h-3 w-3" />
-              <span>Est: €{(item.estimated_cost || 0).toLocaleString('it-IT')}</span>
+              <span>Stim: {formatCurrency(item.estimated_cost || 0)}</span>
               <span className={cn(
                 "font-medium",
                 costDiff > 0 ? "text-red-600" : costDiff < 0 ? "text-emerald-600" : ""
               )}>
-                (Actual: €{(item.actual_cost || 0).toLocaleString('it-IT')})
+                (Eff: {formatCurrency(item.actual_cost || 0)})
               </span>
             </div>
             {item.assigned_to_name && (
@@ -410,7 +410,7 @@ export default function WBS() {
                           Costo Totale
                         </div>
                         <p className="text-xl font-bold text-emerald-900">
-                          €{stats.totalCost.toLocaleString('it-IT')}
+                          {formatCurrency(stats.totalCost)}
                         </p>
                       </div>
                       <div className="p-3 bg-purple-50 rounded-lg">

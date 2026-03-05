@@ -220,7 +220,7 @@ export default function Fees() {
           <CardContent className="pt-4">
             <p className="text-sm text-slate-500 mb-1">Da Incassare</p>
             <p className="text-2xl font-bold text-amber-600">
-              €{stats.byStatus['Da incassare'].toLocaleString('it-IT')}
+              {formatCurrency(stats.byStatus['Da incassare'])}
             </p>
           </CardContent>
         </Card>
@@ -228,7 +228,7 @@ export default function Fees() {
           <CardContent className="pt-4">
             <p className="text-sm text-slate-500 mb-1">Incassati</p>
             <p className="text-2xl font-bold text-emerald-600">
-              €{stats.byStatus['Incassati'].toLocaleString('it-IT')}
+              {formatCurrency(stats.byStatus['Incassati'])}
             </p>
           </CardContent>
         </Card>
@@ -239,7 +239,7 @@ export default function Fees() {
               <span>Banca</span>
             </div>
             <p className="text-xl font-bold text-blue-600">
-              €{stats.byMethod['Banca'].toLocaleString('it-IT')}
+              {formatCurrency(stats.byMethod['Banca'])}
             </p>
           </CardContent>
         </Card>
@@ -250,7 +250,7 @@ export default function Fees() {
               <span>Contanti</span>
             </div>
             <p className="text-xl font-bold text-amber-600">
-              €{stats.byMethod['Contanti'].toLocaleString('it-IT')}
+              {formatCurrency(stats.byMethod['Contanti'])}
             </p>
           </CardContent>
         </Card>
@@ -258,7 +258,7 @@ export default function Fees() {
           <CardContent className="pt-4">
             <p className="text-sm text-slate-500 mb-1">Totale</p>
             <p className="text-2xl font-bold text-slate-900">
-              €{(stats.byStatus['Da incassare'] + stats.byStatus['Incassati']).toLocaleString('it-IT')}
+              {formatCurrency(stats.byStatus['Da incassare'] + stats.byStatus['Incassati'])}
             </p>
           </CardContent>
         </Card>
@@ -277,16 +277,16 @@ export default function Fees() {
                   {category}
                 </Badge>
                 <p className="text-xl font-bold text-slate-900 mt-2">
-                  €{data.total.toLocaleString('it-IT')}
+                  {formatCurrency(data.total)}
                 </p>
                 <div className="mt-3 space-y-1.5 text-xs">
                   <div className="flex justify-between">
                     <span className="text-amber-600">Da incassare:</span>
-                    <span className="font-semibold text-amber-700">€{data.toCollect.toLocaleString('it-IT')}</span>
+                    <span className="font-semibold text-amber-700">{formatCurrency(data.toCollect)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-emerald-600">Incassati:</span>
-                    <span className="font-semibold text-emerald-700">€{data.collected.toLocaleString('it-IT')}</span>
+                    <span className="font-semibold text-emerald-700">{formatCurrency(data.collected)}</span>
                   </div>
                 </div>
               </div>
@@ -362,10 +362,10 @@ export default function Fees() {
                         <div className="text-right">
                           <p className="text-sm text-slate-500">Totale</p>
                           <p className="text-xl font-bold text-slate-900">
-                            €{clientTotal.toLocaleString('it-IT')}
+                            {formatCurrency(clientTotal)}
                           </p>
                           <p className="text-xs text-emerald-600 mt-1">
-                            €{clientCollected.toLocaleString('it-IT')} incassati
+                            {formatCurrency(clientCollected)} incassati
                           </p>
                         </div>
                       </div>
@@ -407,7 +407,7 @@ export default function Fees() {
                             </div>
                             <div className="flex items-center gap-3">
                               <p className="text-lg font-bold text-slate-900">
-                                €{(fee.amount || 0).toLocaleString('it-IT')}
+                                {formatCurrency(fee.amount || 0)}
                               </p>
                               <Button
                                 variant="ghost"
