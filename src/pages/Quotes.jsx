@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, MoreHorizontal, Pencil, Trash2, FileText, TrendingUp, Target, AlertCircle } from 'lucide-react';
+import { formatCurrency } from '../components/lib/formatters';
 import { format, parseISO } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddClient from '../components/forms/QuickAddClient';
@@ -230,7 +231,7 @@ export default function Quotes() {
       header: 'Importo',
       cell: (row) => (
         <span className="font-medium text-slate-900">
-          €{(row.amount || 0).toLocaleString('it-IT')}
+          {formatCurrency(row.amount || 0)}
         </span>
       ),
     },
@@ -307,21 +308,21 @@ export default function Quotes() {
         <Card>
           <CardContent className="pt-4">
             <p className="text-sm text-slate-500">Pipeline Attiva</p>
-            <p className="text-2xl font-bold text-blue-600">€{stats.activeValue.toLocaleString('it-IT')}</p>
+            <p className="text-2xl font-bold text-blue-600">{formatCurrency(stats.activeValue)}</p>
             <p className="text-xs text-slate-500 mt-1">{stats.active} preventivi attivi</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <p className="text-sm text-slate-500">Vinti</p>
-            <p className="text-2xl font-bold text-emerald-600">€{stats.wonValue.toLocaleString('it-IT')}</p>
+            <p className="text-2xl font-bold text-emerald-600">{formatCurrency(stats.wonValue)}</p>
             <p className="text-xs text-slate-500 mt-1">{stats.won} preventivi</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <p className="text-sm text-slate-500">Valore Totale</p>
-            <p className="text-2xl font-bold text-slate-900">€{stats.totalValue.toLocaleString('it-IT')}</p>
+            <p className="text-2xl font-bold text-slate-900">{formatCurrency(stats.totalValue)}</p>
             <p className="text-xs text-slate-500 mt-1">{stats.total} preventivi totali</p>
           </CardContent>
         </Card>
@@ -336,7 +337,7 @@ export default function Quotes() {
             className={`text-left p-3 rounded-xl border transition-all ${activeFilter === tag ? 'border-slate-900 bg-slate-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'}`}
           >
             <Badge className={tagColors[tag] || 'bg-slate-100 text-slate-700'} style={{ marginBottom: 4 }}>{tag}</Badge>
-            <p className="text-lg font-bold text-slate-900 mt-1">€{value.toLocaleString('it-IT')}</p>
+            <p className="text-lg font-bold text-slate-900 mt-1">{formatCurrency(value)}</p>
             <p className="text-xs text-slate-500">{count} {count === 1 ? 'preventivo' : 'preventivi'}</p>
           </button>
         ))}

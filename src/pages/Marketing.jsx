@@ -27,6 +27,7 @@ import {
   LineChart, Line
 } from 'recharts';
 import { Plus, Pencil, Target, Euro, TrendingUp, Users, Trophy, RotateCcw, Megaphone } from 'lucide-react';
+import { formatCurrency, tickCurrency } from '../components/lib/formatters';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
@@ -254,12 +255,12 @@ export default function Marketing() {
               Budget Annuale
             </div>
             <p className="text-2xl font-bold text-blue-900">
-              €{annualMarketingBudget.toLocaleString('it-IT')}
+              {formatCurrency(annualMarketingBudget)}
             </p>
             <p className="text-xs text-blue-600 mt-1">
               Residuo:{' '}
               <span className={cn("font-semibold", residuo < 0 ? "text-red-600" : "text-blue-800")}>
-                €{residuo.toLocaleString('it-IT')}
+                {formatCurrency(residuo)}
               </span>
             </p>
             <Progress
@@ -293,7 +294,7 @@ export default function Marketing() {
               "text-2xl font-bold",
               residuo < 0 ? "text-red-600" : "text-amber-600"
             )}>
-              €{totals.spent.toLocaleString('it-IT')}
+              {formatCurrency(totals.spent)}
             </p>
           </CardContent>
         </Card>
@@ -332,7 +333,7 @@ export default function Marketing() {
               Spesa Sponsorizzate
             </div>
             <p className="text-2xl font-bold text-cyan-800">
-              €{totaleSpesaSponsorizzate.toLocaleString('it-IT')}
+              {formatCurrency(totaleSpesaSponsorizzate)}
             </p>
             <p className="text-xs text-cyan-600 mt-1">Da tag Sponsorizzate – {selectedYear}</p>
           </CardContent>
@@ -369,13 +370,13 @@ export default function Marketing() {
                         {stat.conversions} conversioni
                       </div>
                       <div className="text-xs text-emerald-600 font-semibold">
-                        Ricavi: €{stat.revenue.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                        Ricavi: {formatCurrency(stat.revenue)}
                       </div>
                     </div>
                   </div>
                   <Progress value={stat.percentage} className="h-2" />
                   <div className="flex justify-between text-xs text-slate-500">
-                    <span>Speso: €{stat.spent.toLocaleString('it-IT', { minimumFractionDigits: 2 })}</span>
+                    <span>Speso: {formatCurrency(stat.spent)}</span>
                     <span>ROI: {stat.roi >= 0 ? '+' : ''}{stat.roi.toFixed(1)}%</span>
                   </div>
                 </div>
@@ -397,9 +398,9 @@ export default function Marketing() {
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                  <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v/1000}k`} />
+                  <YAxis stroke="#64748b" fontSize={12} tickFormatter={tickCurrency} />
                   <Tooltip
-                    formatter={(value) => `€${value.toLocaleString('it-IT')}`}
+                   formatter={(value) => formatCurrency(value)}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                   />
                   <Legend />
@@ -466,7 +467,7 @@ export default function Marketing() {
                     <div className="flex justify-between">
                       <span className="text-slate-500">Speso:</span>
                       <span className="font-medium text-amber-600">
-                        €{item.spent.toLocaleString('it-IT')}
+                        {formatCurrency(item.spent)}
                       </span>
                     </div>
                     <div className="flex justify-between border-t pt-2">

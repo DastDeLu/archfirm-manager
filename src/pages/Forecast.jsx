@@ -27,10 +27,11 @@ import {
 import { Plus, Pencil, TrendingUp, TrendingDown, Calendar, Euro, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { calculateCashForecast } from '../components/utils/cashForecast.jsx';
+import { formatCurrency, tickCurrency } from '../components/lib/formatters';
 
 const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+  'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
 ];
 
 export default function Forecast() {
@@ -305,16 +306,16 @@ export default function Forecast() {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <p className="text-xs text-slate-500">Ricavi Compensi</p>
-              <p className="text-lg font-bold text-emerald-600">€{compensiData.ricavi.toLocaleString('it-IT')}</p>
+              <p className="text-lg font-bold text-emerald-600">{formatCurrency(compensiData.ricavi)}</p>
             </div>
             <div>
               <p className="text-xs text-slate-500">Costi Compensi</p>
-              <p className="text-lg font-bold text-red-600">€{compensiData.costi.toLocaleString('it-IT')}</p>
+              <p className="text-lg font-bold text-red-600">{formatCurrency(compensiData.costi)}</p>
             </div>
             <div>
               <p className="text-xs text-slate-500">Netto Compensi</p>
               <p className={cn("text-lg font-bold", compensiData.netto >= 0 ? "text-emerald-600" : "text-red-600")}>
-                {compensiData.netto >= 0 ? '+' : ''}€{compensiData.netto.toLocaleString('it-IT')}
+                {compensiData.netto >= 0 ? '+' : ''}{formatCurrency(compensiData.netto)}
               </p>
             </div>
           </div>
@@ -330,7 +331,7 @@ export default function Forecast() {
               Incassi Attesi Totali
             </div>
             <p className="text-xl font-bold text-emerald-600">
-              €{cashForecastData.incassiAttesiTotali.toLocaleString('it-IT')}
+              {formatCurrency(cashForecastData.incassiAttesiTotali)}
             </p>
           </CardContent>
         </Card>
@@ -344,7 +345,7 @@ export default function Forecast() {
               "text-xl font-bold",
               totals.actualRevenue >= totals.forecastRevenue ? "text-emerald-600" : "text-amber-600"
             )}>
-              €{totals.actualRevenue.toLocaleString('it-IT')}
+              {formatCurrency(totals.actualRevenue)}
             </p>
           </CardContent>
         </Card>
@@ -355,7 +356,7 @@ export default function Forecast() {
               Costi Previsti
             </div>
             <p className="text-xl font-bold text-slate-900">
-              €{totals.forecastExpense.toLocaleString('it-IT')}
+              {formatCurrency(totals.forecastExpense)}
             </p>
           </CardContent>
         </Card>
@@ -370,7 +371,7 @@ export default function Forecast() {
               cashForecastData.cassaFineAnnoPrevista >= 65000 ? "text-emerald-600" : 
               cashForecastData.cassaFineAnnoPrevista >= 55000 ? "text-amber-600" : "text-red-600"
             )}>
-              €{cashForecastData.cassaFineAnnoPrevista.toLocaleString('it-IT')}
+              {formatCurrency(cashForecastData.cassaFineAnnoPrevista)}
             </p>
           </CardContent>
         </Card>
@@ -387,16 +388,16 @@ export default function Forecast() {
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v/1000}k`} />
+                <YAxis stroke="#64748b" fontSize={12} tickFormatter={tickCurrency} />
                 <Tooltip 
-                  formatter={(value) => `€${value.toLocaleString('it-IT')}`}
+                  formatter={(value) => formatCurrency(value)}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                 />
                 <Legend />
-                <Bar dataKey="forecastRevenue" name="Forecast Revenue" fill="#10b981" opacity={0.5} />
-                <Bar dataKey="actualRevenue" name="Actual Revenue" fill="#10b981" />
-                <Bar dataKey="forecastExpense" name="Forecast Expense" fill="#ef4444" opacity={0.5} />
-                <Bar dataKey="actualExpense" name="Actual Expense" fill="#ef4444" />
+                <Bar dataKey="forecastRevenue" name="Ricavi Previsti" fill="#10b981" opacity={0.5} />
+                <Bar dataKey="actualRevenue" name="Ricavi Effettivi" fill="#10b981" />
+                <Bar dataKey="forecastExpense" name="Costi Previsti" fill="#ef4444" opacity={0.5} />
+                <Bar dataKey="actualExpense" name="Costi Effettivi" fill="#ef4444" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -432,13 +433,13 @@ export default function Forecast() {
                     <div className="flex justify-between">
                       <span className="text-slate-500">Ricavi:</span>
                       <span className="text-emerald-600 font-medium">
-                        €{item.forecastRevenue.toLocaleString('it-IT')}
+                        {formatCurrency(item.forecastRevenue)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500">Costi:</span>
                       <span className="text-red-600 font-medium">
-                        €{item.forecastExpense.toLocaleString('it-IT')}
+                        {formatCurrency(item.forecastExpense)}
                       </span>
                     </div>
                     <div className="flex justify-between border-t pt-2">
@@ -447,7 +448,7 @@ export default function Forecast() {
                         "font-semibold",
                         item.forecastRevenue - item.forecastExpense >= 0 ? "text-emerald-600" : "text-red-600"
                       )}>
-                        €{(item.forecastRevenue - item.forecastExpense).toLocaleString('it-IT')}
+                        {formatCurrency(item.forecastRevenue - item.forecastExpense)}
                       </span>
                     </div>
                   </div>
@@ -545,22 +546,22 @@ export default function Forecast() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
+                <Label htmlFor="notes">Note</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Additional notes..."
+                  placeholder="Note aggiuntive..."
                   rows={3}
                 />
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                Annulla
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {editingForecast ? 'Update' : 'Create'}
+                {editingForecast ? 'Aggiorna' : 'Crea'}
               </Button>
             </DialogFooter>
           </form>

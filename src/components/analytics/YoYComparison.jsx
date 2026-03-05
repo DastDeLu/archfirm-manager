@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { formatCurrency, tickCurrency } from '../lib/formatters';
 import { cn } from '@/lib/utils';
 
 const MONTHS = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
@@ -100,10 +101,10 @@ export default function YoYComparison({ year = new Date().getFullYear() }) {
             </div>
             <div className="flex items-baseline gap-3">
               <p className="text-2xl font-bold text-slate-900">
-                €{totals.currentRevenue.toLocaleString('it-IT')}
+                {formatCurrency(totals.currentRevenue)}
               </p>
               <p className="text-sm text-slate-500">
-                vs €{totals.previousRevenue.toLocaleString('it-IT')}
+                vs {formatCurrency(totals.previousRevenue)}
               </p>
             </div>
           </CardContent>
@@ -122,10 +123,10 @@ export default function YoYComparison({ year = new Date().getFullYear() }) {
             </div>
             <div className="flex items-baseline gap-3">
               <p className="text-2xl font-bold text-slate-900">
-                €{totals.currentExpense.toLocaleString('it-IT')}
+                {formatCurrency(totals.currentExpense)}
               </p>
               <p className="text-sm text-slate-500">
-                vs €{totals.previousExpense.toLocaleString('it-IT')}
+                vs {formatCurrency(totals.previousExpense)}
               </p>
             </div>
           </CardContent>
@@ -144,9 +145,9 @@ export default function YoYComparison({ year = new Date().getFullYear() }) {
               <BarChart data={comparisonData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v/1000}k`} />
+                <YAxis stroke="#64748b" fontSize={12} tickFormatter={tickCurrency} />
                 <Tooltip 
-                  formatter={(value) => `€${value.toLocaleString('it-IT')}`}
+                  formatter={(value) => formatCurrency(value)}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                 />
                 <Legend />

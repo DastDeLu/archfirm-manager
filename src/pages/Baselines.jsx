@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, Pencil, Trash2, Target } from 'lucide-react';
+import { formatCurrency, formatPercent } from '../components/lib/formatters';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Baselines() {
@@ -244,22 +245,22 @@ export default function Baselines() {
                   <div>
                     <p className="text-xs text-slate-500 mb-1">Obiettivo</p>
                     <p className="text-xl font-bold text-slate-900">
-                      €{baseline.baseline_amount.toLocaleString('it-IT')}
+                      {formatCurrency(baseline.baseline_amount)}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 mb-1">Effettivo</p>
                     <p className="text-xl font-bold text-blue-600">
-                      €{actual.toLocaleString('it-IT')}
+                      {formatCurrency(actual)}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 mb-1">Varianza</p>
                     <p className={`text-lg font-semibold ${variance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {variance >= 0 ? '+' : ''}€{variance.toLocaleString('it-IT')}
+                      {variance >= 0 ? '+' : ''}{formatCurrency(variance)}
                     </p>
                     <p className={`text-xs ${variance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {percentOfTarget}% dell'obiettivo
+                      {formatPercent(percentOfTarget)} dell'obiettivo
                     </p>
                   </div>
                   {baseline.notes && (
@@ -325,21 +326,21 @@ export default function Baselines() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Notes</Label>
+                <Label>Note</Label>
                 <Textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Additional notes..."
+                  placeholder="Note aggiuntive..."
                   rows={3}
                 />
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                Annulla
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {editingBaseline ? 'Update' : 'Create'}
+                {editingBaseline ? 'Aggiorna' : 'Crea'}
               </Button>
             </DialogFooter>
           </form>

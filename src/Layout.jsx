@@ -41,7 +41,7 @@ const navItems = [
       { name: 'Ricavi', path: 'Revenues' },
       { name: 'Spese', path: 'Expenses' },
       { name: 'Previsionale incassi', path: 'Fees' },
-      { name: 'Previsioni', path: 'Forecast' },
+      { name: 'Previsionale', path: 'Forecast' },
       { name: 'Guadagni', path: 'Earnings' },
       { name: 'Capitoli di Spesa', path: 'CapitoliSpesa' },
       { name: 'Budget', path: 'Baselines' },
@@ -85,7 +85,7 @@ function CashDisplay({ bankCash, pettyCash, forecast }) {
             "text-sm font-bold",
             bankCash >= 0 ? "text-emerald-600" : "text-red-500"
           )}>
-            €{bankCash?.toLocaleString('it-IT', { minimumFractionDigits: 2 }) || '0.00'}
+            {bankCash != null ? `€${bankCash.toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '€0,00'}
           </span>
         </div>
         
@@ -100,7 +100,7 @@ function CashDisplay({ bankCash, pettyCash, forecast }) {
             "text-sm font-bold",
             pettyCash >= 0 ? "text-amber-600" : "text-red-500"
           )}>
-            €{pettyCash?.toLocaleString('it-IT', { minimumFractionDigits: 2 }) || '0.00'}
+            {pettyCash != null ? `€${pettyCash.toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '€0,00'}
           </span>
         </div>
         
@@ -115,7 +115,7 @@ function CashDisplay({ bankCash, pettyCash, forecast }) {
             "text-sm font-bold",
             forecast >= 0 ? "text-blue-600" : "text-red-500"
           )}>
-            €{forecast?.toLocaleString('it-IT', { minimumFractionDigits: 2 }) || '0.00'}
+            {forecast != null ? `€${forecast.toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '€0,00'}
           </span>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { formatCurrency, tickCurrency } from '../lib/formatters';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export default function CashFlowLineChart({ bankCashEntries = [], pettyCashEntries = [], revenues = [], expenses = [] }) {
@@ -10,7 +11,7 @@ export default function CashFlowLineChart({ bankCashEntries = [], pettyCashEntri
     // Initialize months
     for (let i = 0; i < 12; i++) {
       const monthKey = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
-      const monthName = new Date(currentYear, i).toLocaleString('en', { month: 'short' });
+      const monthName = new Date(currentYear, i).toLocaleString('it-IT', { month: 'short' });
       months[monthKey] = { 
         month: monthName, 
         bank: 0,
@@ -59,7 +60,7 @@ export default function CashFlowLineChart({ bankCashEntries = [], pettyCashEntri
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-semibold">Cash Flow Trend</CardTitle>
+        <CardTitle className="text-base font-semibold">Andamento Flusso di Cassa</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[350px]">
@@ -81,11 +82,11 @@ export default function CashFlowLineChart({ bankCashEntries = [], pettyCashEntri
               <YAxis 
                 stroke="#64748b" 
                 fontSize={12}
-                tickFormatter={(v) => `€${(v/1000).toFixed(0)}k`}
+                tickFormatter={tickCurrency}
                 tickMargin={10}
               />
               <Tooltip 
-                formatter={(value) => [`€${value.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`, '']}
+                formatter={(value, name) => [formatCurrency(value), name]}
                 contentStyle={{ 
                   borderRadius: '12px', 
                   border: '1px solid #e2e8f0',
@@ -99,7 +100,7 @@ export default function CashFlowLineChart({ bankCashEntries = [], pettyCashEntri
               <Line 
                 type="monotone" 
                 dataKey="bank" 
-                name="Bank Cash"
+                name="Banca"
                 stroke="#10b981" 
                 strokeWidth={2.5}
                 dot={{ r: 4, fill: '#10b981' }}
@@ -108,7 +109,7 @@ export default function CashFlowLineChart({ bankCashEntries = [], pettyCashEntri
               <Line 
                 type="monotone" 
                 dataKey="liquid" 
-                name="Petty Cash"
+                name="Cassa"
                 stroke="#f59e0b" 
                 strokeWidth={2.5}
                 dot={{ r: 4, fill: '#f59e0b' }}
@@ -117,7 +118,7 @@ export default function CashFlowLineChart({ bankCashEntries = [], pettyCashEntri
               <Line 
                 type="monotone" 
                 dataKey="total" 
-                name="Total"
+                name="Totale"
                 stroke="#3b82f6" 
                 strokeWidth={3}
                 dot={{ r: 5, fill: '#3b82f6', strokeWidth: 2 }}

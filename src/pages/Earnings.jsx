@@ -13,6 +13,7 @@ import {
 import { cn } from '@/lib/utils';
 import CashFlowLineChart from '../components/charts/CashFlowLineChart';
 import RevExpBarChart from '../components/charts/RevExpBarChart';
+import { formatCurrency, tickCurrency } from '../components/lib/formatters';
 
 export default function Earnings() {
   const { data: revenues = [] } = useQuery({
@@ -81,7 +82,7 @@ export default function Earnings() {
     
     for (let i = 0; i < 12; i++) {
       const monthKey = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
-      const monthName = new Date(currentYear, i).toLocaleString('en', { month: 'short' });
+      const monthName = new Date(currentYear, i).toLocaleString('it-IT', { month: 'short' });
       months[monthKey] = { 
         month: monthName, 
         revenue: 0, 
@@ -145,7 +146,7 @@ export default function Earnings() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard
           title="Ricavi Totali"
-          value={`€${kpis.totalRevenue.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`}
+          value={formatCurrency(kpis.totalRevenue)}
           icon={TrendingUp}
           iconClassName="bg-emerald-50"
           trend={parseFloat(kpis.revenueVariance) >= 0 ? 'up' : 'down'}
@@ -153,7 +154,7 @@ export default function Earnings() {
         />
         <StatCard
           title="Costi Totali"
-          value={`€${kpis.totalExpense.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`}
+          value={formatCurrency(kpis.totalExpense)}
           icon={TrendingDown}
           iconClassName="bg-red-50"
           trend={parseFloat(kpis.expenseVariance) <= 0 ? 'up' : 'down'}
@@ -161,7 +162,7 @@ export default function Earnings() {
         />
         <StatCard
           title="Utile Netto"
-          value={`€${kpis.netIncome.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`}
+          value={formatCurrency(kpis.netIncome)}
           icon={Euro}
           iconClassName={kpis.netIncome >= 0 ? "bg-blue-50" : "bg-red-50"}
           valueClassName={kpis.netIncome >= 0 ? "text-blue-600" : "text-red-600"}
@@ -207,7 +208,7 @@ export default function Earnings() {
               <div>
                 <p className="text-sm text-slate-500">Ricavi Baseline</p>
                 <p className="text-2xl font-bold text-slate-900">
-                  €{kpis.baselineRevenue.toLocaleString('it-IT')}
+                  {formatCurrency(kpis.baselineRevenue)}
                 </p>
               </div>
             </div>
@@ -226,7 +227,7 @@ export default function Earnings() {
               <div>
                 <p className="text-sm text-slate-500">Costi Baseline</p>
                 <p className="text-2xl font-bold text-slate-900">
-                  €{kpis.baselineExpense.toLocaleString('it-IT')}
+                  {formatCurrency(kpis.baselineExpense)}
                 </p>
               </div>
             </div>
@@ -263,14 +264,14 @@ export default function Earnings() {
                 <BarChart data={monthlyTrend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                  <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v/1000}k`} />
+                  <YAxis stroke="#64748b" fontSize={12} tickFormatter={tickCurrency} />
                   <Tooltip 
-                    formatter={(value) => `€${value.toLocaleString('it-IT')}`}
+                    formatter={(value) => formatCurrency(value)}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                   />
                   <Bar 
                     dataKey="netIncome" 
-                    name="Net Income"
+                    name="Utile Netto"
                     fill="#3b82f6"
                     radius={[4, 4, 0, 0]}
                   />
@@ -296,15 +297,15 @@ export default function Earnings() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                  <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v/1000}k`} />
+                  <YAxis stroke="#64748b" fontSize={12} tickFormatter={tickCurrency} />
                   <Tooltip 
-                    formatter={(value) => `€${value.toLocaleString('it-IT')}`}
+                    formatter={(value) => formatCurrency(value)}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                   />
                   <Area 
                     type="monotone" 
                     dataKey="cumulativeIncome" 
-                    name="Cumulative"
+                    name="Cumulativo"
                     stroke="#8b5cf6" 
                     fill="url(#colorCumulative)"
                     strokeWidth={2}
@@ -327,13 +328,13 @@ export default function Earnings() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={revenueByTag} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis type="number" stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v/1000}k`} />
+                  <XAxis type="number" stroke="#64748b" fontSize={12} tickFormatter={tickCurrency} />
                   <YAxis type="category" dataKey="name" stroke="#64748b" fontSize={12} width={60} />
                   <Tooltip 
-                    formatter={(value) => `€${value.toLocaleString('it-IT')}`}
+                    formatter={(value) => formatCurrency(value)}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                   />
-                  <Bar dataKey="value" name="Amount" fill="#10b981" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="value" name="Importo" fill="#10b981" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -349,13 +350,13 @@ export default function Earnings() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={expenseByTag} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis type="number" stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v/1000}k`} />
+                  <XAxis type="number" stroke="#64748b" fontSize={12} tickFormatter={tickCurrency} />
                   <YAxis type="category" dataKey="name" stroke="#64748b" fontSize={12} width={60} />
                   <Tooltip 
-                    formatter={(value) => `€${value.toLocaleString('it-IT')}`}
+                    formatter={(value) => formatCurrency(value)}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                   />
-                  <Bar dataKey="value" name="Amount" fill="#ef4444" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="value" name="Importo" fill="#ef4444" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

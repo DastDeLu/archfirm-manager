@@ -20,6 +20,8 @@ import CashPosition from '../components/treasury/CashPosition';
 import FeesWidget from '../components/dashboard/FeesWidget';
 import KpiWidget from '../components/dashboard/KpiWidget';
 import { format, startOfMonth, endOfMonth, isAfter, parseISO } from 'date-fns';
+import { formatCurrency, tickCurrency } from '../components/lib/formatters';
+import { it } from 'date-fns/locale';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -85,7 +87,7 @@ export default function Dashboard() {
     
     for (let i = 0; i < 12; i++) {
       const monthKey = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
-      months[monthKey] = { month: format(new Date(currentYear, i), 'MMM'), revenue: 0, expense: 0 };
+      months[monthKey] = { month: format(new Date(currentYear, i), 'MMM', { locale: it }), revenue: 0, expense: 0 };
     }
 
     revenues.forEach(r => {
@@ -260,7 +262,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Ricavi Totali"
-          value={`€${totalRevenue.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`}
+          value={formatCurrency(totalRevenue)}
           icon={TrendingUp}
           iconClassName="bg-emerald-50"
           trend="up"
@@ -268,13 +270,13 @@ export default function Dashboard() {
         />
         <StatCard
           title="Costi Totali"
-          value={`€${totalExpenses.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`}
+          value={formatCurrency(totalExpenses)}
           icon={TrendingDown}
           iconClassName="bg-red-50"
         />
         <StatCard
           title="Utile Netto"
-          value={`€${netIncome.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`}
+          value={formatCurrency(netIncome)}
           icon={Euro}
           iconClassName={netIncome >= 0 ? "bg-blue-50" : "bg-red-50"}
           valueClassName={netIncome >= 0 ? "text-blue-600" : "text-red-600"}
@@ -327,13 +329,13 @@ export default function Dashboard() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                  <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v/1000}k`} />
+                  <YAxis stroke="#64748b" fontSize={12} tickFormatter={tickCurrency} />
                   <Tooltip 
-                    formatter={(value) => `€${value.toLocaleString('it-IT')}`}
-                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                   formatter={(value, name) => [formatCurrency(value), name === 'revenue' ? 'Ricavi' : 'Costi']}
+                   contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                   />
-                  <Area type="monotone" dataKey="revenue" stroke="#10b981" fill="url(#colorRevenue)" strokeWidth={2} />
-                  <Area type="monotone" dataKey="expense" stroke="#ef4444" fill="url(#colorExpense)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="revenue" name="Ricavi" stroke="#10b981" fill="url(#colorRevenue)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="expense" name="Costi" stroke="#ef4444" fill="url(#colorExpense)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -362,7 +364,7 @@ export default function Dashboard() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => `€${value.toLocaleString('it-IT')}`} />
+                    <Tooltip formatter={(value) => formatCurrency(value)} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
@@ -418,7 +420,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-900">
-                €{quotes.filter(q => q.status === 'won').reduce((sum, q) => sum + (q.amount || 0), 0).toLocaleString('it-IT')}
+                {formatCurrency(quotes.filter(q => q.status === 'won').reduce((sum, q) => sum + (q.amount || 0), 0))}
               </p>
               <p className="text-sm text-slate-500">Preventivi Vinti</p>
             </div>
@@ -431,68 +433,7 @@ export default function Dashboard() {
       {/* KPI Objectives Widget */}
       <KpiWidget />
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base font-semibold">Ricavi Recenti</CardTitle>
-            <Link to={createPageUrl('Revenues')}>
-              <Button variant="ghost" size="sm">Vedi Tutti</Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {revenues.slice(0, 5).map(revenue => (
-                <div key={revenue.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-slate-900 text-sm">{revenue.description || 'Revenue'}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">{revenue.tag}</Badge>
-                      <span className="text-xs text-slate-500">{revenue.date}</span>
-                    </div>
-                  </div>
-                  <p className="font-semibold text-emerald-600">
-                    +€{(revenue.amount || 0).toLocaleString('it-IT')}
-                  </p>
-                </div>
-              ))}
-              {revenues.length === 0 && (
-                <p className="text-center text-slate-500 py-4">Nessun ricavo ancora</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base font-semibold">Costi Recenti</CardTitle>
-            <Link to={createPageUrl('Expenses')}>
-              <Button variant="ghost" size="sm">Vedi Tutti</Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {expenses.slice(0, 5).map(expense => (
-                <div key={expense.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-slate-900 text-sm">{expense.description || 'Expense'}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">{expense.tag}</Badge>
-                      <span className="text-xs text-slate-500">{expense.date}</span>
-                    </div>
-                  </div>
-                  <p className="font-semibold text-red-600">
-                    -€{(expense.amount || 0).toLocaleString('it-IT')}
-                  </p>
-                </div>
-              ))}
-              {expenses.length === 0 && (
-                <p className="text-center text-slate-500 py-4">Nessun costo ancora</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Wallet, TrendingUp, Clock, AlertCircle } from 'lucide-react';
+import { formatCurrency } from '../lib/formatters';
 import { isAfter, parseISO } from 'date-fns';
 
 export default function CashPosition() {
@@ -85,10 +86,10 @@ export default function CashPosition() {
             <p className="text-sm text-emerald-700 font-medium">Cassa Reale</p>
           </div>
           <p className="text-2xl font-bold text-emerald-900">
-            €{realCash.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+            {formatCurrency(realCash)}
           </p>
           <p className="text-xs text-emerald-600 mt-1">
-            Banca: €{bankBalance.toLocaleString('it-IT')} | Contanti: €{pettyBalance.toLocaleString('it-IT')}
+            Banca: {formatCurrency(bankBalance)} | Contanti: {formatCurrency(pettyBalance)}
           </p>
         </CardContent>
       </Card>
@@ -99,10 +100,10 @@ export default function CashPosition() {
             <div className="p-2 bg-blue-100 rounded-lg">
               <Clock className="h-5 w-5 text-blue-600" />
             </div>
-            <p className="text-sm text-blue-700 font-medium">Cassa Prevista</p>
+            <p className="text-sm text-blue-700 font-medium">DA incassare {new Date().getFullYear()}</p>
           </div>
           <p className="text-2xl font-bold text-blue-900">
-            €{expectedCash.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+            {formatCurrency(expectedCash)}
           </p>
           <p className="text-xs text-blue-600 mt-1">
             {pendingInstallments.length} rate in attesa
@@ -119,7 +120,7 @@ export default function CashPosition() {
             <p className="text-sm text-purple-700 font-medium">Totale Proiettato</p>
           </div>
           <p className="text-2xl font-bold text-purple-900">
-            €{totalProjectedCash.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+            {formatCurrency(totalProjectedCash)}
           </p>
           <p className="text-xs text-purple-600 mt-1">
             Reale + Prevista
@@ -137,7 +138,7 @@ export default function CashPosition() {
               <p className="text-sm text-red-700 font-medium">Scaduto</p>
             </div>
             <p className="text-2xl font-bold text-red-900">
-              €{overdueCash.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+              {formatCurrency(overdueCash)}
             </p>
             <p className="text-xs text-red-600 mt-1">
               {overdueInstallments.length} rate scadute
