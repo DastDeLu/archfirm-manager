@@ -630,38 +630,71 @@ export default function WBS() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="assigned_to">Assegnato a</Label>
-                <div className="flex gap-2">
-                  <Select
-                    value={formData.assigned_to_id}
-                    onValueChange={(employeeId) => {
-                      const employee = employees.find(e => e.id === employeeId);
-                      setFormData({ 
-                        ...formData, 
-                        assigned_to_id: employeeId,
-                        assigned_to_name: employee?.name || ''
-                      });
-                    }}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Seleziona dipendente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {employees.map(employee => (
-                        <SelectItem key={employee.id} value={employee.id}>
-                          {employee.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setQuickAddEmployeeOpen(true)}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
+                <Label>Assegnati a (max 2)</Label>
+                <div className="space-y-2">
+                  {/* Current assignees */}
+                  {formData.assignees.map((assignee, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <Select
+                        value={assignee.id}
+                        onValueChange={(employeeId) => {
+                          const employee = employees.find(e => e.id === employeeId);
+                          const updated = [...formData.assignees];
+                          updated[idx] = { id: employeeId, name: employee?.name || '' };
+                          setFormData({ ...formData, assignees: updated });
+                        }}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Seleziona dipendente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {employees.map(emp => (
+                            <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-700"
+                        onClick={() => {
+                          const updated = formData.assignees.filter((_, i) => i !== idx);
+                          setFormData({ ...formData, assignees: updated });
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  {/* Add assignee button */}
+                  {formData.assignees.length < 2 && (
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => {
+                          const available = employees.filter(e => !formData.assignees.some(a => a.id === e.id));
+                          if (available.length > 0) {
+                            setFormData({ ...formData, assignees: [...formData.assignees, { id: available[0].id, name: available[0].name }] });
+                          }
+                        }}
+                      >
+                        <Plus className="h-3 w-3" />
+                        Aggiungi persona
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setQuickAddEmployeeOpen(true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
