@@ -359,16 +359,21 @@ export default function WBS() {
   // Calculate project statistics
   const getProjectStats = (projectId) => {
     const items = wbsByProject[projectId] || [];
-    const uniqueAssignees = new Set(items.map(item => item.assigned_to_id).filter(Boolean));
-    
+    // Collect all unique assignees across legacy and new assignees array
+    const assigneeMap = {};
+    items.forEach(item => {
+      const list = item.assignees?.length > 0
+        ? item.assignees
+        : item.assigned_to_id ? [{ id: item.assigned_to_id, name: item.assigned_to_name }] : [];
+      list.forEach(a => { if (a.id) assigneeMap[a.id] = a.name || 'Unknown'; });
+    });
+    const assigneeEntries = Object.entries(assigneeMap).map(([id, name]) => ({ id, name }));
+
     return {
       totalEstimatedHours: items.reduce((sum, item) => sum + (item.estimated_hours || 0), 0),
       totalCost: items.reduce((sum, item) => sum + (item.estimated_cost || 0), 0),
-      teamSize: uniqueAssignees.size,
-      assignees: Array.from(uniqueAssignees).map(id => {
-        const item = items.find(i => i.assigned_to_id === id);
-        return { id, name: item?.assigned_to_name || 'Unknown' };
-      })
+      teamSize: assigneeEntries.length,
+      assignees: assigneeEntries
     };
   };
 
