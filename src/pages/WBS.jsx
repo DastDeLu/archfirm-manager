@@ -240,6 +240,11 @@ export default function WBS() {
     setParentItem(parent);
     if (item) {
       setEditingItem(item);
+      // Migrate legacy single assignee to assignees array
+      let assignees = item.assignees || [];
+      if (assignees.length === 0 && item.assigned_to_id) {
+        assignees = [{ id: item.assigned_to_id, name: item.assigned_to_name || '' }];
+      }
       setFormData({
         name: item.name || '',
         code: item.code || '',
@@ -251,6 +256,7 @@ export default function WBS() {
         status: item.status || 'not_started',
         assigned_to_id: item.assigned_to_id || '',
         assigned_to_name: item.assigned_to_name || '',
+        assignees,
         order_index: item.order_index || 0
       });
     } else {
