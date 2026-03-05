@@ -82,22 +82,22 @@ function WBSItem({ item, children, level, onEdit, onDelete, onAddChild, computed
           <div className="flex items-center gap-4 mt-1 text-xs text-slate-600">
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              <span>Stim: {item.estimated_hours || 0}h</span>
+              <span>Stim: {displayEstHours}h</span>
               <span className={cn(
               "font-medium",
               hoursDiff > 0 ? "text-red-600" : hoursDiff < 0 ? "text-emerald-600" : ""
               )}>
-              (Eff: {item.actual_hours || 0}h)
+              (Eff: {displayActHours}h)
               </span>
             </div>
             <div className="flex items-center gap-1">
               <Euro className="h-3 w-3" />
-              <span>Stim: {formatCurrency(item.estimated_cost || 0)}</span>
+              <span>Stim: {formatCurrency(displayEstCost)}</span>
               <span className={cn(
                 "font-medium",
                 costDiff > 0 ? "text-red-600" : costDiff < 0 ? "text-emerald-600" : ""
               )}>
-                (Eff: {formatCurrency(item.actual_cost || 0)})
+                (Eff: {formatCurrency(displayActCost)})
               </span>
             </div>
             {item.assigned_to_name && (
