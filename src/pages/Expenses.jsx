@@ -282,11 +282,17 @@ export default function Expenses() {
   },
   {
     header: 'Tag',
-    cell: (row) =>
-    <Badge className={tagColors[row.tag || 'Other']}>
-          {row.tag || 'Other'}
-        </Badge>
-
+    cell: (row) => {
+      const color = tagColorMap[row.tag];
+      return (
+        <span
+          className="text-xs font-medium px-2 py-0.5 rounded-full border"
+          style={color ? getTagStyle(color) : {}}
+        >
+          {row.tag || 'Altro'}
+        </span>
+      );
+    }
   },
   {
     header: 'Capitolo',
