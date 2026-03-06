@@ -40,6 +40,7 @@ import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 export default function Revenues() {
   const currentYear = new Date().getFullYear();
   const previousYear = currentYear - 1;
+  const { revenueTags, tagColorMap } = useCustomTags();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -49,7 +50,7 @@ export default function Revenues() {
     amount: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     description: '',
-    tag: 'Progettazione',
+    tag: '',
     payment_method: 'bank_transfer',
     project_id: '',
     project_name: ''
