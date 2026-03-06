@@ -37,7 +37,7 @@ import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddChapter from '../components/forms/QuickAddChapter';
 
-import { EXPENSE_TAGS as TAGS, EXPENSE_TAG_COLORS as tagColors } from '../components/lib/transactionTags';
+import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 
 export default function Expenses() {
   const currentYear = new Date().getFullYear();

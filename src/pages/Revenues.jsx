@@ -35,7 +35,7 @@ import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddProject from '../components/forms/QuickAddProject';
 
-import { REVENUE_TAGS as TAGS, REVENUE_TAG_COLORS as tagColors } from '../components/lib/transactionTags';
+import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 
 export default function Revenues() {
   const currentYear = new Date().getFullYear();
