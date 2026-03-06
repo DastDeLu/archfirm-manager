@@ -14,8 +14,12 @@ import { cn } from '@/lib/utils';
 import CashFlowLineChart from '../components/charts/CashFlowLineChart';
 import RevExpBarChart from '../components/charts/RevExpBarChart';
 import { formatCurrency, tickCurrency } from '../components/lib/formatters';
+import { useCustomTags } from '../components/hooks/useCustomTags';
+
+const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
 export default function Earnings() {
+  const { tagColorMap } = useCustomTags();
   const { data: revenues = [] } = useQuery({
     queryKey: ['revenues'],
     queryFn: () => base44.entities.Revenue.list(),
@@ -334,7 +338,11 @@ export default function Earnings() {
                     formatter={(value) => formatCurrency(value)}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                   />
-                  <Bar dataKey="value" name="Importo" fill="#10b981" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="value" name="Importo" fill="#10b981" radius={[0, 4, 4, 0]}>
+                   {revenueByTag.map((entry, index) => (
+                     <Cell key={`cell-${index}`} fill={tagColorMap[entry.name] || COLORS[index % COLORS.length]} />
+                   ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -356,7 +364,11 @@ export default function Earnings() {
                     formatter={(value) => formatCurrency(value)}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                   />
-                  <Bar dataKey="value" name="Importo" fill="#ef4444" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="value" name="Importo" fill="#ef4444" radius={[0, 4, 4, 0]}>
+                   {expenseByTag.map((entry, index) => (
+                     <Cell key={`cell-${index}`} fill={tagColorMap[entry.name] || COLORS[index % COLORS.length]} />
+                   ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
