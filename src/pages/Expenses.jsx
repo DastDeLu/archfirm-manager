@@ -591,9 +591,11 @@ export default function Expenses() {
                       <SelectValue placeholder="Seleziona tag" />
                     </SelectTrigger>
                     <SelectContent>
-                      {TAGS.map((tag) =>
-                      <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                      )}
+                      {expenseTags.length === 0
+                        ? <SelectItem value={null} disabled>Configura tag in Impostazioni</SelectItem>
+                        : expenseTags.map((tag) =>
+                          <SelectItem key={tag.id} value={tag.name}>{tag.name}</SelectItem>
+                        )}
                     </SelectContent>
                   </Select>
                 </div>
