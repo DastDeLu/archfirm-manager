@@ -22,6 +22,7 @@ import KpiWidget from '../components/dashboard/KpiWidget';
 import { format, startOfMonth, endOfMonth, isAfter, parseISO } from 'date-fns';
 import { formatCurrency, tickCurrency } from '../components/lib/formatters';
 import { it } from 'date-fns/locale';
+import { useCustomTags } from '../components/hooks/useCustomTags';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -66,6 +67,7 @@ export default function Dashboard() {
     queryFn: () => base44.entities.MarketingBudget.list(),
   });
 
+  const { tagColorMap } = useCustomTags();
   const loading = loadingRevenues || loadingExpenses || loadingFees || loadingProjects;
 
   // Calculate totals
@@ -361,7 +363,7 @@ export default function Dashboard() {
                       dataKey="value"
                     >
                       {revenueByTag.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={tagColorMap[entry.name] || COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip formatter={(value) => formatCurrency(value)} />
@@ -374,7 +376,7 @@ export default function Dashboard() {
             <div className="flex flex-wrap justify-center gap-3 mt-4">
               {revenueByTag.map((entry, index) => (
                 <div key={entry.name} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tagColorMap[entry.name] || COLORS[index % COLORS.length] }} />
                   <span className="text-xs text-slate-600">{entry.name}</span>
                 </div>
               ))}
