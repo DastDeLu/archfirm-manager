@@ -515,8 +515,8 @@ export default function Expenses() {
       <Tabs value={activeTag} onValueChange={setActiveTag} className="mb-4">
         <TabsList>
           <TabsTrigger value="all">Tutti</TabsTrigger>
-          {TAGS.map((tag) =>
-          <TabsTrigger key={tag} value={tag}>{tag}</TabsTrigger>
+          {expenseTags.map((tag) =>
+          <TabsTrigger key={tag.id} value={tag.name}>{tag.name}</TabsTrigger>
           )}
         </TabsList>
       </Tabs>
