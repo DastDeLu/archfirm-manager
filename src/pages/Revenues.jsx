@@ -192,11 +192,17 @@ export default function Revenues() {
     },
     {
       header: 'Tag',
-      cell: (row) => (
-        <Badge className={tagColors[row.tag || 'Other']}>
-          {row.tag || 'Other'}
-        </Badge>
-      ),
+      cell: (row) => {
+        const color = tagColorMap[row.tag];
+        return (
+          <span
+            className="text-xs font-medium px-2 py-0.5 rounded-full border"
+            style={color ? getTagStyle(color) : {}}
+          >
+            {row.tag || 'Altro'}
+          </span>
+        );
+      },
     },
     {
       header: 'Importo',
@@ -318,8 +324,8 @@ export default function Revenues() {
       <Tabs value={activeTag} onValueChange={setActiveTag} className="mb-4">
         <TabsList>
           <TabsTrigger value="all">Tutti</TabsTrigger>
-          {TAGS.map(tag => (
-            <TabsTrigger key={tag} value={tag}>{tag}</TabsTrigger>
+          {revenueTags.map(tag => (
+            <TabsTrigger key={tag.id} value={tag.name}>{tag.name}</TabsTrigger>
           ))}
         </TabsList>
       </Tabs>
@@ -384,9 +390,11 @@ export default function Revenues() {
                       <SelectValue placeholder="Seleziona tag" />
                     </SelectTrigger>
                     <SelectContent>
-                      {TAGS.map(tag => (
-                        <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                      ))}
+                      {revenueTags.length === 0
+                        ? <SelectItem value={null} disabled>Configura tag in Impostazioni</SelectItem>
+                        : revenueTags.map(tag => (
+                          <SelectItem key={tag.id} value={tag.name}>{tag.name}</SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
