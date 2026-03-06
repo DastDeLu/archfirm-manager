@@ -682,12 +682,11 @@ export default function CapitoliSpesa() {
                   onChange={(e) => setSpesaForm({ ...spesaForm, tag: e.target.value })}
                   required
                 >
-                  <option value="Fixed">Fixed</option>
-                  <option value="Collab">Collab</option>
-                  <option value="Salary">Salary</option>
-                  <option value="Var">Var</option>
-                  <option value="Tax">Tax</option>
-                  <option value="Other">Other</option>
+                    {expenseTags.length === 0
+                    ? <option value="Other">Other</option>
+                    : expenseTags.map(tag => (
+                      <option key={tag.id} value={tag.name}>{tag.name}</option>
+                    ))}
                 </select>
               </div>
               <div className="space-y-2">
