@@ -37,12 +37,21 @@ Deno.serve(async (req) => {
       paid_date: new Date().toISOString().split('T')[0]
     });
 
+    // Determine default revenue tag
+    let defaultTag = 'Progettazione';
+    try {
+      const customTags = await base44.asServiceRole.entities.CustomTag.filter({ type: 'revenue' });
+      if (customTags.length > 0) defaultTag = customTags[0].name;
+    } catch {
+      // fallback to Progettazione
+    }
+
     // Create Revenue entry
     await base44.asServiceRole.entities.Revenue.create({
       amount: installment.amount,
       date: new Date().toISOString().split('T')[0],
       description: `Incasso rata ${installment.installment_number || ''} - ${fee.project_name || 'Progetto'}`,
-      tag: 'PG',
+      tag: defaultTag,
       project_id: fee.project_id || null,
       project_name: fee.project_name || null
     });

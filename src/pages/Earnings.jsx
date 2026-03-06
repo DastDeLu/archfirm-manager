@@ -5,7 +5,7 @@ import PageHeader from '../components/ui/PageHeader';
 import StatCard from '../components/ui/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
+  AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell
 } from 'recharts';
 import {
   TrendingUp, TrendingDown, Percent, Euro, Target, BarChart3, PieChart
