@@ -103,7 +103,7 @@ export default function Revenues() {
         amount: revenue.amount || '',
         date: revenue.date || format(new Date(), 'yyyy-MM-dd'),
         description: revenue.description || '',
-        tag: revenue.tag || 'Progettazione',
+        tag: revenue.tag || '',
         payment_method: revenue.payment_method || 'bank_transfer',
         project_id: revenue.project_id || '',
         project_name: revenue.project_name || ''
@@ -114,7 +114,7 @@ export default function Revenues() {
         amount: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         description: '',
-        tag: 'Progettazione',
+        tag: revenueTags[0]?.name || '',
         payment_method: 'bank_transfer',
         project_id: '',
         project_name: ''
