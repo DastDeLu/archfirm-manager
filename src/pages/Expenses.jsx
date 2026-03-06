@@ -42,6 +42,7 @@ import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 export default function Expenses() {
   const currentYear = new Date().getFullYear();
   const { categorie, vociSpesa } = useBudget();
+  const { expenseTags, tagColorMap } = useCustomTags();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickAddChapterOpen, setQuickAddChapterOpen] = useState(false);
@@ -149,7 +150,7 @@ export default function Expenses() {
         amount: expense.amount || '',
         date: expense.date || format(new Date(), 'yyyy-MM-dd'),
         description: expense.description || '',
-        tag: expense.tag || 'Fixed',
+        tag: expense.tag || '',
         expense_type: expense.expense_type || 'variable',
         payment_method: expense.payment_method || 'bank_transfer',
         nature: expense.nature || '',
@@ -164,7 +165,7 @@ export default function Expenses() {
         amount: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         description: '',
-        tag: 'Costi Generali',
+        tag: expenseTags[0]?.name || '',
         expense_type: 'variable',
         payment_method: 'bank_transfer',
         nature: '',
