@@ -41,12 +41,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { 
   Settings, Users, Database, Download, Upload, MoreHorizontal, 
-  UserPlus, Shield, User, Trash2, RefreshCw, FileJson, FileSpreadsheet, FileUp, Loader2
+  UserPlus, Shield, User, Trash2, RefreshCw, FileJson, FileSpreadsheet, FileUp, Loader2, Tags
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import OpeningBalances from '../components/settings/OpeningBalances';
 import ImportDialog from '../components/settings/ImportDialog';
+import TagManager from '../components/settings/TagManager';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
@@ -272,6 +273,10 @@ export default function SettingsPage() {
             <Settings className="h-4 w-4" />
             Generale
           </TabsTrigger>
+          <TabsTrigger value="tags" className="gap-2">
+            <Tags className="h-4 w-4" />
+            Gestione Tag
+          </TabsTrigger>
           {isAdmin && (
             <>
               <TabsTrigger value="users" className="gap-2">
@@ -378,6 +383,10 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="tags">
+          <TagManager />
         </TabsContent>
 
         {isAdmin && (
