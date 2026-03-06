@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { useCustomTags } from '../components/hooks/useCustomTags';
 
 export default function CapitoliSpesa() {
   const { 
@@ -172,6 +173,7 @@ export default function CapitoliSpesa() {
   });
 
   const { vociSpesa: allVoci, vociSpesa } = useBudget();
+  const { expenseTags } = useCustomTags();
 
   // Totale generale tra tutte le categorie
   const totaleGenerale = useMemo(() => {
