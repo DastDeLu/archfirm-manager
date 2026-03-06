@@ -434,17 +434,23 @@ export default function Expenses() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(summaryByTag).map(([tag, data]) =>
+            {Object.entries(summaryByTag).map(([tag, data]) => {
+              const color = tagColorMap[tag];
+              return (
             <div key={tag} className="p-4 bg-slate-50 rounded-lg">
-                <Badge className={tagColors[tag] || 'bg-slate-100 text-slate-700'}>
+                <span
+                  className="text-xs font-medium px-2 py-0.5 rounded-full border"
+                  style={color ? getTagStyle(color) : {}}
+                >
                   {tag}
-                </Badge>
+                </span>
                 <p className="text-xl font-bold text-slate-900 mt-2">
                   {formatCurrency(data.total)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">{data.count} spese</p>
               </div>
-            )}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
