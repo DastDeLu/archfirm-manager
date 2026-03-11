@@ -27,10 +27,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Plus, ChevronDown, Receipt, Pencil, Trash2, CheckCircle, Clock, Banknote, PiggyBank } from 'lucide-react';
+import { Plus, ChevronDown, Receipt, Pencil, Trash2, CheckCircle, Clock, Banknote, PiggyBank, ArrowDownCircle } from 'lucide-react';
 import { formatCurrency } from '../components/lib/formatters';
 import { cn } from '@/lib/utils';
 import QuickAddClient from '../components/forms/QuickAddClient';
+import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
 
 const categoryColors = {
   'Progettazione': 'bg-blue-100 text-blue-700',
@@ -45,6 +46,8 @@ export default function Fees() {
   const [editingFee, setEditingFee] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [expandedClient, setExpandedClient] = useState(null);
+  const [incassoDialogOpen, setIncassoDialogOpen] = useState(false);
+  const [selectedFeeForIncasso, setSelectedFeeForIncasso] = useState(null);
   const [formData, setFormData] = useState({
     client_id: '',
     client_name: '',
@@ -420,6 +423,20 @@ export default function Fees() {
                                   <Clock className="h-4 w-4 text-amber-600" />
                                 )}
                               </Button>
+                              {fee.payment_status !== 'Incassati' && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  title="Registra incasso"
+                                  onClick={() => {
+                                    setSelectedFeeForIncasso(fee);
+                                    setIncassoDialogOpen(true);
+                                  }}
+                                  className="text-emerald-600 hover:text-emerald-700"
+                                >
+                                  <ArrowDownCircle className="h-4 w-4" />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -573,6 +590,12 @@ export default function Fees() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <DirectIncassoDialog
+        open={incassoDialogOpen}
+        onOpenChange={setIncassoDialogOpen}
+        fee={selectedFeeForIncasso}
+      />
 
       <QuickAddClient
         open={quickAddClientOpen}
