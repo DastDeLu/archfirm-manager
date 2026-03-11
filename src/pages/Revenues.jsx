@@ -42,6 +42,7 @@ export default function Revenues() {
   const previousYear = currentYear - 1;
   const { revenueTags, tagColorMap } = useCustomTags();
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(0); // 0 = tutti i mesi
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [editingRevenue, setEditingRevenue] = useState(null);
@@ -152,9 +153,15 @@ export default function Revenues() {
     }
   };
 
-  const filteredRevenues = activeTag === 'all' 
-    ? revenues 
-    : revenues.filter(r => r.tag === activeTag);
+  // Filtra per tag, anno e mese selezionati
+  const filteredRevenues = useMemo(() => {
+    return revenues.filter(r => {
+      const tagMatch = activeTag === 'all' || r.tag === activeTag;
+      const yearMatch = !selectedYear || r.date?.startsWith(String(selectedYear));
+      const monthMatch = !selectedMonth || r.date?.substring(5, 7) === String(selectedMonth).padStart(2, '0');
+      return tagMatch && yearMatch && monthMatch;
+    });
+  }, [revenues, activeTag, selectedYear, selectedMonth]);
 
   const yearlyData = useMemo(() => {
     const currentYearRevenues = revenues.filter(r => r.date?.startsWith(String(currentYear)));
@@ -255,6 +262,17 @@ export default function Revenues() {
           <SelectContent>
             {[currentYear - 1, currentYear, currentYear + 1].map(year => (
               <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="Tutti i mesi" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">Tutti i mesi</SelectItem>
+            {['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'].map((m, i) => (
+              <SelectItem key={i+1} value={String(i+1)}>{m}</SelectItem>
             ))}
           </SelectContent>
         </Select>
