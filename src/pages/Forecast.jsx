@@ -181,6 +181,13 @@ export default function Forecast() {
     }), { forecastRevenue: 0, forecastExpense: 0, actualRevenue: 0, actualExpense: 0 });
   }, [chartData]);
 
+  // Incassi effettuati: Revenue dell'anno selezionato
+  const incassiEffettuati = useMemo(() => {
+    return revenues
+      .filter(r => r.date?.startsWith(String(selectedYear)))
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  }, [revenues, selectedYear]);
+
   // Calcolo Compensi
   const compensiData = useMemo(() => {
     const yearStr = String(selectedYear);
@@ -468,6 +475,51 @@ export default function Forecast() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Incassi Effettuati */}
+      <Card className="mb-6">
+        <CardHeader
+          className="cursor-pointer hover:bg-slate-50 transition-colors"
+          onClick={() => setIncassiListOpen(!incassiListOpen)}
+        >
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold">
+              Incassi Effettuati – {selectedYear}
+            </CardTitle>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-emerald-600 font-semibold">
+                {formatCurrency(incassiEffettuati.reduce((s, r) => s + (r.amount || 0), 0))}
+              </span>
+              <ChevronDown className={cn("h-4 w-4 text-slate-400 transition-transform", incassiListOpen && "rotate-180")} />
+            </div>
+          </div>
+        </CardHeader>
+        {incassiListOpen && (
+          <CardContent className="p-0">
+            {incassiEffettuati.length === 0 ? (
+              <p className="text-center text-slate-500 py-6">Nessun incasso registrato per {selectedYear}</p>
+            ) : (
+              <div className="divide-y">
+                {incassiEffettuati.map(r => (
+                  <div key={r.id} className="flex items-center justify-between px-6 py-3 hover:bg-slate-50">
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">{r.description || 'Incasso'}</p>
+                      <p className="text-xs text-slate-500">
+                        {r.date ? format(new Date(r.date), 'dd/MM/yyyy') : '-'}
+                        {r.project_name && <> · {r.project_name}</>}
+                        {r.tag && <> · <span className="text-blue-600">{r.tag}</span></>}
+                      </p>
+                    </div>
+                    <span className="text-sm font-bold text-emerald-600">+{formatCurrency(r.amount || 0)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
+
+      <DirectIncassoDialog open={incassoDialogOpen} onOpenChange={setIncassoDialogOpen} fee={null} />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
