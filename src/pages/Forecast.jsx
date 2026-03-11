@@ -24,10 +24,12 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
-import { Plus, Pencil, TrendingUp, TrendingDown, Calendar, Euro, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
+import { Plus, Pencil, TrendingUp, TrendingDown, Calendar, Euro, AlertTriangle, CheckCircle, AlertCircle, ArrowDownCircle, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { calculateCashForecast } from '../components/utils/cashForecast.jsx';
 import { formatCurrency, tickCurrency } from '../components/lib/formatters';
+import { format } from 'date-fns';
+import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
 
 const MONTHS = [
   'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
@@ -38,6 +40,8 @@ export default function Forecast() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [incassoDialogOpen, setIncassoDialogOpen] = useState(false);
+  const [incassiListOpen, setIncassiListOpen] = useState(false);
   const [editingForecast, setEditingForecast] = useState(null);
   const [formData, setFormData] = useState({
     month: new Date().getMonth() + 1,
@@ -239,6 +243,10 @@ export default function Forecast() {
             ))}
           </SelectContent>
         </Select>
+        <Button variant="outline" onClick={() => setIncassoDialogOpen(true)} className="gap-2">
+          <ArrowDownCircle className="h-4 w-4 text-emerald-600" />
+          Inserisci Incasso
+        </Button>
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
           Aggiungi Previsione
