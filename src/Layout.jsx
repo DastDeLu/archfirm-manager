@@ -71,7 +71,7 @@ const navItems = [
         },
 ];
 
-function CashDisplay({ bankCash, pettyCash, forecast }) {
+function CashDisplay({ bankCash, pettyCash, forecast, expectedCash }) {
   return (
     <div className="px-4 py-5 border-b border-slate-200/60">
       <div className="space-y-3">
@@ -117,6 +117,21 @@ function CashDisplay({ bankCash, pettyCash, forecast }) {
             forecast >= 0 ? "text-blue-600" : "text-red-500"
           )}>
             {forecast != null ? formatCurrency(forecast) : '€0,00'}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-violet-50 to-violet-100/50 rounded-xl">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-violet-500/10 rounded-lg">
+              <TrendingUp className="h-4 w-4 text-violet-600" />
+            </div>
+            <span className="text-xs font-medium text-slate-600">Cassa Prevista</span>
+          </div>
+          <span className={cn(
+            "text-sm font-bold",
+            expectedCash >= 0 ? "text-violet-600" : "text-red-500"
+          )}>
+            {expectedCash != null ? formatCurrency(expectedCash) : '€0,00'}
           </span>
         </div>
       </div>
@@ -211,7 +226,7 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   // React Query per i dati della cassa - si aggiorna automaticamente
-  const { data: cashData = { bankCash: 0, pettyCash: 0, forecast: 0, cashForecastAlerts: [] } } = useQuery({
+  const { data: cashData = { bankCash: 0, pettyCash: 0, forecast: 0, expectedCash: 0, cashForecastAlerts: [] } } = useQuery({
     queryKey: ['cashData'],
     queryFn: async () => {
       const [revenues, expenses, forecasts, openingBalances, installments] = await Promise.all([
@@ -283,10 +298,16 @@ export default function Layout({ children, currentPageName }) {
         meseCorrente: currentMonth
       });
 
+      // Cassa Prevista: somma rate pendenti (non pagate né cancellate)
+      const expectedCash = installments
+        .filter(i => i.status !== 'paid' && i.status !== 'cancelled')
+        .reduce((sum, i) => sum + (i.amount || 0), 0);
+
       return { 
         bankCash: bankTotal, 
         pettyCash: pettyTotal, 
         forecast: forecastNet,
+        expectedCash,
         cashForecastAlerts: cashForecast.alerts
       };
     },
@@ -380,6 +401,7 @@ export default function Layout({ children, currentPageName }) {
           bankCash={cashData.bankCash} 
           pettyCash={cashData.pettyCash} 
           forecast={cashData.forecast}
+          expectedCash={cashData.expectedCash}
         />
 
         <ControlDashboardSidebarWidget />
