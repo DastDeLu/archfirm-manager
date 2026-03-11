@@ -85,6 +85,14 @@ export default function Dashboard() {
     i.status !== 'paid' && i.due_date && isAfter(today, parseISO(i.due_date))
   );
 
+  // Cassa DA incassare: rate pendenti con due_date nell'anno corrente
+  const currentYear = new Date().getFullYear();
+  const cassaDaIncassare = useMemo(() => {
+    return installments
+      .filter(i => i.status !== 'paid' && i.status !== 'cancelled' && i.due_date?.startsWith(String(currentYear)))
+      .reduce((sum, i) => sum + (i.amount || 0), 0);
+  }, [installments, currentYear]);
+
   // Monthly data for chart – rispetta il filtro tag grafici
   const monthlyData = React.useMemo(() => {
     const months = {};
@@ -434,6 +442,20 @@ export default function Dashboard() {
 
         <FeesWidget />
       </div>
+
+      {/* Cassa DA incassare anno corrente */}
+      {cassaDaIncassare > 0 && (
+        <div className="grid grid-cols-1 gap-4">
+          <StatCard
+            title={`Cassa DA Incassare ${currentYear}`}
+            value={formatCurrency(cassaDaIncassare)}
+            icon={Wallet}
+            iconClassName="bg-blue-50"
+            valueClassName="text-blue-600"
+            trendValue="Rate pendenti con scadenza nell'anno"
+          />
+        </div>
+      )}
 
       {/* KPI Objectives Widget */}
       <KpiWidget />
