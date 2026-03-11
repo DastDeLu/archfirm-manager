@@ -367,6 +367,7 @@ export default function Layout({ children, currentPageName }) {
               bankCash={cashData.bankCash} 
               pettyCash={cashData.pettyCash} 
               forecast={cashData.forecast}
+              expectedCash={cashData.expectedCash}
             />
             <nav className="p-3 space-y-1">
               {navItems.map(item => (
