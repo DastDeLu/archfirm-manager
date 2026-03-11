@@ -23,6 +23,7 @@ import { format, startOfMonth, endOfMonth, isAfter, parseISO } from 'date-fns';
 import { formatCurrency, tickCurrency } from '../components/lib/formatters';
 import { it } from 'date-fns/locale';
 import { useCustomTags } from '../components/hooks/useCustomTags';
+import { useChartTagFilter } from '../components/hooks/useChartTagFilter';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -68,6 +69,8 @@ export default function Dashboard() {
   });
 
   const { tagColorMap } = useCustomTags();
+  // Filtro tag per i grafici (configurabile in Impostazioni › Generale)
+  const { excludedTags } = useChartTagFilter();
   const loading = loadingRevenues || loadingExpenses || loadingFees || loadingProjects;
 
   // Calculate totals
@@ -82,7 +85,7 @@ export default function Dashboard() {
     i.status !== 'paid' && i.due_date && isAfter(today, parseISO(i.due_date))
   );
 
-  // Monthly data for chart
+  // Monthly data for chart – rispetta il filtro tag grafici
   const monthlyData = React.useMemo(() => {
     const months = {};
     const currentYear = new Date().getFullYear();
@@ -92,14 +95,14 @@ export default function Dashboard() {
       months[monthKey] = { month: format(new Date(currentYear, i), 'MMM', { locale: it }), revenue: 0, expense: 0 };
     }
 
-    revenues.forEach(r => {
+    revenues.filter(r => !excludedTags.includes(r.tag)).forEach(r => {
       if (r.date) {
         const key = r.date.substring(0, 7);
         if (months[key]) months[key].revenue += r.amount || 0;
       }
     });
 
-    expenses.forEach(e => {
+    expenses.filter(e => !excludedTags.includes(e.tag)).forEach(e => {
       if (e.date) {
         const key = e.date.substring(0, 7);
         if (months[key]) months[key].expense += e.amount || 0;
@@ -107,27 +110,27 @@ export default function Dashboard() {
     });
 
     return Object.values(months);
-  }, [revenues, expenses]);
+  }, [revenues, expenses, excludedTags]);
 
-  // Revenue by tag
+  // Revenue by tag – filtra i tag esclusi dai grafici
   const revenueByTag = React.useMemo(() => {
     const tags = {};
-    revenues.forEach(r => {
+    revenues.filter(r => !excludedTags.includes(r.tag)).forEach(r => {
       const tag = r.tag || 'Other';
       tags[tag] = (tags[tag] || 0) + (r.amount || 0);
     });
     return Object.entries(tags).map(([name, value]) => ({ name, value }));
-  }, [revenues]);
+  }, [revenues, excludedTags]);
 
-  // Expense by tag
+  // Expense by tag – filtra i tag esclusi dai grafici
   const expenseByTag = React.useMemo(() => {
     const tags = {};
-    expenses.forEach(e => {
+    expenses.filter(e => !excludedTags.includes(e.tag)).forEach(e => {
       const tag = e.tag || 'Other';
       tags[tag] = (tags[tag] || 0) + (e.amount || 0);
     });
     return Object.entries(tags).map(([name, value]) => ({ name, value }));
-  }, [expenses]);
+  }, [expenses, excludedTags]);
 
   const activeProjects = projects.filter(p => p.status === 'in_progress').length;
   const activeClients = clients.filter(c => c.status === 'active').length;
