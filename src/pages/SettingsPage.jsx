@@ -48,6 +48,7 @@ import { toast } from 'sonner';
 import OpeningBalances from '../components/settings/OpeningBalances';
 import ImportDialog from '../components/settings/ImportDialog';
 import TagManager from '../components/settings/TagManager';
+import ChartTagFilterSettings from '../components/settings/ChartTagFilterSettings';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
@@ -347,6 +348,8 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            <ChartTagFilterSettings />
 
             <Card>
               <CardHeader>
