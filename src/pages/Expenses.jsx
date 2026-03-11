@@ -44,6 +44,7 @@ export default function Expenses() {
   const { categorie, vociSpesa } = useBudget();
   const { expenseTags, tagColorMap } = useCustomTags();
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(0); // 0 = tutti i mesi
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickAddChapterOpen, setQuickAddChapterOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
@@ -222,9 +223,15 @@ export default function Expenses() {
 
   const previousYear = currentYear - 1;
 
-  const filteredExpenses = activeTag === 'all' ?
-  expenses :
-  expenses.filter((e) => e.tag === activeTag);
+  // Filtra per tag, anno e mese selezionati
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter(e => {
+      const tagMatch = activeTag === 'all' || e.tag === activeTag;
+      const yearMatch = !selectedYear || e.date?.startsWith(String(selectedYear));
+      const monthMatch = !selectedMonth || e.date?.substring(5, 7) === String(selectedMonth).padStart(2, '0');
+      return tagMatch && yearMatch && monthMatch;
+    });
+  }, [expenses, activeTag, selectedYear, selectedMonth]);
 
   const yearlyData = useMemo(() => {
     const currentYearExpenses = expenses.filter((e) => e.date?.startsWith(String(currentYear)));
@@ -352,6 +359,17 @@ export default function Expenses() {
             {[currentYear - 1, currentYear, currentYear + 1].map((year) =>
             <SelectItem key={year} value={String(year)}>{year}</SelectItem>
             )}
+          </SelectContent>
+        </Select>
+        <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="Tutti i mesi" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">Tutti i mesi</SelectItem>
+            {['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'].map((m, i) => (
+              <SelectItem key={i+1} value={String(i+1)}>{m}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Button onClick={() => openDialog()} className="gap-2">
