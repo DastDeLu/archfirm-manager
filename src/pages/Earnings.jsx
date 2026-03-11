@@ -15,11 +15,14 @@ import CashFlowLineChart from '../components/charts/CashFlowLineChart';
 import RevExpBarChart from '../components/charts/RevExpBarChart';
 import { formatCurrency, tickCurrency } from '../components/lib/formatters';
 import { useCustomTags } from '../components/hooks/useCustomTags';
+import { useChartTagFilter } from '../components/hooks/useChartTagFilter';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
 export default function Earnings() {
   const { tagColorMap } = useCustomTags();
+  // Filtro tag per i grafici (configurabile in Impostazioni › Generale)
+  const { excludedTags } = useChartTagFilter();
   const { data: revenues = [] } = useQuery({
     queryKey: ['revenues'],
     queryFn: () => base44.entities.Revenue.list(),
@@ -119,25 +122,25 @@ export default function Earnings() {
     });
   }, [revenues, expenses]);
 
-  // Revenue breakdown by tag
+  // Revenue breakdown by tag – rispetta filtro tag grafici
   const revenueByTag = useMemo(() => {
     const tags = {};
-    revenues.forEach(r => {
+    revenues.filter(r => !excludedTags.includes(r.tag)).forEach(r => {
       const tag = r.tag || 'Other';
       tags[tag] = (tags[tag] || 0) + (r.amount || 0);
     });
     return Object.entries(tags).map(([name, value]) => ({ name, value }));
-  }, [revenues]);
+  }, [revenues, excludedTags]);
 
-  // Expense breakdown by tag
+  // Expense breakdown by tag – rispetta filtro tag grafici
   const expenseByTag = useMemo(() => {
     const tags = {};
-    expenses.forEach(e => {
+    expenses.filter(e => !excludedTags.includes(e.tag)).forEach(e => {
       const tag = e.tag || 'Other';
       tags[tag] = (tags[tag] || 0) + (e.amount || 0);
     });
     return Object.entries(tags).map(([name, value]) => ({ name, value }));
-  }, [expenses]);
+  }, [expenses, excludedTags]);
 
   return (
     <div>
