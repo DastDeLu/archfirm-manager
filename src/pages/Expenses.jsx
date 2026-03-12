@@ -64,11 +64,15 @@ export default function Expenses() {
     id_voce_spesa: ''
   });
 
+  const { dataFilter, loading: userLoading } = useCurrentUser();
   const queryClient = useQueryClient();
 
   const { data: expenses = [], isLoading } = useQuery({
-    queryKey: ['expenses'],
-    queryFn: () => base44.entities.Expense.list('-date')
+    queryKey: ['expenses', dataFilter],
+    queryFn: () => Object.keys(dataFilter).length
+      ? base44.entities.Expense.filter(dataFilter, '-date')
+      : base44.entities.Expense.list('-date'),
+    enabled: !userLoading,
   });
 
   const { data: chapters = [] } = useQuery({

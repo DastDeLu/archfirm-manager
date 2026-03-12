@@ -62,8 +62,11 @@ export default function Revenues() {
   const queryClient = useQueryClient();
 
   const { data: revenues = [], isLoading } = useQuery({
-    queryKey: ['revenues'],
-    queryFn: () => base44.entities.Revenue.list('-date'),
+    queryKey: ['revenues', dataFilter],
+    queryFn: () => Object.keys(dataFilter).length
+      ? base44.entities.Revenue.filter(dataFilter, '-date')
+      : base44.entities.Revenue.list('-date'),
+    enabled: !userLoading,
   });
 
 

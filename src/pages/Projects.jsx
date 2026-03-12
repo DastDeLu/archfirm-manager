@@ -59,8 +59,10 @@ export default function Projects() {
   const queryClient = useQueryClient();
 
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date'),
+    queryKey: ['projects', dataFilter],
+    queryFn: () => Object.keys(dataFilter).length
+      ? base44.entities.Project.filter(dataFilter, '-created_date')
+      : base44.entities.Project.list('-created_date'),
   });
 
   const { data: clients = [] } = useQuery({
