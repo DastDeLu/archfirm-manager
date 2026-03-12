@@ -54,6 +54,8 @@ export default function Fees() {
   const [formData, setFormData] = useState({
     client_id: '',
     client_name: '',
+    project_id: '',
+    project_name: '',
     amount: '',
     category: 'Progettazione',
     payment_status: 'Da incassare',
