@@ -8,10 +8,26 @@ export function useCurrentUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.auth.me().then((u) => {
-      setUser(u);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    const loadUser = async () => {
+      try {
+        let u = await base44.auth.me();
+        if (u && !u.role) {
+          const newRole = u.email === OWNER_EMAIL ? 'Sviluppatore' : 'Cliente';
+          await base44.auth.updateMe({ role: newRole });
+          u = { ...u, role: newRole };
+        }
+        if (u?.email === OWNER_EMAIL && u?.role !== 'Sviluppatore') {
+          await base44.auth.updateMe({ role: 'Sviluppatore' });
+          u = { ...u, role: 'Sviluppatore' };
+        }
+        setUser(u);
+      } catch (e) {
+        // not authenticated
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadUser();
   }, []);
 
   const isSviluppatore = user?.role === 'Sviluppatore' || user?.email === OWNER_EMAIL;
