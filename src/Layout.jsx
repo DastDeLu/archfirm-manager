@@ -366,6 +366,8 @@ export default function Layout({ children, currentPageName }) {
                   isActive={currentPageName === item.path}
                   isMobile
                   closeMobile={() => setSidebarOpen(false)}
+                  userEmail={user?.email}
+                  userRole={user?.role}
                 />
               ))}
             </nav>
@@ -402,6 +404,8 @@ export default function Layout({ children, currentPageName }) {
               key={item.name} 
               item={item} 
               isActive={currentPageName === item.path}
+              userEmail={user?.email}
+              userRole={user?.role}
             />
           ))}
         </nav>
