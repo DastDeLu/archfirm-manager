@@ -158,7 +158,9 @@ export default function Fees() {
     e.preventDefault();
     const data = {
       ...formData,
-      amount: parseFloat(formData.amount)
+      amount: parseFloat(formData.amount),
+      project_id: formData.project_id === 'none' ? '' : formData.project_id,
+      project_name: formData.project_id === 'none' ? '' : formData.project_name,
     };
     if (editingFee) {
       updateFeeMutation.mutate({ id: editingFee.id, data });
