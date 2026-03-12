@@ -32,7 +32,8 @@ export default function DirectIncassoDialog({ open, onOpenChange, fee }) {
     amount: '',
     date: new Date().toISOString().split('T')[0],
     payment_method: 'Banca',
-    description: ''
+    description: '',
+    tag: 'Incasso Clienti'
   });
 
   // Pre-popola importo quando la fee cambia
