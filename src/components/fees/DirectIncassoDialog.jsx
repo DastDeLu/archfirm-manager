@@ -124,6 +124,22 @@ export default function DirectIncassoDialog({ open, onOpenChange, fee }) {
               </Select>
             </div>
             <div className="space-y-2">
+              <Label>Tag Ricavo *</Label>
+              <Select value={form.tag} onValueChange={(v) => setForm({ ...form, tag: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Progettazione">Progettazione</SelectItem>
+                  <SelectItem value="Direzione Lavori">Direzione Lavori</SelectItem>
+                  <SelectItem value="Provvigione">Provvigione</SelectItem>
+                  <SelectItem value="Burocrazia">Burocrazia</SelectItem>
+                  <SelectItem value="Incasso Clienti">Incasso Clienti</SelectItem>
+                  <SelectItem value="Other">Altro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>Descrizione</Label>
               <Input
                 value={form.description}
