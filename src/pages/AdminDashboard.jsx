@@ -18,35 +18,30 @@ export default function AdminDashboard() {
   const [searchEmail, setSearchEmail] = useState('');
   const queryClient = useQueryClient();
 
-  // All data - no created_by filter (admin bypass)
+  // All data
   const { data: allUsers = [] } = useQuery({
     queryKey: ['admin-users'],
     queryFn: () => base44.entities.User.list(),
-    enabled: isSviluppatore,
   });
 
   const { data: allRevenues = [] } = useQuery({
     queryKey: ['admin-revenues'],
     queryFn: () => base44.entities.Revenue.list('-date'),
-    enabled: isSviluppatore,
   });
 
   const { data: allExpenses = [] } = useQuery({
     queryKey: ['admin-expenses'],
     queryFn: () => base44.entities.Expense.list('-date'),
-    enabled: isSviluppatore,
   });
 
   const { data: allProjects = [] } = useQuery({
     queryKey: ['admin-projects'],
     queryFn: () => base44.entities.Project.list(),
-    enabled: isSviluppatore,
   });
 
   const { data: allClients = [] } = useQuery({
     queryKey: ['admin-clients'],
     queryFn: () => base44.entities.Client.list(),
-    enabled: isSviluppatore,
   });
 
   const { data: auditLogs = [] } = useQuery({
