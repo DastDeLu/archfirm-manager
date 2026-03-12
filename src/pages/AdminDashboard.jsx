@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataTable from '../components/ui/DataTable';
 import PageHeader from '../components/ui/PageHeader';
-import { Shield, Users, Receipt, TrendingUp, Search, Trash2, AlertTriangle, Clock, Database } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Shield, Users, Receipt, TrendingUp, Search, Clock, Database } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '../components/lib/formatters';
 
