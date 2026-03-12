@@ -24,6 +24,8 @@ import {
   Banknote,
   PiggyBank
 } from 'lucide-react';
+
+const OWNER_EMAIL = 'dastdelu@gmail.com';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import GlobalSearch from './components/search/GlobalSearch';
