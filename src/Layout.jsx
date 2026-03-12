@@ -125,10 +125,13 @@ function CashDisplay({ bankCash, pettyCash, forecast, expectedCash }) {
   );
 }
 
-function NavItem({ item, isActive, isMobile, closeMobile }) {
+function NavItem({ item, isActive, isMobile, closeMobile, userEmail, userRole }) {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   
+  const isSviluppatore = userRole === 'Sviluppatore' || userEmail === OWNER_EMAIL;
+  if (item.adminOnly && !isSviluppatore) return null;
+
   const isChildActive = item.children?.some(child => 
     location.pathname.includes(child.path)
   );
