@@ -410,34 +410,13 @@ export default function Fees() {
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
-                              <p className="text-lg font-bold text-slate-900">
-                                {formatCurrency(fee.amount || 0)}
-                              </p>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => togglePaymentStatus(fee)}
-                              >
-                                {fee.payment_status === 'Incassati' ? (
-                                  <CheckCircle className="h-4 w-4 text-emerald-600" />
-                                ) : (
-                                  <Clock className="h-4 w-4 text-amber-600" />
-                                )}
-                              </Button>
-                              {fee.payment_status !== 'Incassati' && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  title="Registra incasso"
-                                  onClick={() => {
-                                    setSelectedFeeForIncasso(fee);
-                                    setIncassoDialogOpen(true);
-                                  }}
-                                  className="text-emerald-600 hover:text-emerald-700"
-                                >
-                                  <ArrowDownCircle className="h-4 w-4" />
-                                </Button>
-                              )}
+                              <FeeRevenueDropdown
+                                fee={fee}
+                                onAddIncasso={(f) => {
+                                  setSelectedFeeForIncasso(f);
+                                  setIncassoDialogOpen(true);
+                                }}
+                              />
                               <Button
                                 variant="ghost"
                                 size="icon"
