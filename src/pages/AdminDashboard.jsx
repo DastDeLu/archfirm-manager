@@ -108,9 +108,22 @@ export default function AdminDashboard() {
     {
       header: 'Ruolo',
       cell: (row) => (
-        <Badge className={row.role === 'Sviluppatore' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'}>
-          {row.role || 'Cliente'}
-        </Badge>
+        row.email === user?.email ? (
+          <Badge className="bg-purple-100 text-purple-700">{row.role || 'Cliente'}</Badge>
+        ) : (
+          <Select
+            value={row.role || 'Cliente'}
+            onValueChange={(newRole) => updateUserRoleMutation.mutate({ id: row.id, role: newRole })}
+          >
+            <SelectTrigger className="w-36 h-8 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Cliente">Cliente</SelectItem>
+              <SelectItem value="Sviluppatore">Sviluppatore</SelectItem>
+            </SelectContent>
+          </Select>
+        )
       ),
     },
     {
@@ -119,32 +132,6 @@ export default function AdminDashboard() {
         <span className="text-sm text-slate-600">
           {row.created_date ? format(new Date(row.created_date), 'dd/MM/yyyy') : '—'}
         </span>
-      ),
-    },
-    {
-      header: 'Azioni',
-      cell: (row) => (
-        <div className="flex gap-2">
-          {row.role !== 'Sviluppatore' && row.email !== user?.email && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => updateUserRoleMutation.mutate({ id: row.id, role: 'Sviluppatore' })}
-            >
-              → Sviluppatore
-            </Button>
-          )}
-          {row.role === 'Sviluppatore' && row.email !== user?.email && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-slate-600"
-              onClick={() => updateUserRoleMutation.mutate({ id: row.id, role: 'Cliente' })}
-            >
-              → Cliente
-            </Button>
-          )}
-        </div>
       ),
     },
   ];
