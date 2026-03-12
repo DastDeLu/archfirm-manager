@@ -634,6 +634,19 @@ export default function Fees() {
           });
         }}
       />
+
+      <QuickAddProject
+        open={quickAddProjectOpen}
+        onOpenChange={setQuickAddProjectOpen}
+        onProjectCreated={(project) => {
+          queryClient.invalidateQueries({ queryKey: ['projects'] });
+          setFormData(prev => ({
+            ...prev,
+            project_id: project.id,
+            project_name: project.name
+          }));
+        }}
+      />
     </div>
   );
 }
