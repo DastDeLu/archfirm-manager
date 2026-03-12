@@ -56,7 +56,8 @@ export default function DirectIncassoDialog({ open, onOpenChange, fee }) {
         amount: parseFloat(form.amount),
         date: form.date,
         payment_method: form.payment_method,
-        description: form.description
+        description: form.description,
+        tag: form.tag
       });
       toast.success('Incasso registrato con successo');
       queryClient.invalidateQueries({ queryKey: ['fees'] });
