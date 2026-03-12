@@ -67,7 +67,7 @@ export default function DirectIncassoDialog({ open, onOpenChange, fee }) {
         queryClient.invalidateQueries({ queryKey: ['revenues-by-fee', fee.id] });
       }
       onOpenChange(false);
-      setForm({ amount: '', date: new Date().toISOString().split('T')[0], payment_method: 'Banca', description: '' });
+      setForm({ amount: '', date: new Date().toISOString().split('T')[0], payment_method: 'Banca', description: '', tag: 'Incasso Clienti' });
     } catch (err) {
       toast.error('Errore durante la registrazione: ' + (err.message || 'Errore sconosciuto'));
     } finally {
