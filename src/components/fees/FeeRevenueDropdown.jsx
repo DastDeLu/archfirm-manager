@@ -22,7 +22,6 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
   const { data: revenues = [] } = useQuery({
     queryKey: ['revenues-by-fee', fee.id],
     queryFn: () => base44.entities.Revenue.filter({ fee_id: fee.id }),
-    enabled: open,
   });
 
   const totalIncassato = revenues.reduce((sum, r) => sum + (r.amount || 0), 0);
