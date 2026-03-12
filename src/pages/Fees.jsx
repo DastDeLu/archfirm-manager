@@ -27,11 +27,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Plus, ChevronDown, Receipt, Pencil, Trash2, CheckCircle, Clock, Banknote, PiggyBank, ArrowDownCircle } from 'lucide-react';
+import { Plus, ChevronDown, Receipt, Pencil, Trash2, CheckCircle, Clock, Banknote, PiggyBank } from 'lucide-react';
 import { formatCurrency } from '../components/lib/formatters';
 import { cn } from '@/lib/utils';
 import QuickAddClient from '../components/forms/QuickAddClient';
 import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
+import FeeRevenueDropdown from '../components/fees/FeeRevenueDropdown';
 
 const categoryColors = {
   'Progettazione': 'bg-blue-100 text-blue-700',
