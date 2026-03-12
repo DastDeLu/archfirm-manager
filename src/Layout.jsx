@@ -71,7 +71,7 @@ const navItems = [
             { name: 'Impostazioni', path: 'SettingsPage' },
           ]
         },
-        { name: 'Amministrazione', icon: Shield, path: 'AdminDashboard', adminOnly: true },
+        { name: 'Amministrazione', icon: Shield, path: 'AdminDashboard' },
 ];
 
 function CashDisplay({ bankCash, pettyCash, forecast, expectedCash }) {
