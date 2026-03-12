@@ -31,22 +31,30 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger asChild>
-        <button
-          className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors border",
-            isFullyCollected
-              ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
-              : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
-          )}
-        >
-          {isFullyCollected ? (
-            <CheckCircle className="h-4 w-4" />
-          ) : (
-            <Clock className="h-4 w-4" />
-          )}
-          <span>{formatCurrency(fee.amount || 0)}</span>
-          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
-        </button>
+        <div className="flex flex-col items-end gap-1 cursor-pointer">
+          <button
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors border",
+              isFullyCollected
+                ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+            )}
+          >
+            {isFullyCollected ? (
+              <CheckCircle className="h-4 w-4" />
+            ) : (
+              <Clock className="h-4 w-4" />
+            )}
+            <span>{formatCurrency(fee.amount || 0)}</span>
+            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
+          </button>
+          <div className="flex gap-3 text-[11px] pr-1">
+            <span className="text-emerald-600 font-medium">✓ {formatCurrency(totalIncassato)}</span>
+            {remaining > 0 && (
+              <span className="text-amber-600 font-medium">⏳ {formatCurrency(remaining)}</span>
+            )}
+          </div>
+        </div>
       </CollapsibleTrigger>
 
       <CollapsibleContent>
