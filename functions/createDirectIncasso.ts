@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { fee_id, amount, date, payment_method, description } = await req.json();
+    const { fee_id, amount, date, payment_method, description, tag } = await req.json();
 
     if (!amount || !date || !payment_method) {
       return Response.json({ error: 'Campi obbligatori mancanti: amount, date, payment_method' }, { status: 400 });
