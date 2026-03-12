@@ -35,8 +35,10 @@ import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import ProjectDocuments from '../components/project/ProjectDocuments';
 import QuickAddClient from '../components/forms/QuickAddClient';
+import { useCurrentUser } from '../components/hooks/useCurrentUser';
 
 export default function Projects() {
+  const { dataFilter } = useCurrentUser();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [documentsDialogOpen, setDocumentsDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);

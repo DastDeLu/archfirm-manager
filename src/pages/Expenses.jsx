@@ -38,6 +38,7 @@ import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddChapter from '../components/forms/QuickAddChapter';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
+import { useCurrentUser } from '../components/hooks/useCurrentUser';
 
 export default function Expenses() {
   const currentYear = new Date().getFullYear();
