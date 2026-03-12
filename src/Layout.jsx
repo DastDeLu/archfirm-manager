@@ -207,6 +207,17 @@ export default function Layout({ children, currentPageName }) {
       try {
         const userData = await base44.auth.me();
         setUser(userData);
+        // Auto-assign role if not set yet
+        if (userData && !userData.role) {
+          const newRole = userData.email === OWNER_EMAIL ? 'Sviluppatore' : 'Cliente';
+          await base44.auth.updateMe({ role: newRole });
+          setUser({ ...userData, role: newRole });
+        }
+        // Ensure owner always has Sviluppatore role
+        if (userData?.email === OWNER_EMAIL && userData?.role !== 'Sviluppatore') {
+          await base44.auth.updateMe({ role: 'Sviluppatore' });
+          setUser({ ...userData, role: 'Sviluppatore' });
+        }
       } catch (e) {
         console.log('User not authenticated');
       }
