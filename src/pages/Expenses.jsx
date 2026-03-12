@@ -38,7 +38,6 @@ import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddChapter from '../components/forms/QuickAddChapter';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
-import { useCurrentUser } from '../components/hooks/useCurrentUser';
 
 export default function Expenses() {
   const currentYear = new Date().getFullYear();
@@ -64,15 +63,11 @@ export default function Expenses() {
     id_voce_spesa: ''
   });
 
-  const { dataFilter, loading: userLoading } = useCurrentUser();
   const queryClient = useQueryClient();
 
   const { data: expenses = [], isLoading } = useQuery({
-    queryKey: ['expenses', dataFilter],
-    queryFn: () => Object.keys(dataFilter).length
-      ? base44.entities.Expense.filter(dataFilter, '-date')
-      : base44.entities.Expense.list('-date'),
-    enabled: !userLoading,
+    queryKey: ['expenses'],
+    queryFn: () => base44.entities.Expense.list('-date')
   });
 
   const { data: chapters = [] } = useQuery({

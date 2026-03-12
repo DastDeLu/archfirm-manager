@@ -1,9 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-const VALID_PAYMENT_METHODS = ['Banca', 'Contanti'];
-const MAX_AMOUNT = 10_000_000;
-const MAX_DESCRIPTION_LENGTH = 500;
-
+/**
+ * Registra un incasso diretto da compenso (Fee).
+ * Crea: Installment (paid) + Revenue (con fee_id) + BankCash/PettyCash.
+ * Dopo la creazione, verifica se la somma degli incassi copre il totale del compenso
+ * e aggiorna automaticamente il payment_status a "Incassati".
+ */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -12,36 +14,9 @@ Deno.serve(async (req) => {
 
     const { fee_id, amount, date, payment_method, description } = await req.json();
 
-    // --- Input validation ---
     if (!amount || !date || !payment_method) {
       return Response.json({ error: 'Campi obbligatori mancanti: amount, date, payment_method' }, { status: 400 });
     }
-
-    const amountNum = Number(amount);
-    if (isNaN(amountNum) || amountNum <= 0 || amountNum > MAX_AMOUNT) {
-      return Response.json({ error: 'amount non valido (deve essere > 0 e <= 10.000.000)' }, { status: 400 });
-    }
-
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return Response.json({ error: 'date non valida (formato atteso: YYYY-MM-DD)' }, { status: 400 });
-    }
-    const parsedDate = new Date(date);
-    if (isNaN(parsedDate.getTime())) {
-      return Response.json({ error: 'date non valida' }, { status: 400 });
-    }
-
-    if (!VALID_PAYMENT_METHODS.includes(payment_method)) {
-      return Response.json({ error: `payment_method non valido. Valori accettati: ${VALID_PAYMENT_METHODS.join(', ')}` }, { status: 400 });
-    }
-
-    if (description && description.length > MAX_DESCRIPTION_LENGTH) {
-      return Response.json({ error: `description troppo lunga (max ${MAX_DESCRIPTION_LENGTH} caratteri)` }, { status: 400 });
-    }
-
-    if (fee_id && (typeof fee_id !== 'string' || fee_id.length < 4)) {
-      return Response.json({ error: 'fee_id non valido' }, { status: 400 });
-    }
-    // --- Fine validazione ---
 
     let fee = null;
     if (fee_id) {
@@ -50,18 +25,21 @@ Deno.serve(async (req) => {
       if (!fee) return Response.json({ error: 'Compenso non trovato' }, { status: 404 });
     }
 
+    // Tag fisso per incassi da Previsionale Incassi
     const defaultTag = 'Incasso Clienti';
 
+    // Conta installments esistenti per generare il numero rata
     let installmentNumber = 1;
     if (fee_id) {
       const existing = await base44.asServiceRole.entities.Installment.filter({ fee_id });
       installmentNumber = existing.length + 1;
     }
 
+    // Crea Installment (già pagato)
     if (fee_id) {
       await base44.asServiceRole.entities.Installment.create({
         fee_id,
-        amount: amountNum,
+        amount,
         due_date: date,
         paid_date: date,
         payment_method: payment_method === 'Banca' ? 'bank' : 'cash',
@@ -71,8 +49,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Crea Revenue con fee_id collegato
     await base44.asServiceRole.entities.Revenue.create({
-      amount: amountNum,
+      amount,
       date,
       description: description || (fee ? `Incasso compenso - ${fee.client_name || 'Cliente'}` : 'Incasso compenso'),
       tag: defaultTag,
@@ -81,9 +60,10 @@ Deno.serve(async (req) => {
       fee_id: fee_id || null
     });
 
+    // Crea BankCash o PettyCash
     if (payment_method === 'Banca') {
       await base44.asServiceRole.entities.BankCash.create({
-        amount: amountNum,
+        amount,
         date,
         description: description || (fee ? `Incasso compenso - ${fee.client_name || 'Cliente'}` : 'Incasso compenso'),
         category: 'Incasso Cliente',
@@ -91,7 +71,7 @@ Deno.serve(async (req) => {
       });
     } else {
       await base44.asServiceRole.entities.PettyCash.create({
-        amount: amountNum,
+        amount,
         date,
         description: description || (fee ? `Incasso compenso - ${fee.client_name || 'Cliente'}` : 'Incasso compenso'),
         category: 'Incasso Cliente',
@@ -99,16 +79,21 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Auto-aggiorna stato Fee se la somma dei ricavi copre il totale
     if (fee_id && fee) {
       const allRevenues = await base44.asServiceRole.entities.Revenue.filter({ fee_id });
       const totalIncassato = allRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
       const feeAmount = fee.amount || 0;
+
       if (feeAmount > 0 && totalIncassato >= feeAmount) {
-        await base44.asServiceRole.entities.Fee.update(fee_id, { payment_status: 'Incassati' });
+        await base44.asServiceRole.entities.Fee.update(fee_id, {
+          payment_status: 'Incassati'
+        });
       }
     }
 
     return Response.json({ success: true, message: 'Incasso registrato con successo' });
+
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

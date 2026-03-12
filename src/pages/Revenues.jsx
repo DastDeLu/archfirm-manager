@@ -36,13 +36,11 @@ import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddProject from '../components/forms/QuickAddProject';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
-import { useCurrentUser } from '../components/hooks/useCurrentUser';
 
 export default function Revenues() {
   const currentYear = new Date().getFullYear();
   const previousYear = currentYear - 1;
   const { revenueTags, tagColorMap } = useCustomTags();
-  const { dataFilter, loading: userLoading } = useCurrentUser();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState(0); // 0 = tutti i mesi
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -62,11 +60,8 @@ export default function Revenues() {
   const queryClient = useQueryClient();
 
   const { data: revenues = [], isLoading } = useQuery({
-    queryKey: ['revenues', dataFilter],
-    queryFn: () => Object.keys(dataFilter).length
-      ? base44.entities.Revenue.filter(dataFilter, '-date')
-      : base44.entities.Revenue.list('-date'),
-    enabled: !userLoading,
+    queryKey: ['revenues'],
+    queryFn: () => base44.entities.Revenue.list('-date'),
   });
 
 

@@ -24,8 +24,6 @@ import {
   Banknote,
   PiggyBank
 } from 'lucide-react';
-
-const OWNER_EMAIL = 'dastdelu@gmail.com';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import GlobalSearch from './components/search/GlobalSearch';
@@ -71,7 +69,6 @@ const navItems = [
             { name: 'Impostazioni', path: 'SettingsPage' },
           ]
         },
-        { name: 'Amministrazione', icon: Shield, path: 'AdminDashboard' },
 ];
 
 function CashDisplay({ bankCash, pettyCash, forecast, expectedCash }) {
@@ -125,13 +122,10 @@ function CashDisplay({ bankCash, pettyCash, forecast, expectedCash }) {
   );
 }
 
-function NavItem({ item, isActive, isMobile, closeMobile, userEmail, userRole }) {
+function NavItem({ item, isActive, isMobile, closeMobile }) {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   
-  const isSviluppatore = userRole === 'Sviluppatore' || userEmail === OWNER_EMAIL;
-  if (item.adminOnly && !isSviluppatore) return null;
-
   const isChildActive = item.children?.some(child => 
     location.pathname.includes(child.path)
   );
@@ -207,17 +201,6 @@ export default function Layout({ children, currentPageName }) {
       try {
         const userData = await base44.auth.me();
         setUser(userData);
-        // Auto-assign role if not set yet
-        if (userData && !userData.role) {
-          const newRole = userData.email === OWNER_EMAIL ? 'Sviluppatore' : 'Cliente';
-          await base44.auth.updateMe({ role: newRole });
-          setUser({ ...userData, role: newRole });
-        }
-        // Ensure owner always has Sviluppatore role
-        if (userData?.email === OWNER_EMAIL && userData?.role !== 'Sviluppatore') {
-          await base44.auth.updateMe({ role: 'Sviluppatore' });
-          setUser({ ...userData, role: 'Sviluppatore' });
-        }
       } catch (e) {
         console.log('User not authenticated');
       }
@@ -377,8 +360,6 @@ export default function Layout({ children, currentPageName }) {
                   isActive={currentPageName === item.path}
                   isMobile
                   closeMobile={() => setSidebarOpen(false)}
-                  userEmail={user?.email}
-                  userRole={user?.role}
                 />
               ))}
             </nav>
@@ -415,8 +396,6 @@ export default function Layout({ children, currentPageName }) {
               key={item.name} 
               item={item} 
               isActive={currentPageName === item.path}
-              userEmail={user?.email}
-              userRole={user?.role}
             />
           ))}
         </nav>

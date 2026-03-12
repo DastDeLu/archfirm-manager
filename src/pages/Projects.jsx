@@ -35,10 +35,8 @@ import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import ProjectDocuments from '../components/project/ProjectDocuments';
 import QuickAddClient from '../components/forms/QuickAddClient';
-import { useCurrentUser } from '../components/hooks/useCurrentUser';
 
 export default function Projects() {
-  const { dataFilter } = useCurrentUser();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [documentsDialogOpen, setDocumentsDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -59,10 +57,8 @@ export default function Projects() {
   const queryClient = useQueryClient();
 
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: ['projects', dataFilter],
-    queryFn: () => Object.keys(dataFilter).length
-      ? base44.entities.Project.filter(dataFilter, '-created_date')
-      : base44.entities.Project.list('-created_date'),
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list('-created_date'),
   });
 
   const { data: clients = [] } = useQuery({
