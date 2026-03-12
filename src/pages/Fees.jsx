@@ -31,6 +31,7 @@ import { Plus, ChevronDown, Receipt, Pencil, Trash2, CheckCircle, Clock, Banknot
 import { formatCurrency } from '../components/lib/formatters';
 import { cn } from '@/lib/utils';
 import QuickAddClient from '../components/forms/QuickAddClient';
+import QuickAddProject from '../components/forms/QuickAddProject';
 import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
 import FeeRevenueDropdown from '../components/fees/FeeRevenueDropdown';
 
