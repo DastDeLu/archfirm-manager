@@ -24,14 +24,8 @@ Deno.serve(async (req) => {
       if (!fee) return Response.json({ error: 'Compenso non trovato' }, { status: 404 });
     }
 
-    // Determina il tag di default dai CustomTag revenue
-    let defaultTag = 'Progettazione';
-    try {
-      const customTags = await base44.asServiceRole.entities.CustomTag.filter({ type: 'revenue' });
-      if (customTags.length > 0) defaultTag = customTags[0].name;
-    } catch {
-      // fallback to default
-    }
+    // Tag fisso per incassi da Previsionale Incassi
+    const defaultTag = 'Incasso Clienti';
 
     // Conta installments esistenti per generare il numero rata
     let installmentNumber = 1;
