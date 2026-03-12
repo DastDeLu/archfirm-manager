@@ -62,6 +62,9 @@ export default function DirectIncassoDialog({ open, onOpenChange, fee }) {
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
       queryClient.invalidateQueries({ queryKey: ['installments'] });
+      if (fee?.id) {
+        queryClient.invalidateQueries({ queryKey: ['revenues-by-fee', fee.id] });
+      }
       onOpenChange(false);
       setForm({ amount: '', date: new Date().toISOString().split('T')[0], payment_method: 'Banca', description: '' });
     } catch (err) {
