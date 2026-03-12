@@ -113,6 +113,8 @@ export default function Fees() {
       setFormData({
         client_id: fee.client_id || '',
         client_name: fee.client_name || '',
+        project_id: fee.project_id || '',
+        project_name: fee.project_name || '',
         amount: fee.amount || '',
         category: fee.category || 'Progettazione',
         payment_status: fee.payment_status || 'Da incassare',
@@ -125,6 +127,8 @@ export default function Fees() {
       setFormData({
         client_id: '',
         client_name: '',
+        project_id: '',
+        project_name: '',
         amount: '',
         category: 'Progettazione',
         payment_status: 'Da incassare',
