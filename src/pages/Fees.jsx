@@ -45,6 +45,7 @@ const categoryColors = {
 export default function Fees() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickAddClientOpen, setQuickAddClientOpen] = useState(false);
+  const [quickAddProjectOpen, setQuickAddProjectOpen] = useState(false);
   const [editingFee, setEditingFee] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [expandedClient, setExpandedClient] = useState(null);
