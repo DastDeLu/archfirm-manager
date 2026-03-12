@@ -76,6 +76,11 @@ export default function Fees() {
     queryFn: () => base44.entities.Client.list(),
   });
 
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list(),
+  });
+
   const createFeeMutation = useMutation({
     mutationFn: (data) => base44.entities.Fee.create(data),
     onSuccess: () => {
