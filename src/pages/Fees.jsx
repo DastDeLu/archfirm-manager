@@ -491,6 +491,38 @@ export default function Fees() {
                   </Button>
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="project">Progetto</Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={formData.project_id}
+                    onValueChange={(value) => {
+                      const project = projects.find(p => p.id === value);
+                      setFormData({ ...formData, project_id: value, project_name: project?.name || '' });
+                    }}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Seleziona progetto (opzionale)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nessun progetto</SelectItem>
+                      {projects.map(project => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuickAddProjectOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="amount">Importo (€) *</Label>
