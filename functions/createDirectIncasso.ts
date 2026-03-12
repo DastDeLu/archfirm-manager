@@ -2,8 +2,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 /**
  * Registra un incasso diretto da compenso (Fee).
- * Crea: Installment (paid) + Revenue + BankCash/PettyCash.
- * Se fee_id è fornito, aggiorna anche lo stato del compenso.
+ * Crea: Installment (paid) + Revenue (con fee_id) + BankCash/PettyCash.
+ * Dopo la creazione, verifica se la somma degli incassi copre il totale del compenso
+ * e aggiorna automaticamente il payment_status a "Incassati".
  */
 Deno.serve(async (req) => {
   try {
@@ -48,14 +49,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Crea Revenue
+    // Crea Revenue con fee_id collegato
     await base44.asServiceRole.entities.Revenue.create({
       amount,
       date,
       description: description || (fee ? `Incasso compenso - ${fee.client_name || 'Cliente'}` : 'Incasso compenso'),
       tag: defaultTag,
       payment_method: payment_method === 'Banca' ? 'bank_transfer' : 'cash',
-      project_name: fee?.project_name || null
+      project_name: fee?.project_name || null,
+      fee_id: fee_id || null
     });
 
     // Crea BankCash o PettyCash
@@ -77,11 +79,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Aggiorna stato Fee se fornita
+    // Auto-aggiorna stato Fee se la somma dei ricavi copre il totale
     if (fee_id && fee) {
-      await base44.asServiceRole.entities.Fee.update(fee_id, {
-        payment_status: 'Incassati'
-      });
+      const allRevenues = await base44.asServiceRole.entities.Revenue.filter({ fee_id });
+      const totalIncassato = allRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+      const feeAmount = fee.amount || 0;
+
+      if (feeAmount > 0 && totalIncassato >= feeAmount) {
+        await base44.asServiceRole.entities.Fee.update(fee_id, {
+          payment_status: 'Incassati'
+        });
+      }
     }
 
     return Response.json({ success: true, message: 'Incasso registrato con successo' });
