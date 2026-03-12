@@ -25,8 +25,8 @@ Deno.serve(async (req) => {
       if (!fee) return Response.json({ error: 'Compenso non trovato' }, { status: 404 });
     }
 
-    // Tag fisso per incassi da Previsionale Incassi
-    const defaultTag = 'Incasso Clienti';
+    // Usa il tag passato dal frontend, con fallback a 'Incasso Clienti'
+    const defaultTag = tag || 'Incasso Clienti';
 
     // Conta installments esistenti per generare il numero rata
     let installmentNumber = 1;
