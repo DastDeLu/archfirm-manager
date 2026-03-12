@@ -110,24 +110,9 @@ function CashDisplay({ bankCash, pettyCash, forecast, expectedCash }) {
             <div className="p-2 bg-blue-500/10 rounded-lg">
               <TrendingUp className="h-4 w-4 text-blue-600" />
             </div>
-            <span className="text-xs font-medium text-slate-600">Previsione</span>
-          </div>
-          <span className={cn(
-            "text-sm font-bold",
-            forecast >= 0 ? "text-blue-600" : "text-red-500"
-          )}>
-            {forecast != null ? formatCurrency(forecast) : '€0,00'}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-violet-50 to-violet-100/50 rounded-xl">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-violet-500/10 rounded-lg">
-              <Wallet className="h-4 w-4 text-violet-600" />
-            </div>
             <span className="text-xs font-medium text-slate-600">Da Incassare</span>
           </div>
-          <span className="text-sm font-bold text-violet-600">
+          <span className="text-sm font-bold text-blue-600">
             {expectedCash != null ? formatCurrency(expectedCash) : '€0,00'}
           </span>
         </div>
