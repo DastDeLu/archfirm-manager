@@ -315,8 +315,28 @@ export default function Fees() {
         </CardContent>
       </Card>
 
-      {/* Category Filter */}
-      <div className="mb-4">
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <Select value={monthFilter} onValueChange={setMonthFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tutti i Mesi</SelectItem>
+            <SelectItem value="01">Gennaio</SelectItem>
+            <SelectItem value="02">Febbraio</SelectItem>
+            <SelectItem value="03">Marzo</SelectItem>
+            <SelectItem value="04">Aprile</SelectItem>
+            <SelectItem value="05">Maggio</SelectItem>
+            <SelectItem value="06">Giugno</SelectItem>
+            <SelectItem value="07">Luglio</SelectItem>
+            <SelectItem value="08">Agosto</SelectItem>
+            <SelectItem value="09">Settembre</SelectItem>
+            <SelectItem value="10">Ottobre</SelectItem>
+            <SelectItem value="11">Novembre</SelectItem>
+            <SelectItem value="12">Dicembre</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-64">
             <SelectValue />
