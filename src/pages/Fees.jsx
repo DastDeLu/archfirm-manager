@@ -362,9 +362,11 @@ export default function Fees() {
       ) : (
         <div className="space-y-2">
           {feesByClient.map(clientGroup => {
-            const filteredFees = categoryFilter === 'all' 
-              ? clientGroup.fees 
-              : clientGroup.fees.filter(f => f.category === categoryFilter);
+            const filteredFees = clientGroup.fees.filter(f => {
+              const catMatch = categoryFilter === 'all' || f.category === categoryFilter;
+              const monthMatch = monthFilter === 'all' || (f.date && f.date.slice(5, 7) === monthFilter);
+              return catMatch && monthMatch;
+            });
             
             if (filteredFees.length === 0) return null;
 
