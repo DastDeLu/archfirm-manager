@@ -48,6 +48,7 @@ export default function Fees() {
   const [quickAddProjectOpen, setQuickAddProjectOpen] = useState(false);
   const [editingFee, setEditingFee] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
   const [expandedClient, setExpandedClient] = useState(null);
   const [incassoDialogOpen, setIncassoDialogOpen] = useState(false);
   const [selectedFeeForIncasso, setSelectedFeeForIncasso] = useState(null);
