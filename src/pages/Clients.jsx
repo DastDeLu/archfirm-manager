@@ -128,7 +128,7 @@ export default function Clients() {
       return;
     }
     if (editingClient) {
-      updateMutation.mutate({ id: editingClient.id, data: formData });
+      updateMutation.mutate({ id: editingClient.id, data: formData, previousName: editingClient.name });
     } else {
       createMutation.mutate(formData);
     }
