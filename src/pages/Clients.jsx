@@ -62,9 +62,17 @@ export default function Clients() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Client.update(id, data),
+    mutationFn: async ({ id, data, previousName }) => {
+      await base44.entities.Client.update(id, data);
+      // Se il nome è cambiato, aggiorna tutti i Fee associati
+      if (previousName && previousName !== data.name) {
+        const fees = await base44.entities.Fee.filter({ client_id: id });
+        await Promise.all(fees.map(fee => base44.entities.Fee.update(fee.id, { client_name: data.name })));
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['fees'] });
       closeDialog();
     },
   });
