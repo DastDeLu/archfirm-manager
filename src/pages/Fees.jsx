@@ -178,13 +178,19 @@ export default function Fees() {
     });
   };
 
-  // Summary stats
+  // Summary stats (rispetta i filtri attivi)
   const stats = useMemo(() => {
     const byCategory = {};
     const byStatus = { 'Da incassare': 0, 'Incassati': 0 };
     const byMethod = { 'Banca': 0, 'Contanti': 0 };
 
-    fees.forEach(fee => {
+    const filteredForStats = fees.filter(fee => {
+      const catMatch = categoryFilter === 'all' || fee.category === categoryFilter;
+      const monthMatch = monthFilter === 'all' || (fee.date && fee.date.slice(5, 7) === monthFilter);
+      return catMatch && monthMatch;
+    });
+
+    filteredForStats.forEach(fee => {
       // By category
       const cat = fee.category || 'Other';
       if (!byCategory[cat]) {
