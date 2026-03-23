@@ -212,7 +212,7 @@ export default function Fees() {
     });
 
     return { byCategory, byStatus, byMethod };
-  }, [fees]);
+  }, [fees, categoryFilter, monthFilter]);
 
   // Group fees by client
   const feesByClient = useMemo(() => {
