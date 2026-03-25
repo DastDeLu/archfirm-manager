@@ -30,17 +30,16 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
   const [syncing, setSyncing] = useState(false);
   const queryClient = useQueryClient();
 
-  // Check if user has Google Calendar connected
-  const { data: currentUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+  // Check if Google Calendar connector is active
+  const { data: calendarStatus } = useQuery({
+    queryKey: ['calendarConnectorStatus'],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('checkCalendarConnection', {});
+      return res.data;
+    },
+    retry: false,
   });
-  const { data: calendarTokens = [] } = useQuery({
-    queryKey: ['userCalendarToken'],
-    queryFn: () => base44.entities.UserCalendarToken.filter({ user_email: currentUser?.email }),
-    enabled: !!currentUser?.email,
-  });
-  const calendarConnected = calendarTokens.length > 0;
+  const calendarConnected = calendarStatus?.connected === true;
 
   useEffect(() => {
     if (installment) {

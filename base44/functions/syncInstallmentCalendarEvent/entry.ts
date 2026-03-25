@@ -1,46 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-async function getValidAccessToken(base44, userEmail) {
-  const tokens = await base44.asServiceRole.entities.UserCalendarToken.filter({ user_email: userEmail });
-  if (!tokens.length) return null;
-
-  const token = tokens[0];
-  const now = new Date();
-  const expiry = token.token_expiry ? new Date(token.token_expiry) : null;
-
-  // If token is still valid (with 2 min buffer), return it
-  if (expiry && expiry.getTime() - now.getTime() > 120000) {
-    return { accessToken: token.access_token, tokenRecord: token };
-  }
-
-  // Refresh using refresh_token
-  const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
-  const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
-
-  const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: token.refresh_token,
-      grant_type: 'refresh_token',
-    }),
-  });
-
-  if (!refreshRes.ok) return null;
-
-  const { access_token, expires_in } = await refreshRes.json();
-  const newExpiry = new Date(Date.now() + (expires_in || 3600) * 1000).toISOString();
-
-  await base44.asServiceRole.entities.UserCalendarToken.update(token.id, {
-    access_token,
-    token_expiry: newExpiry,
-  });
-
-  return { accessToken: access_token, tokenRecord: { ...token, access_token, token_expiry: newExpiry } };
-}
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -57,12 +16,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'installment_id and action required' }, { status: 400 });
     }
 
-    // Get token for current user
-    const tokenData = await getValidAccessToken(base44, user.email);
-    if (!tokenData) {
-      return Response.json({ error: 'Google Calendar not connected for this user' }, { status: 400 });
+    // Get token via app connector (already authorized)
+    const { accessToken } = await base44.asServiceRole.connectors.getConnection('googlecalendar');
+    if (!accessToken) {
+      return Response.json({ error: 'Google Calendar not connected' }, { status: 400 });
     }
-    const { accessToken } = tokenData;
 
     // Fetch installment
     const installments = await base44.entities.Installment.filter({ id: installment_id });
@@ -122,7 +80,6 @@ Deno.serve(async (req) => {
 
     if (action === 'mark_paid') {
       if (googleEventId) {
-        // Get existing event first
         const getRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${googleEventId}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
