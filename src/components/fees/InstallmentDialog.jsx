@@ -13,8 +13,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Calendar, Loader2 } from 'lucide-react';
+import { Calendar, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const defaultForm = {
   amount: '',
@@ -28,6 +38,7 @@ const defaultForm = {
 export default function InstallmentDialog({ open, onOpenChange, fee, installment, onSuccess }) {
   const [form, setForm] = useState(defaultForm);
   const [syncing, setSyncing] = useState(false);
+  const [showCalendarConsent, setShowCalendarConsent] = useState(false);
   const queryClient = useQueryClient();
 
   // Check if Google Calendar connector is active
@@ -124,6 +135,7 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
   const isPending = createMutation.isPending || updateMutation.isPending || syncing;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -210,7 +222,13 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
               </div>
               <Switch
                 checked={form.calendar_sync_enabled}
-                onCheckedChange={(v) => setForm({ ...form, calendar_sync_enabled: v })}
+                onCheckedChange={(v) => {
+                  if (v && !form.calendar_sync_enabled) {
+                    setShowCalendarConsent(true);
+                  } else {
+                    setForm({ ...form, calendar_sync_enabled: v });
+                  }
+                }}
                 disabled={!calendarConnected}
               />
             </div>
@@ -227,5 +245,39 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
         </form>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={showCalendarConsent} onOpenChange={setShowCalendarConsent}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-blue-500" />
+            Sincronizzazione Google Calendar
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-2 text-sm text-slate-600">
+              <p>
+                Attivando questa opzione, verrà creato un <strong>evento nel Google Calendar dello studio</strong> con la data di scadenza di questa rata.
+              </p>
+              <p>
+                L'evento include un promemoria automatico e verrà aggiornato o rimosso se modifichi o cancelli la rata.
+              </p>
+              <p className="text-slate-500 italic">
+                Il calendario utilizzato è quello condiviso dello studio, non il tuo calendario personale.
+              </p>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setShowCalendarConsent(false)}>Annulla</AlertDialogCancel>
+          <AlertDialogAction onClick={() => {
+            setForm(f => ({ ...f, calendar_sync_enabled: true }));
+            setShowCalendarConsent(false);
+          }}>
+            Attiva Sync
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
