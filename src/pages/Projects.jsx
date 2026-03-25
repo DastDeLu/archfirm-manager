@@ -35,6 +35,7 @@ import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import ProjectDocuments from '../components/project/ProjectDocuments';
 import QuickAddClient from '../components/forms/QuickAddClient';
+import SearchableSelect from '../components/ui/searchable-select';
 
 export default function Projects() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -309,21 +310,15 @@ export default function Projects() {
               <div className="space-y-2">
                 <Label htmlFor="client">Cliente *</Label>
                 <div className="flex gap-2">
-                  <Select
+                  <SearchableSelect
+                    items={clients}
                     value={formData.client_id}
                     onValueChange={handleClientChange}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Seleziona cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map(client => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    getValue={c => c.id}
+                    getLabel={c => c.name}
+                    placeholder="Seleziona cliente"
+                    className="flex-1"
+                  />
                   <Button
                     type="button"
                     variant="outline"

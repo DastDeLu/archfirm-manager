@@ -21,6 +21,7 @@ import {
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import QuickAddClient from './QuickAddClient';
+import SearchableSelect from '../ui/searchable-select';
 
 export default function QuickAddProject({ open, onOpenChange, onProjectCreated }) {
   const [formData, setFormData] = useState({
@@ -82,22 +83,15 @@ export default function QuickAddProject({ open, onOpenChange, onProjectCreated }
             <div className="space-y-2">
               <Label htmlFor="project-client">Cliente *</Label>
               <div className="flex gap-2">
-                <Select
+                <SearchableSelect
+                  items={clients}
                   value={formData.client_id}
                   onValueChange={(value) => setFormData({ ...formData, client_id: value })}
-                  required
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Seleziona cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map(client => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  getValue={c => c.id}
+                  getLabel={c => c.name}
+                  placeholder="Seleziona cliente"
+                  className="flex-1"
+                />
                 <Button
                   type="button"
                   variant="outline"

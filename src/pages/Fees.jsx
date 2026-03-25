@@ -32,6 +32,7 @@ import { formatCurrency } from '../components/lib/formatters';
 import { cn } from '@/lib/utils';
 import QuickAddClient from '../components/forms/QuickAddClient';
 import QuickAddProject from '../components/forms/QuickAddProject';
+import SearchableSelect from '../components/ui/searchable-select';
 import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
 import FeeRevenueDropdown from '../components/fees/FeeRevenueDropdown';
 
@@ -500,18 +501,15 @@ export default function Fees() {
               <div className="space-y-2">
                 <Label htmlFor="client">Cliente *</Label>
                 <div className="flex gap-2">
-                  <Select value={formData.client_id} onValueChange={handleClientChange}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Seleziona cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map(client => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    items={clients}
+                    value={formData.client_id}
+                    onValueChange={handleClientChange}
+                    getValue={c => c.id}
+                    getLabel={c => c.name}
+                    placeholder="Seleziona cliente"
+                    className="flex-1"
+                  />
                   <Button
                     type="button"
                     variant="outline"
@@ -525,25 +523,20 @@ export default function Fees() {
               <div className="space-y-2">
                 <Label htmlFor="project">Progetto</Label>
                 <div className="flex gap-2">
-                  <Select
+                  <SearchableSelect
+                    items={projects}
                     value={formData.project_id}
                     onValueChange={(value) => {
                       const project = projects.find(p => p.id === value);
-                      setFormData({ ...formData, project_id: value, project_name: project?.name || '' });
+                      setFormData({ ...formData, project_id: value || '', project_name: project?.name || '' });
                     }}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Seleziona progetto (opzionale)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nessun progetto</SelectItem>
-                      {projects.map(project => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    getValue={p => p.id}
+                    getLabel={p => p.name}
+                    getSearchText={p => `${p.name} ${p.client_name || ''}`}
+                    placeholder="Seleziona progetto (opzionale)"
+                    className="flex-1"
+                    clearable
+                  />
                   <Button
                     type="button"
                     variant="outline"

@@ -35,6 +35,7 @@ import { formatCurrency } from '../components/lib/formatters';
 import { format, parseISO } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddClient from '../components/forms/QuickAddClient';
+import SearchableSelect from '../components/ui/searchable-select';
 
 const statusColors = {
   draft: 'bg-slate-100 text-slate-700',
@@ -374,18 +375,15 @@ export default function Quotes() {
               <div className="space-y-2">
                 <Label htmlFor="client">Cliente *</Label>
                 <div className="flex gap-2">
-                  <Select value={formData.client_id} onValueChange={handleClientChange}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Seleziona cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map(client => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    items={clients}
+                    value={formData.client_id}
+                    onValueChange={handleClientChange}
+                    getValue={c => c.id}
+                    getLabel={c => c.name}
+                    placeholder="Seleziona cliente"
+                    className="flex-1"
+                  />
                   <Button
                     type="button"
                     variant="outline"

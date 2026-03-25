@@ -34,6 +34,8 @@ import { formatCurrency } from '../components/lib/formatters';
 import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddProject from '../components/forms/QuickAddProject';
+import SearchableSelect from '../components/ui/searchable-select';
+import SuggestTextInput from '../components/ui/suggest-text-input';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 
@@ -390,11 +392,12 @@ export default function Revenues() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Descrizione</Label>
-                <Input
+                <SuggestTextInput
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(v) => setFormData({ ...formData, description: v })}
                   placeholder="Descrizione ricavo"
+                  suggestions={[...new Set(revenues.map(r => r.description).filter(Boolean))]}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -435,21 +438,17 @@ export default function Revenues() {
               <div className="space-y-2">
                 <Label htmlFor="project">Progetto</Label>
                 <div className="flex gap-2">
-                  <Select
+                  <SearchableSelect
+                    items={projects}
                     value={formData.project_id}
                     onValueChange={handleProjectChange}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Seleziona progetto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {projects.map(project => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    getValue={p => p.id}
+                    getLabel={p => p.name}
+                    getSearchText={p => `${p.name} ${p.client_name || ''}`}
+                    placeholder="Seleziona progetto"
+                    className="flex-1"
+                    clearable
+                  />
                   <Button
                     type="button"
                     variant="outline"

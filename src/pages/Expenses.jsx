@@ -36,6 +36,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddChapter from '../components/forms/QuickAddChapter';
+import SearchableSelect from '../components/ui/searchable-select';
+import SuggestTextInput from '../components/ui/suggest-text-input';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 
@@ -590,11 +592,12 @@ export default function Expenses() {
 
               <div className="space-y-2">
                 <Label htmlFor="description">Descrizione</Label>
-                <Input
+                <SuggestTextInput
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(v) => setFormData({ ...formData, description: v })}
                   placeholder="Descrizione della spesa"
+                  suggestions={[...new Set(expenses.map(e => e.description).filter(Boolean))]}
                 />
               </div>
 
@@ -681,39 +684,31 @@ export default function Expenses() {
               {vociSpesa.length > 0 &&
               <div className="space-y-2">
                   <Label>Voce di Spesa (opzionale)</Label>
-                  <Select
-                  value={formData.id_voce_spesa}
-                  onValueChange={(val) => {
-                    if (val === '__none__') {
-                      setFormData((prev) => ({ ...prev, id_voce_spesa: '', chapter_id: '', chapter_name: '' }));
-                    } else {
-                      const voce = vociSpesa.find((v) => v.id === val);
-                      const cat = categorie.find((c) => c.id === voce?.id_categoria);
-                      setFormData((prev) => ({
-                        ...prev,
-                        id_voce_spesa: val,
-                        chapter_id: cat?.id || '',
-                        chapter_name: cat?.nome || ''
-                      }));
-                    }
-                  }}>
-
-                    <SelectTrigger>
-                      <SelectValue placeholder="Collega a voce di spesa" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">Nessuna</SelectItem>
-                      {categorie.map((cat) => {
-                      const voci = vociSpesa.filter((v) => v.id_categoria === cat.id);
-                      if (!voci.length) return null;
-                      return voci.map((voce) =>
-                      <SelectItem key={voce.id} value={voce.id}>
-                            {cat.nome} › {voce.nome}
-                          </SelectItem>
-                      );
-                    })}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    items={[{ id: '__none__', label: 'Nessuna' }, ...categorie.flatMap(cat => {
+                      const voci = vociSpesa.filter(v => v.id_categoria === cat.id);
+                      return voci.map(voce => ({ id: voce.id, label: `${cat.nome} › ${voce.nome}` }));
+                    })]}
+                    value={formData.id_voce_spesa || '__none__'}
+                    onValueChange={(val) => {
+                      if (!val || val === '__none__') {
+                        setFormData(prev => ({ ...prev, id_voce_spesa: '', chapter_id: '', chapter_name: '' }));
+                      } else {
+                        const voce = vociSpesa.find(v => v.id === val);
+                        const cat = categorie.find(c => c.id === voce?.id_categoria);
+                        setFormData(prev => ({
+                          ...prev,
+                          id_voce_spesa: val,
+                          chapter_id: cat?.id || '',
+                          chapter_name: cat?.nome || ''
+                        }));
+                      }
+                    }}
+                    getValue={item => item.id}
+                    getLabel={item => item.label}
+                    placeholder="Collega a voce di spesa"
+                    className="w-full"
+                  />
                   {formData.chapter_name && (
                     <p className="text-xs text-slate-500">Capitolo: <span className="font-medium">{formData.chapter_name}</span></p>
                   )}
