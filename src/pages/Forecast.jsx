@@ -24,7 +24,8 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
-import { Plus, Pencil, TrendingUp, TrendingDown, Calendar, Euro, AlertTriangle, CheckCircle, AlertCircle, ArrowDownCircle, ChevronDown } from 'lucide-react';
+import { Plus, Pencil, TrendingUp, TrendingDown, Calendar, Euro, AlertTriangle, CheckCircle, AlertCircle, ArrowDownCircle, ChevronDown, List } from 'lucide-react';
+import InstallmentsDrawer from '../components/forecast/InstallmentsDrawer';
 import { cn } from '@/lib/utils';
 import { calculateCashForecast } from '../components/utils/cashForecast.jsx';
 import { formatCurrency, tickCurrency } from '../components/lib/formatters';
@@ -42,6 +43,7 @@ export default function Forecast() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [incassoDialogOpen, setIncassoDialogOpen] = useState(false);
   const [incassiListOpen, setIncassiListOpen] = useState(false);
+  const [installmentsDrawerOpen, setInstallmentsDrawerOpen] = useState(false);
   const [editingForecast, setEditingForecast] = useState(null);
   const [formData, setFormData] = useState({
     month: new Date().getMonth() + 1,
@@ -72,6 +74,11 @@ export default function Forecast() {
   const { data: installments = [] } = useQuery({
     queryKey: ['installments'],
     queryFn: () => base44.entities.Installment.list(),
+  });
+
+  const { data: fees = [] } = useQuery({
+    queryKey: ['fees'],
+    queryFn: () => base44.entities.Fee.list(),
   });
 
   const createMutation = useMutation({
@@ -250,6 +257,10 @@ export default function Forecast() {
             ))}
           </SelectContent>
         </Select>
+        <Button variant="outline" onClick={() => setInstallmentsDrawerOpen(true)} className="gap-2">
+          <List className="h-4 w-4 text-blue-600" />
+          Rate &amp; Acconti
+        </Button>
         <Button variant="outline" onClick={() => setIncassoDialogOpen(true)} className="gap-2">
           <ArrowDownCircle className="h-4 w-4 text-emerald-600" />
           Inserisci Incasso
@@ -520,6 +531,14 @@ export default function Forecast() {
       </Card>
 
       <DirectIncassoDialog open={incassoDialogOpen} onOpenChange={setIncassoDialogOpen} fee={null} />
+
+      <InstallmentsDrawer
+        open={installmentsDrawerOpen}
+        onOpenChange={setInstallmentsDrawerOpen}
+        installments={installments}
+        fees={fees}
+        selectedYear={selectedYear}
+      />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">

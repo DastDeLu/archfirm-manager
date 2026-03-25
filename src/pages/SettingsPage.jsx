@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { 
   Settings, Users, Database, Download, Upload, MoreHorizontal, 
-  UserPlus, Shield, User, Trash2, RefreshCw, FileJson, FileSpreadsheet, FileUp, Loader2, Tags
+  UserPlus, Shield, User, Trash2, RefreshCw, FileJson, FileSpreadsheet, FileUp, Loader2, Tags, Calendar
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -49,9 +49,11 @@ import OpeningBalances from '../components/settings/OpeningBalances';
 import ImportDialog from '../components/settings/ImportDialog';
 import TagManager from '../components/settings/TagManager';
 import ChartTagFilterSettings from '../components/settings/ChartTagFilterSettings';
+import GoogleCalendarSettings from '../components/settings/GoogleCalendarSettings';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
+
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -278,6 +280,10 @@ export default function SettingsPage() {
             <Tags className="h-4 w-4" />
             Gestione Tag
           </TabsTrigger>
+          <TabsTrigger value="calendar" className="gap-2">
+            <Calendar className="h-4 w-4" />
+            Google Calendar
+          </TabsTrigger>
           {isAdmin && (
             <>
               <TabsTrigger value="users" className="gap-2">
@@ -390,6 +396,10 @@ export default function SettingsPage() {
 
         <TabsContent value="tags">
           <TagManager />
+        </TabsContent>
+
+        <TabsContent value="calendar">
+          <GoogleCalendarSettings />
         </TabsContent>
 
         {isAdmin && (

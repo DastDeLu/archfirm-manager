@@ -75,6 +75,18 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Update Google Calendar event if connected (mark as PAGATO)
+    if (installment.google_event_id) {
+      try {
+        await base44.functions.invoke('syncInstallmentCalendarEvent', {
+          installment_id,
+          action: 'mark_paid',
+        });
+      } catch (_calErr) {
+        // Calendar sync failure is non-blocking
+      }
+    }
+
     // Check if all installments are paid and update fee status
     const allInstallments = await base44.entities.Installment.filter({ fee_id: installment.fee_id });
     const allPaid = allInstallments.every(i => i.status === 'paid');
