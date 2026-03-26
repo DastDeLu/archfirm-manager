@@ -31,7 +31,6 @@ import {
 import { Plus, MoreHorizontal, Pencil, Trash2, Building2, Mail, Phone, MapPin, FolderKanban, Receipt, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { useCurrentUser } from '../hooks/useCurrentUser';
 
 export default function Clients() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -47,15 +46,11 @@ export default function Clients() {
     status: 'active'
   });
 
-  const { user, isAdmin } = useCurrentUser();
   const queryClient = useQueryClient();
 
   const { data: clients = [], isLoading } = useQuery({
-    queryKey: ['clients', user?.email, isAdmin],
-    queryFn: () => isAdmin
-      ? base44.entities.Client.list('-created_date')
-      : base44.entities.Client.filter({ created_by: user?.email }, '-created_date'),
-    enabled: !!user,
+    queryKey: ['clients'],
+    queryFn: () => base44.entities.Client.list('-created_date'),
   });
 
   const createMutation = useMutation({

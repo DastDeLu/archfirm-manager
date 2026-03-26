@@ -35,7 +35,6 @@ import QuickAddProject from '../components/forms/QuickAddProject';
 import SearchableSelect from '../components/ui/searchable-select';
 import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
 import FeeRevenueDropdown from '../components/fees/FeeRevenueDropdown';
-import { useCurrentUser } from '../hooks/useCurrentUser';
 
 const categoryColors = {
   'Progettazione': 'bg-blue-100 text-blue-700',
@@ -67,15 +66,11 @@ export default function Fees() {
     notes: ''
   });
 
-  const { user, isAdmin } = useCurrentUser();
   const queryClient = useQueryClient();
 
   const { data: fees = [], isLoading } = useQuery({
-    queryKey: ['fees', user?.email, isAdmin],
-    queryFn: () => isAdmin
-      ? base44.entities.Fee.list('-created_date')
-      : base44.entities.Fee.filter({ created_by: user?.email }, '-created_date'),
-    enabled: !!user,
+    queryKey: ['fees'],
+    queryFn: () => base44.entities.Fee.list('-created_date'),
   });
 
   const { data: clients = [] } = useQuery({

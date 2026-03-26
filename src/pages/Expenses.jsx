@@ -40,13 +40,11 @@ import SearchableSelect from '../components/ui/searchable-select';
 import SuggestTextInput from '../components/ui/suggest-text-input';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
-import { useCurrentUser } from '../hooks/useCurrentUser';
 
 export default function Expenses() {
   const currentYear = new Date().getFullYear();
   const { categorie, vociSpesa } = useBudget();
   const { expenseTags, tagColorMap } = useCustomTags();
-  const { user, isAdmin } = useCurrentUser();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState(0); // 0 = tutti i mesi
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -70,11 +68,8 @@ export default function Expenses() {
   const queryClient = useQueryClient();
 
   const { data: expenses = [], isLoading } = useQuery({
-    queryKey: ['expenses', user?.email, isAdmin],
-    queryFn: () => isAdmin
-      ? base44.entities.Expense.list('-date')
-      : base44.entities.Expense.filter({ created_by: user?.email }, '-date'),
-    enabled: !!user,
+    queryKey: ['expenses'],
+    queryFn: () => base44.entities.Expense.list('-date')
   });
 
   const { data: chapters = [] } = useQuery({
