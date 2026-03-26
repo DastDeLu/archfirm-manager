@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BudgetService } from './BudgetService';
 import { useCurrentUserId } from '../../hooks/useCurrentUserId';
 
-const BudgetContext = createContext();
+const BudgetContext = createContext(undefined);
 
 export const useBudget = () => {
   const context = useContext(BudgetContext);
