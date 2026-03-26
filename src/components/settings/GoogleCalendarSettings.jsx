@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, CheckCircle, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, CheckCircle, Info, RefreshCw } from 'lucide-react';
 
 export default function GoogleCalendarSettings() {
   // Check connectivity by calling the connector
@@ -46,9 +47,20 @@ export default function GoogleCalendarSettings() {
               </p>
             </div>
           </div>
-          {isConnected && (
-            <Badge className="bg-emerald-100 text-emerald-700">Attivo</Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {isConnected && (
+              <Badge className="bg-emerald-100 text-emerald-700">Attivo</Badge>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => window.open('https://app.base44.com/settings/connectors', '_blank')}
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              {isConnected ? 'Riconfigura' : 'Connetti'}
+            </Button>
+          </div>
         </div>
 
         <div className="text-sm text-slate-500 bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-1">
