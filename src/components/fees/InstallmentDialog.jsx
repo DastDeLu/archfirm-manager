@@ -31,6 +31,8 @@ const defaultForm = {
   due_date: '',
   payment_method: 'bank',
   kind: 'rata',
+  status: 'pending',
+  paid_date: '',
   notes: '',
   calendar_sync_enabled: false,
 };
@@ -59,11 +61,13 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
         due_date: installment.due_date || '',
         payment_method: installment.payment_method || 'bank',
         kind: installment.kind || 'rata',
+        status: installment.status || 'pending',
+        paid_date: installment.paid_date || '',
         notes: installment.notes || '',
         calendar_sync_enabled: installment.calendar_sync_enabled || false,
       });
     } else {
-      setForm({ ...defaultForm, amount: fee?.amount || '' });
+      setForm({ ...defaultForm, amount: fee?.amount || '', status: 'pending', paid_date: '' });
     }
   }, [installment, fee, open]);
 
@@ -122,7 +126,8 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
       kind: form.kind,
       notes: form.notes,
       calendar_sync_enabled: form.calendar_sync_enabled,
-      status: installment?.status || 'pending',
+      status: form.status,
+      paid_date: form.status === 'paid' ? (form.paid_date || new Date().toISOString().split('T')[0]) : '',
       installment_number: installment?.installment_number,
     };
     if (installment) {
@@ -199,6 +204,33 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Stato pagamento */}
+            <div className="space-y-2">
+              <Label>Stato Pagamento *</Label>
+              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v, paid_date: v === 'paid' ? (form.paid_date || new Date().toISOString().split('T')[0]) : '' })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Da pagare</SelectItem>
+                  <SelectItem value="paid">Pagata</SelectItem>
+                  <SelectItem value="overdue">Scaduta</SelectItem>
+                  <SelectItem value="cancelled">Annullata</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {form.status === 'paid' && (
+              <div className="space-y-2">
+                <Label>Data Pagamento</Label>
+                <Input
+                  type="date"
+                  value={form.paid_date}
+                  onChange={(e) => setForm({ ...form, paid_date: e.target.value })}
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Note</Label>
