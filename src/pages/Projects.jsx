@@ -36,6 +36,7 @@ import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import ProjectDocuments from '../components/project/ProjectDocuments';
 import QuickAddClient from '../components/forms/QuickAddClient';
 import SearchableSelect from '../components/ui/searchable-select';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 
 export default function Projects() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -55,11 +56,15 @@ export default function Projects() {
     priority: 'medium'
   });
 
+  const { user, isAdmin } = useCurrentUser();
   const queryClient = useQueryClient();
 
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date'),
+    queryKey: ['projects', user?.email, isAdmin],
+    queryFn: () => isAdmin
+      ? base44.entities.Project.list('-created_date')
+      : base44.entities.Project.filter({ created_by: user?.email }, '-created_date'),
+    enabled: !!user,
   });
 
   const { data: clients = [] } = useQuery({
