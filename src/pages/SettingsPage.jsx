@@ -50,6 +50,7 @@ import ImportDialog from '../components/settings/ImportDialog';
 import TagManager from '../components/settings/TagManager';
 import ChartTagFilterSettings from '../components/settings/ChartTagFilterSettings';
 import GoogleCalendarSettings from '../components/settings/GoogleCalendarSettings';
+import DataExport from '../components/settings/DataExport';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
@@ -58,7 +59,7 @@ export default function SettingsPage() {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('user');
-  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  
   const [annualMarketingBudget, setAnnualMarketingBudget] = useState('');
   const [isSavingBudget, setIsSavingBudget] = useState(false);
 
@@ -115,14 +116,7 @@ export default function SettingsPage() {
     }
   };
 
-  const handleExport = async (format) => {
-    toast.info(`Exporting data as ${format.toUpperCase()}...`);
-    // In a real implementation, this would call a backend function
-    setTimeout(() => {
-      toast.success(`Export completed`);
-      setExportDialogOpen(false);
-    }, 2000);
-  };
+  // Export is now handled by DataExport component
 
   // Salva il budget annuale marketing
   const handleSaveAnnualBudget = async () => {
@@ -436,24 +430,7 @@ export default function SettingsPage() {
         {isAdmin && (
           <TabsContent value="data">
             <div className="grid gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Esporta Dati</CardTitle>
-                  <CardDescription>Scarica tutti i tuoi dati</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-4">
-                    <Button variant="outline" onClick={() => handleExport('json')} className="gap-2">
-                      <FileJson className="h-4 w-4" />
-                      Esporta come JSON
-                    </Button>
-                    <Button variant="outline" onClick={() => handleExport('excel')} className="gap-2">
-                      <FileSpreadsheet className="h-4 w-4" />
-                      Esporta come Excel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <DataExport />
 
               <Card>
                 <CardHeader>
