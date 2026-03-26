@@ -1,13 +1,27 @@
 import React, { useState, useMemo } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { formatCurrency } from '../lib/formatters';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { ExternalLink, AlertCircle, CheckCircle, Clock, Calendar } from 'lucide-react';
+import { ExternalLink, AlertCircle, CheckCircle, Clock, Calendar, Pencil, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import InstallmentDialog from '../fees/InstallmentDialog';
+import { toast } from 'sonner';
 
 const statusColors = {
   pending: 'bg-amber-100 text-amber-700 border-amber-200',
@@ -44,6 +58,28 @@ const kindColors = {
 
 export default function InstallmentsDrawer({ open, onOpenChange, installments, fees, selectedYear }) {
   const [statusFilter, setStatusFilter] = useState('pending_overdue');
+  const [editingInstallment, setEditingInstallment] = useState(null);
+  const [editingFee, setEditingFee] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Installment.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['installments'] });
+      queryClient.invalidateQueries({ queryKey: ['cashData'] });
+      toast.success('Rata eliminata');
+      setDeleteConfirmId(null);
+    },
+  });
+
+  const handleEdit = (inst) => {
+    const fee = fees.find(f => f.id === inst.fee_id) || null;
+    setEditingInstallment(inst);
+    setEditingFee(fee);
+    setEditDialogOpen(true);
+  };
 
   // Arricchisce le rate con dati del compenso
   const enrichedInstallments = useMemo(() => {
@@ -211,6 +247,12 @@ export default function InstallmentsDrawer({ open, onOpenChange, installments, f
                             {statusLabels[inst.status]}
                           </Badge>
                           <span className="text-sm font-bold text-slate-900">{formatCurrency(inst.amount || 0)}</span>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(inst)}>
+                            <Pencil className="h-3.5 w-3.5 text-slate-500" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500 hover:text-red-700" onClick={() => setDeleteConfirmId(inst.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       </div>
                     );
@@ -221,6 +263,37 @@ export default function InstallmentsDrawer({ open, onOpenChange, installments, f
           )}
         </div>
       </SheetContent>
+
+      <InstallmentDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        fee={editingFee}
+        installment={editingInstallment}
+        onSuccess={() => {
+          setEditingInstallment(null);
+          setEditingFee(null);
+        }}
+      />
+
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(v) => !v && setDeleteConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminare questa rata?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Questa azione non può essere annullata. La rata verrà rimossa definitivamente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => deleteMutation.mutate(deleteConfirmId)}
+            >
+              Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }
