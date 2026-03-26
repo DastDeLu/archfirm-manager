@@ -265,7 +265,7 @@ export default function SettingsPage() {
       <PageHeader title="Impostazioni" description="Gestisci le impostazioni dell'applicazione" />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
+        <TabsList className="mb-6 flex-wrap h-auto gap-1">
           <TabsTrigger value="general" className="gap-2">
             <Settings className="h-4 w-4" />
             Generale
@@ -277,6 +277,10 @@ export default function SettingsPage() {
           <TabsTrigger value="calendar" className="gap-2">
             <Calendar className="h-4 w-4" />
             Google Calendar
+          </TabsTrigger>
+          <TabsTrigger value="export" className="gap-2">
+            <Download className="h-4 w-4" />
+            Esporta Dati
           </TabsTrigger>
           {isAdmin && (
             <>
@@ -394,6 +398,10 @@ export default function SettingsPage() {
 
         <TabsContent value="calendar">
           <GoogleCalendarSettings />
+        </TabsContent>
+
+        <TabsContent value="export">
+          <DataExport />
         </TabsContent>
 
         {isAdmin && (
