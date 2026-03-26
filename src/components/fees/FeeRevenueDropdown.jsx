@@ -1,16 +1,27 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Plus, ArrowDownCircle, CheckCircle, Clock, Calendar, Layers } from 'lucide-react';
+import { ChevronDown, Plus, ArrowDownCircle, CheckCircle, Clock, Calendar, Layers, Pencil, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../lib/formatters';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import InstallmentDialog from './InstallmentDialog';
 
 /**
@@ -20,8 +31,21 @@ import InstallmentDialog from './InstallmentDialog';
 export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
   const [open, setOpen] = useState(false);
   const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false);
+  const [editingInstallment, setEditingInstallment] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
   const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Installment.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['installments'] });
+      queryClient.invalidateQueries({ queryKey: ['installments-by-fee', fee.id] });
+      queryClient.invalidateQueries({ queryKey: ['cashData'] });
+      toast.success('Rata eliminata');
+      setDeleteConfirmId(null);
+    },
+  });
 
   const { data: revenues = [] } = useQuery({
     queryKey: ['revenues-by-fee', fee.id],
@@ -134,15 +158,23 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5">{inst.due_date || '—'}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-slate-800">{formatCurrency(inst.amount || 0)}</p>
-                      <span className={cn(
-                        "text-[10px] font-medium",
-                        inst.status === 'paid' ? 'text-emerald-600' :
-                        inst.status === 'overdue' ? 'text-red-600' : 'text-amber-600'
-                      )}>
-                        {inst.status === 'paid' ? 'Pagata' : inst.status === 'overdue' ? 'Scaduta' : 'Da pagare'}
-                      </span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-slate-800">{formatCurrency(inst.amount || 0)}</p>
+                        <span className={cn(
+                          "text-[10px] font-medium",
+                          inst.status === 'paid' ? 'text-emerald-600' :
+                          inst.status === 'overdue' ? 'text-red-600' : 'text-amber-600'
+                        )}>
+                          {inst.status === 'paid' ? 'Pagata' : inst.status === 'overdue' ? 'Scaduta' : 'Da pagare'}
+                        </span>
+                      </div>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setEditingInstallment(inst); setInstallmentDialogOpen(true); }}>
+                        <Pencil className="h-3 w-3 text-slate-400" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-red-400 hover:text-red-600" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(inst.id); }}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
                 ))
@@ -187,13 +219,32 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
 
     <InstallmentDialog
       open={installmentDialogOpen}
-      onOpenChange={setInstallmentDialogOpen}
+      onOpenChange={(v) => { setInstallmentDialogOpen(v); if (!v) setEditingInstallment(null); }}
       fee={fee}
+      installment={editingInstallment}
       onSuccess={() => {
         queryClient.invalidateQueries({ queryKey: ['installments'] });
         queryClient.invalidateQueries({ queryKey: ['installments-by-fee', fee.id] });
+        setEditingInstallment(null);
       }}
     />
+
+    <AlertDialog open={!!deleteConfirmId} onOpenChange={(v) => !v && setDeleteConfirmId(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Eliminare questa rata?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Questa azione non può essere annullata. La rata verrà rimossa definitivamente.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annulla</AlertDialogCancel>
+          <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => deleteMutation.mutate(deleteConfirmId)}>
+            Elimina
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
