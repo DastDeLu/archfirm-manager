@@ -16,6 +16,7 @@ import RevExpBarChart from '../components/charts/RevExpBarChart';
 import { formatCurrency, tickCurrency } from '../components/lib/formatters';
 import { useCustomTags } from '../components/hooks/useCustomTags';
 import { useChartTagFilter } from '../components/hooks/useChartTagFilter';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -23,28 +24,29 @@ export default function Earnings() {
   const { tagColorMap } = useCustomTags();
   // Filtro tag per i grafici (configurabile in Impostazioni › Generale)
   const { excludedTags } = useChartTagFilter();
+  const uid = useCurrentUserId();
   const { data: revenues = [] } = useQuery({
-    queryKey: ['revenues'],
+    queryKey: ['revenues', uid],
     queryFn: () => base44.entities.Revenue.list(),
   });
 
   const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses'],
+    queryKey: ['expenses', uid],
     queryFn: () => base44.entities.Expense.list(),
   });
 
   const { data: forecasts = [] } = useQuery({
-    queryKey: ['forecasts'],
+    queryKey: ['forecasts', uid],
     queryFn: () => base44.entities.Forecast.list(),
   });
 
   const { data: bankCashEntries = [] } = useQuery({
-    queryKey: ['bankCash'],
+    queryKey: ['bankCash', uid],
     queryFn: () => base44.entities.BankCash.list(),
   });
 
   const { data: pettyCashEntries = [] } = useQuery({
-    queryKey: ['pettyCash'],
+    queryKey: ['pettyCash', uid],
     queryFn: () => base44.entities.PettyCash.list(),
   });
 

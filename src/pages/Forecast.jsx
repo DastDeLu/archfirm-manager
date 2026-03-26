@@ -31,6 +31,7 @@ import { calculateCashForecast } from '../components/utils/cashForecast.jsx';
 import { formatCurrency, tickCurrency } from '../components/lib/formatters';
 import { format } from 'date-fns';
 import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 const MONTHS = [
   'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
@@ -55,29 +56,30 @@ export default function Forecast() {
   });
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const { data: forecasts = [], isLoading } = useQuery({
-    queryKey: ['forecasts', selectedYear],
+    queryKey: ['forecasts', uid, selectedYear],
     queryFn: () => base44.entities.Forecast.filter({ year: selectedYear }),
   });
 
   const { data: revenues = [] } = useQuery({
-    queryKey: ['revenues'],
+    queryKey: ['revenues', uid],
     queryFn: () => base44.entities.Revenue.list(),
   });
 
   const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses'],
+    queryKey: ['expenses', uid],
     queryFn: () => base44.entities.Expense.list(),
   });
 
   const { data: installments = [] } = useQuery({
-    queryKey: ['installments'],
+    queryKey: ['installments', uid],
     queryFn: () => base44.entities.Installment.list(),
   });
 
   const { data: fees = [] } = useQuery({
-    queryKey: ['fees'],
+    queryKey: ['fees', uid],
     queryFn: () => base44.entities.Fee.list(),
   });
 

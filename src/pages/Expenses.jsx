@@ -40,6 +40,7 @@ import SearchableSelect from '../components/ui/searchable-select';
 import SuggestTextInput from '../components/ui/suggest-text-input';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 export default function Expenses() {
   const currentYear = new Date().getFullYear();
@@ -66,14 +67,15 @@ export default function Expenses() {
   });
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const { data: expenses = [], isLoading } = useQuery({
-    queryKey: ['expenses'],
+    queryKey: ['expenses', uid],
     queryFn: () => base44.entities.Expense.list('-date')
   });
 
   const { data: chapters = [] } = useQuery({
-    queryKey: ['expense-chapters'],
+    queryKey: ['expense-chapters', uid],
     queryFn: () => base44.entities.Chapter.filter({ type: 'expense' })
   });
 

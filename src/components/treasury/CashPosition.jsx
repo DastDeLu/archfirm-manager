@@ -5,25 +5,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Wallet, TrendingUp, Clock, AlertCircle } from 'lucide-react';
 import { formatCurrency } from '../lib/formatters';
 import { isAfter, parseISO } from 'date-fns';
+import { useCurrentUserId } from '../../hooks/useCurrentUserId';
 
 export default function CashPosition() {
+  const uid = useCurrentUserId();
   const { data: revenues = [] } = useQuery({
-    queryKey: ['revenues'],
+    queryKey: ['revenues', uid],
     queryFn: () => base44.entities.Revenue.list(),
   });
 
   const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses'],
+    queryKey: ['expenses', uid],
     queryFn: () => base44.entities.Expense.list(),
   });
 
   const { data: openingBalances = [] } = useQuery({
-    queryKey: ['openingBalances'],
+    queryKey: ['openingBalances', uid],
     queryFn: () => base44.entities.OpeningBalance.list(),
   });
 
   const { data: installments = [] } = useQuery({
-    queryKey: ['installments'],
+    queryKey: ['installments', uid],
     queryFn: () => base44.entities.Installment.list(),
   });
 

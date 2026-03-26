@@ -35,6 +35,7 @@ import QuickAddProject from '../components/forms/QuickAddProject';
 import SearchableSelect from '../components/ui/searchable-select';
 import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
 import FeeRevenueDropdown from '../components/fees/FeeRevenueDropdown';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 const categoryColors = {
   'Progettazione': 'bg-blue-100 text-blue-700',
@@ -67,19 +68,20 @@ export default function Fees() {
   });
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const { data: fees = [], isLoading } = useQuery({
-    queryKey: ['fees'],
+    queryKey: ['fees', uid],
     queryFn: () => base44.entities.Fee.list('-created_date'),
   });
 
   const { data: clients = [] } = useQuery({
-    queryKey: ['clients'],
+    queryKey: ['clients', uid],
     queryFn: () => base44.entities.Client.list(),
   });
 
   const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
+    queryKey: ['projects', uid],
     queryFn: () => base44.entities.Project.list(),
   });
 

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BudgetService } from './BudgetService';
+import { useCurrentUserId } from '../../hooks/useCurrentUserId';
 
 const BudgetContext = createContext();
 
@@ -15,22 +16,23 @@ export const useBudget = () => {
 
 export const BudgetProvider = ({ children }) => {
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   // Fetch categorie
   const { data: categorie = [], isLoading: loadingCategorie } = useQuery({
-    queryKey: ['categorieSpesa'],
+    queryKey: ['categorieSpesa', uid],
     queryFn: () => base44.entities.CategoriaSpesa.list('ordine'),
   });
 
   // Fetch voci di spesa
   const { data: vociSpesa = [], isLoading: loadingVoci } = useQuery({
-    queryKey: ['vociSpesa'],
+    queryKey: ['vociSpesa', uid],
     queryFn: () => base44.entities.VoceSpesa.list('-data_aggiornamento'),
   });
 
   // Fetch tutte le spese per calcolare speso_reale in tempo reale
   const { data: tutteLeSpese = [] } = useQuery({
-    queryKey: ['expenses'],
+    queryKey: ['expenses', uid],
     queryFn: () => base44.entities.Expense.list(),
   });
 

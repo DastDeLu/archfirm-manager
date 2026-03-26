@@ -12,6 +12,7 @@ import { KPI_DEFINITIONS } from '../components/lib/kpiDashboard';
 import { Plus, Target, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 export default function KpiTargets() {
   const [user, setUser] = useState(null);
@@ -29,6 +30,7 @@ export default function KpiTargets() {
   });
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -46,7 +48,7 @@ export default function KpiTargets() {
   }, []);
 
   const { data: targets = [], isLoading } = useQuery({
-    queryKey: ['kpiTargets'],
+    queryKey: ['kpiTargets', uid],
     queryFn: () => base44.entities.KpiTarget.list('-year', 100),
   });
 

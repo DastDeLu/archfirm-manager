@@ -33,6 +33,7 @@ import { formatCurrency } from '../components/lib/formatters';
 import { cn } from '@/lib/utils';
 import QuickAddEmployee from '../components/forms/QuickAddEmployee';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 function WBSItem({ item, children, level, onEdit, onDelete, onAddChild, computedCosts }) {
   const [expanded, setExpanded] = useState(true);
@@ -167,19 +168,20 @@ export default function WBS() {
   const [quickAddEmployeeOpen, setQuickAddEmployeeOpen] = useState(false);
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
+    queryKey: ['projects', uid],
     queryFn: () => base44.entities.Project.list(),
   });
 
   const { data: allWbsItems = [], isLoading } = useQuery({
-    queryKey: ['wbs'],
+    queryKey: ['wbs', uid],
     queryFn: () => base44.entities.WBS.list(),
   });
 
   const { data: employees = [] } = useQuery({
-    queryKey: ['employees'],
+    queryKey: ['employees', uid],
     queryFn: () => base44.entities.Employee.list(),
   });
 

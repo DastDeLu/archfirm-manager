@@ -10,40 +10,42 @@ import {
   mockKpiData
 } from '../lib/kpiDashboard';
 import { calculateCashForecast } from '../utils/cashForecast';
+import { useCurrentUserId } from '../../hooks/useCurrentUserId';
 
 /**
  * Custom hook per calcolare i KPI in tempo reale dai dati dell'app
  */
 export function useKpiData() {
+  const uid = useCurrentUserId();
   // Fetch dati necessari per il calcolo dei KPI
   const { data: revenues = [] } = useQuery({
-    queryKey: ['revenues'],
+    queryKey: ['revenues', uid],
     queryFn: () => base44.entities.Revenue.list(),
   });
 
   const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses'],
+    queryKey: ['expenses', uid],
     queryFn: () => base44.entities.Expense.list(),
   });
 
   const { data: installments = [] } = useQuery({
-    queryKey: ['installments'],
+    queryKey: ['installments', uid],
     queryFn: () => base44.entities.Installment.list(),
   });
 
   const { data: openingBalances = [] } = useQuery({
-    queryKey: ['openingBalances'],
+    queryKey: ['openingBalances', uid],
     queryFn: () => base44.entities.OpeningBalance.list(),
   });
 
   const { data: quotes = [] } = useQuery({
-     queryKey: ['quotes'],
+     queryKey: ['quotes', uid],
      queryFn: () => base44.entities.Quote.list(),
    });
 
    // Dipendenza da cashData per invalidare quando i dati finanziari cambiano
    const { data: cashData } = useQuery({
-     queryKey: ['cashData'],
+     queryKey: ['cashData', uid],
      queryFn: async () => {
        const [revs, exps, forecasts, openingBals, installs] = await Promise.all([
          base44.entities.Revenue.list(),

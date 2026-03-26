@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Plus, MoreHorizontal, Pencil, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 export default function Chapters() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -45,6 +46,7 @@ export default function Chapters() {
   });
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const invalidateChapters = () => {
     queryClient.invalidateQueries({ queryKey: ['chapters'] });
@@ -58,7 +60,7 @@ export default function Chapters() {
   };
 
   const { data: chapters = [], isLoading, isError } = useQuery({
-    queryKey: ['chapters'],
+    queryKey: ['chapters', uid],
     queryFn: async () => {
       const res = await base44.entities.Chapter.list();
       return Array.isArray(res) ? res : (res?.data ?? []);

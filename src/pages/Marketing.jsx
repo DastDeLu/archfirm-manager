@@ -31,6 +31,7 @@ import { formatCurrency, tickCurrency } from '../components/lib/formatters';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 const MONTHS = [
   'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
@@ -52,15 +53,16 @@ export default function Marketing() {
   });
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const { data: budgets = [], isLoading } = useQuery({
-    queryKey: ['marketing', selectedYear],
+    queryKey: ['marketing', uid, selectedYear],
     queryFn: () => base44.entities.MarketingBudget.filter({ year: selectedYear }),
   });
 
   // Leggi budget annuale dai saldi iniziali
   const { data: openingBalances = [] } = useQuery({
-    queryKey: ['openingBalances', selectedYear],
+    queryKey: ['openingBalances', uid, selectedYear],
     queryFn: () => base44.entities.OpeningBalance.filter({ year: selectedYear }),
   });
 
@@ -155,12 +157,12 @@ export default function Marketing() {
 
   // Query per Revenues e Expenses (per Sponsorizzate)
   const { data: revenues = [] } = useQuery({
-    queryKey: ['revenues'],
+    queryKey: ['revenues', uid],
     queryFn: () => base44.entities.Revenue.list(),
   });
 
   const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses'],
+    queryKey: ['expenses', uid],
     queryFn: () => base44.entities.Expense.list('-date'),
   });
 

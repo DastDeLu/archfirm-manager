@@ -24,6 +24,7 @@ import {
 import { Plus, Pencil, Trash2, Target } from 'lucide-react';
 import { formatCurrency, formatPercent } from '../components/lib/formatters';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 export default function Baselines() {
   const currentYear = new Date().getFullYear();
@@ -41,24 +42,25 @@ export default function Baselines() {
   });
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const { data: baselines = [], isLoading } = useQuery({
-    queryKey: ['baselines', selectedYear],
+    queryKey: ['baselines', uid, selectedYear],
     queryFn: () => base44.entities.Baseline.filter({ year: selectedYear }),
   });
 
   const { data: chapters = [] } = useQuery({
-    queryKey: ['chapters'],
+    queryKey: ['chapters', uid],
     queryFn: () => base44.entities.Chapter.list(),
   });
 
   const { data: revenues = [] } = useQuery({
-    queryKey: ['revenues'],
+    queryKey: ['revenues', uid],
     queryFn: () => base44.entities.Revenue.list(),
   });
 
   const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses'],
+    queryKey: ['expenses', uid],
     queryFn: () => base44.entities.Expense.list(),
   });
 
