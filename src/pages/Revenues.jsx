@@ -38,6 +38,7 @@ import SearchableSelect from '../components/ui/searchable-select';
 import SuggestTextInput from '../components/ui/suggest-text-input';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 export default function Revenues() {
   const currentYear = new Date().getFullYear();
@@ -60,16 +61,17 @@ export default function Revenues() {
   });
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const { data: revenues = [], isLoading } = useQuery({
-    queryKey: ['revenues'],
+    queryKey: ['revenues', uid],
     queryFn: () => base44.entities.Revenue.list('-date'),
   });
 
 
 
   const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
+    queryKey: ['projects', uid],
     queryFn: () => base44.entities.Project.list(),
   });
 

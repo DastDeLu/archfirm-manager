@@ -1,7 +1,8 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
+import { resetQueryCache } from '@/lib/query-client';
 
 const AuthContext = createContext();
 
@@ -12,6 +13,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(true);
   const [authError, setAuthError] = useState(null);
   const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
+  const prevUserIdRef = useRef(null);
 
   useEffect(() => {
     checkAppState();
@@ -92,6 +94,14 @@ export const AuthProvider = ({ children }) => {
       // Now check if the user is authenticated
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
+      
+      // Detect user identity change and clear stale cache
+      const prevUserId = prevUserIdRef.current;
+      if (prevUserId && prevUserId !== currentUser.id) {
+        resetQueryCache();
+      }
+      prevUserIdRef.current = currentUser.id;
+      
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
@@ -111,6 +121,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = (shouldRedirect = true) => {
+    // Clear all cached data before logout to prevent data leaks
+    resetQueryCache();
+    prevUserIdRef.current = null;
+    
     setUser(null);
     setIsAuthenticated(false);
     

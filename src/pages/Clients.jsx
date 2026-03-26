@@ -31,6 +31,7 @@ import {
 import { Plus, MoreHorizontal, Pencil, Trash2, Building2, Mail, Phone, MapPin, FolderKanban, Receipt, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 export default function Clients() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -47,9 +48,10 @@ export default function Clients() {
   });
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const { data: clients = [], isLoading } = useQuery({
-    queryKey: ['clients'],
+    queryKey: ['clients', uid],
     queryFn: () => base44.entities.Client.list('-created_date'),
   });
 

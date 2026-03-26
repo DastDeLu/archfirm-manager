@@ -36,6 +36,7 @@ import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import ProjectDocuments from '../components/project/ProjectDocuments';
 import QuickAddClient from '../components/forms/QuickAddClient';
 import SearchableSelect from '../components/ui/searchable-select';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 export default function Projects() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -56,14 +57,15 @@ export default function Projects() {
   });
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: ['projects'],
+    queryKey: ['projects', uid],
     queryFn: () => base44.entities.Project.list('-created_date'),
   });
 
   const { data: clients = [] } = useQuery({
-    queryKey: ['clients'],
+    queryKey: ['clients', uid],
     queryFn: () => base44.entities.Client.list(),
   });
 

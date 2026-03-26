@@ -24,47 +24,49 @@ import { formatCurrency, tickCurrency } from '../components/lib/formatters';
 import { it } from 'date-fns/locale';
 import { useCustomTags } from '../components/hooks/useCustomTags';
 import { useChartTagFilter } from '../components/hooks/useChartTagFilter';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 export default function Dashboard() {
+  const uid = useCurrentUserId();
   const { data: revenues = [], isLoading: loadingRevenues } = useQuery({
-    queryKey: ['revenues'],
+    queryKey: ['revenues', uid],
     queryFn: () => base44.entities.Revenue.list(),
   });
 
   const { data: expenses = [], isLoading: loadingExpenses } = useQuery({
-    queryKey: ['expenses'],
+    queryKey: ['expenses', uid],
     queryFn: () => base44.entities.Expense.list(),
   });
 
   const { data: fees = [], isLoading: loadingFees } = useQuery({
-    queryKey: ['fees'],
+    queryKey: ['fees', uid],
     queryFn: () => base44.entities.Fee.list(),
   });
 
   const { data: installments = [], isLoading: loadingInstallments } = useQuery({
-    queryKey: ['installments'],
+    queryKey: ['installments', uid],
     queryFn: () => base44.entities.Installment.list(),
   });
 
   const { data: projects = [], isLoading: loadingProjects } = useQuery({
-    queryKey: ['projects'],
+    queryKey: ['projects', uid],
     queryFn: () => base44.entities.Project.list(),
   });
 
   const { data: clients = [], isLoading: loadingClients } = useQuery({
-    queryKey: ['clients'],
+    queryKey: ['clients', uid],
     queryFn: () => base44.entities.Client.list(),
   });
 
   const { data: quotes = [] } = useQuery({
-    queryKey: ['quotes'],
+    queryKey: ['quotes', uid],
     queryFn: () => base44.entities.Quote.list(),
   });
 
   const { data: marketingBudgets = [] } = useQuery({
-    queryKey: ['marketing'],
+    queryKey: ['marketing', uid],
     queryFn: () => base44.entities.MarketingBudget.list(),
   });
 

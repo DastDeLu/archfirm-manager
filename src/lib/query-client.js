@@ -9,3 +9,12 @@ export const queryClientInstance = new QueryClient({
 		},
 	},
 });
+
+/**
+ * Clears all cached queries and mutations.
+ * Used during auth transitions (login/logout/user switch)
+ * to prevent data leaks between user sessions.
+ */
+export function resetQueryCache() {
+	queryClientInstance.clear();
+}
