@@ -18,9 +18,10 @@ import {
 import { formatCurrency } from '../lib/formatters';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { ExternalLink, AlertCircle, CheckCircle, Clock, Calendar, Pencil, Trash2 } from 'lucide-react';
+import { ExternalLink, AlertCircle, CheckCircle, Clock, Calendar, Pencil, Trash2, Banknote } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import InstallmentDialog from '../fees/InstallmentDialog';
+import RegisterIncassoDialog from '../fees/RegisterIncassoDialog';
 import { toast } from 'sonner';
 
 const statusColors = {
@@ -62,6 +63,8 @@ export default function InstallmentsDrawer({ open, onOpenChange, installments, f
   const [editingFee, setEditingFee] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [incassoInstallment, setIncassoInstallment] = useState(null);
+  const [incassoFee, setIncassoFee] = useState(null);
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
@@ -79,6 +82,12 @@ export default function InstallmentsDrawer({ open, onOpenChange, installments, f
     setEditingInstallment(inst);
     setEditingFee(fee);
     setEditDialogOpen(true);
+  };
+
+  const handleSegnaPagato = (inst) => {
+    const fee = fees.find(f => f.id === inst.fee_id) || null;
+    setIncassoInstallment(inst);
+    setIncassoFee(fee);
   };
 
   // Arricchisce le rate con dati del compenso
@@ -247,6 +256,11 @@ export default function InstallmentsDrawer({ open, onOpenChange, installments, f
                             {statusLabels[inst.status]}
                           </Badge>
                           <span className="text-sm font-bold text-slate-900">{formatCurrency(inst.amount || 0)}</span>
+                          {inst.status !== 'paid' && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-500 hover:text-emerald-700" onClick={() => handleSegnaPagato(inst)} title="Segna Pagato">
+                              <Banknote className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(inst)}>
                             <Pencil className="h-3.5 w-3.5 text-slate-500" />
                           </Button>
@@ -273,6 +287,13 @@ export default function InstallmentsDrawer({ open, onOpenChange, installments, f
           setEditingInstallment(null);
           setEditingFee(null);
         }}
+      />
+
+      <RegisterIncassoDialog
+        open={!!incassoInstallment}
+        onOpenChange={(v) => { if (!v) { setIncassoInstallment(null); setIncassoFee(null); } }}
+        installment={incassoInstallment}
+        fee={incassoFee}
       />
 
       <AlertDialog open={!!deleteConfirmId} onOpenChange={(v) => !v && setDeleteConfirmId(null)}>

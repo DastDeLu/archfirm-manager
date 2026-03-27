@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
   try {
@@ -9,7 +9,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { installment_id } = await req.json();
+    const body = await req.json();
+    const {
+      installment_id,
+      payment_date,
+      revenue_description,
+      revenue_tag,
+      payment_method,
+      amount_override,
+    } = body;
 
     if (!installment_id) {
       return Response.json({ error: 'installment_id required' }, { status: 400 });
@@ -31,47 +39,58 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Associated fee not found' }, { status: 404 });
     }
 
+    // Resolve values with fallbacks
+    const resolvedDate = payment_date || new Date().toISOString().split('T')[0];
+    const resolvedAmount = amount_override && !isNaN(amount_override) ? amount_override : installment.amount;
+    const resolvedDescription = revenue_description || `Incasso rata ${installment.installment_number || ''} - ${fee.project_name || fee.client_name || 'Progetto'}`;
+    const resolvedPaymentMethod = payment_method || (installment.payment_method === 'cash' ? 'cash' : 'bank_transfer');
+
+    // Resolve tag with fallback
+    let resolvedTag = revenue_tag;
+    if (!resolvedTag) {
+      try {
+        const customTags = await base44.asServiceRole.entities.CustomTag.filter({ type: 'revenue' });
+        resolvedTag = customTags.length > 0 ? customTags[0].name : 'Progettazione';
+      } catch {
+        resolvedTag = 'Progettazione';
+      }
+    }
+
     // Update installment to paid
     await base44.asServiceRole.entities.Installment.update(installment_id, {
       status: 'paid',
-      paid_date: new Date().toISOString().split('T')[0]
+      paid_date: resolvedDate,
     });
 
-    // Determine default revenue tag
-    let defaultTag = 'Progettazione';
-    try {
-      const customTags = await base44.asServiceRole.entities.CustomTag.filter({ type: 'revenue' });
-      if (customTags.length > 0) defaultTag = customTags[0].name;
-    } catch {
-      // fallback to Progettazione
-    }
-
-    // Create Revenue entry
+    // Create Revenue entry with user-chosen or fallback values
     await base44.asServiceRole.entities.Revenue.create({
-      amount: installment.amount,
-      date: new Date().toISOString().split('T')[0],
-      description: `Incasso rata ${installment.installment_number || ''} - ${fee.project_name || 'Progetto'}`,
-      tag: defaultTag,
+      amount: resolvedAmount,
+      date: resolvedDate,
+      description: resolvedDescription,
+      tag: resolvedTag,
+      payment_method: resolvedPaymentMethod,
       project_id: fee.project_id || null,
-      project_name: fee.project_name || null
+      project_name: fee.project_name || null,
+      fee_id: fee.id,
     });
 
-    // Create BankCash entry (assuming bank payment)
-    if (installment.payment_method === 'bank') {
-      await base44.asServiceRole.entities.BankCash.create({
-        amount: installment.amount,
-        date: new Date().toISOString().split('T')[0],
-        description: `Incasso rata - ${fee.project_name || 'Progetto'}`,
-        category: 'Incasso Cliente',
-        type: 'deposit'
-      });
-    } else if (installment.payment_method === 'cash') {
+    // Create BankCash or PettyCash entry
+    const isCash = resolvedPaymentMethod === 'cash';
+    if (isCash) {
       await base44.asServiceRole.entities.PettyCash.create({
-        amount: installment.amount,
-        date: new Date().toISOString().split('T')[0],
-        description: `Incasso rata - ${fee.project_name || 'Progetto'}`,
+        amount: resolvedAmount,
+        date: resolvedDate,
+        description: resolvedDescription,
         category: 'Incasso Cliente',
-        type: 'in'
+        type: 'in',
+      });
+    } else {
+      await base44.asServiceRole.entities.BankCash.create({
+        amount: resolvedAmount,
+        date: resolvedDate,
+        description: resolvedDescription,
+        category: 'Incasso Cliente',
+        type: 'deposit',
       });
     }
 
@@ -90,23 +109,23 @@ Deno.serve(async (req) => {
     // Check if all installments are paid and update fee status
     const allInstallments = await base44.entities.Installment.filter({ fee_id: installment.fee_id });
     const allPaid = allInstallments.every(i => i.status === 'paid');
-    
+
     if (allPaid) {
       await base44.asServiceRole.entities.Fee.update(installment.fee_id, {
-        status: 'paid'
+        payment_status: 'Incassati',
       });
     } else {
       const somePaid = allInstallments.some(i => i.status === 'paid');
       if (somePaid) {
         await base44.asServiceRole.entities.Fee.update(installment.fee_id, {
-          status: 'partial'
+          payment_status: 'Da incassare',
         });
       }
     }
 
     return Response.json({
       success: true,
-      message: 'Pagamento elaborato con successo'
+      message: 'Pagamento elaborato con successo',
     });
 
   } catch (error) {

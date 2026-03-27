@@ -167,17 +167,32 @@ export default function Revenues() {
     });
   }, [revenues, activeTag, selectedYear, selectedMonth]);
 
+  const monthNames = ['', 'Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+
   const yearlyData = useMemo(() => {
-    const currentYearRevenues = revenues.filter(r => r.date?.startsWith(String(currentYear)));
-    const previousYearRevenues = revenues.filter(r => r.date?.startsWith(String(previousYear)));
+    const matchMonth = (dateStr, month) => {
+      if (!month) return true;
+      return dateStr?.substring(5, 7) === String(month).padStart(2, '0');
+    };
+
+    const tagMatch = (r) => activeTag === 'all' || r.tag === activeTag;
+
+    const currentYearRevenues = revenues.filter(r =>
+      r.date?.startsWith(String(currentYear)) && matchMonth(r.date, selectedMonth) && tagMatch(r)
+    );
+    const previousYearRevenues = revenues.filter(r =>
+      r.date?.startsWith(String(previousYear)) && matchMonth(r.date, selectedMonth) && tagMatch(r)
+    );
     
     const currentTotal = currentYearRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
     const previousTotal = previousYearRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
     const delta = currentTotal - previousTotal;
     const deltaPercent = previousTotal > 0 ? ((delta / previousTotal) * 100).toFixed(1) : 0;
 
-    return { currentTotal, previousTotal, delta, deltaPercent };
-  }, [revenues, currentYear, previousYear]);
+    const periodLabel = selectedMonth ? monthNames[selectedMonth] : 'Anno';
+
+    return { currentTotal, previousTotal, delta, deltaPercent, periodLabel };
+  }, [revenues, currentYear, previousYear, selectedMonth, activeTag]);
 
   const totalAmount = filteredRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
 
@@ -303,23 +318,23 @@ export default function Revenues() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-              {currentYear}
+              {yearlyData.periodLabel} {currentYear}
             </div>
             <p className="text-2xl font-bold text-slate-900">
               {formatCurrency(yearlyData.currentTotal)}
             </p>
-            <p className="text-xs text-slate-500 mt-1">Anno corrente</p>
+            <p className="text-xs text-slate-500 mt-1">{selectedMonth ? `${monthNames[selectedMonth]} ${currentYear}` : 'Anno corrente'}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-              {previousYear}
+              {yearlyData.periodLabel} {previousYear}
             </div>
             <p className="text-2xl font-bold text-slate-600">
               {formatCurrency(yearlyData.previousTotal)}
             </p>
-            <p className="text-xs text-slate-500 mt-1">Anno precedente</p>
+            <p className="text-xs text-slate-500 mt-1">{selectedMonth ? `${monthNames[selectedMonth]} ${previousYear}` : 'Anno precedente'}</p>
           </CardContent>
         </Card>
         <Card className={yearlyData.delta >= 0 ? "border-emerald-200 bg-emerald-50/30" : "border-red-200 bg-red-50/30"}>

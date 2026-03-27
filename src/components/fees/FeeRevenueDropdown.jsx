@@ -18,11 +18,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Plus, ArrowDownCircle, CheckCircle, Clock, Calendar, Layers, Pencil, Trash2 } from 'lucide-react';
+import { ChevronDown, Plus, ArrowDownCircle, CheckCircle, Clock, Calendar, Layers, Pencil, Trash2, Banknote } from 'lucide-react';
 import { formatCurrency } from '../lib/formatters';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import InstallmentDialog from './InstallmentDialog';
+import RegisterIncassoDialog from './RegisterIncassoDialog';
 
 /**
  * Dropdown per un singolo compenso (Fee) che mostra i ricavi collegati
@@ -33,6 +34,7 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
   const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false);
   const [editingInstallment, setEditingInstallment] = useState(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [incassoInstallment, setIncassoInstallment] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -169,6 +171,11 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
                           {inst.status === 'paid' ? 'Pagata' : inst.status === 'overdue' ? 'Scaduta' : 'Da pagare'}
                         </span>
                       </div>
+                      {inst.status !== 'paid' && (
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-emerald-500 hover:text-emerald-700" onClick={(e) => { e.stopPropagation(); setIncassoInstallment(inst); }} title="Segna Pagato">
+                          <Banknote className="h-3 w-3" />
+                        </Button>
+                      )}
                       <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setEditingInstallment(inst); setInstallmentDialogOpen(true); }}>
                         <Pencil className="h-3 w-3 text-slate-400" />
                       </Button>
@@ -227,6 +234,13 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
         queryClient.invalidateQueries({ queryKey: ['installments-by-fee', fee.id] });
         setEditingInstallment(null);
       }}
+    />
+
+    <RegisterIncassoDialog
+      open={!!incassoInstallment}
+      onOpenChange={(v) => { if (!v) setIncassoInstallment(null); }}
+      installment={incassoInstallment}
+      fee={fee}
     />
 
     <AlertDialog open={!!deleteConfirmId} onOpenChange={(v) => !v && setDeleteConfirmId(null)}>
