@@ -106,21 +106,22 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Check if all installments are paid and update fee status
-    const allInstallments = await base44.entities.Installment.filter({ fee_id: installment.fee_id });
-    const allPaid = allInstallments.every(i => i.status === 'paid');
+    // Check if the sum of paid installment revenues covers the full fee amount
+    // If so, mark fee as "Incassati" — syncFeeToRevenue will skip creating a duplicate
+    // because revenues linked via fee_id already exist from the installment flow.
+    const allRevenues = await base44.asServiceRole.entities.Revenue.filter({ fee_id: installment.fee_id });
+    const totalIncassato = allRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
+    const feeAmount = fee.amount || 0;
 
-    if (allPaid) {
+    if (feeAmount > 0 && totalIncassato >= feeAmount) {
       await base44.asServiceRole.entities.Fee.update(installment.fee_id, {
         payment_status: 'Incassati',
       });
     } else {
-      const somePaid = allInstallments.some(i => i.status === 'paid');
-      if (somePaid) {
-        await base44.asServiceRole.entities.Fee.update(installment.fee_id, {
-          payment_status: 'Da incassare',
-        });
-      }
+      // Keep as "Da incassare" while partial payments are being collected
+      await base44.asServiceRole.entities.Fee.update(installment.fee_id, {
+        payment_status: 'Da incassare',
+      });
     }
 
     return Response.json({
