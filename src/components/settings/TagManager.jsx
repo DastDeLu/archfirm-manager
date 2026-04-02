@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Pencil, Trash2, Plus, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { withOwner } from '@/lib/withOwner';
 
 const COLOR_PALETTE = [
   '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
@@ -47,6 +49,7 @@ function TagColorPicker({ value, onChange }) {
 
 function TagColumn({ type, label, tags, allTagsOfType }) {
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState(COLOR_PALETTE[0]);
   const [editingTag, setEditingTag] = useState(null);
@@ -56,7 +59,7 @@ function TagColumn({ type, label, tags, allTagsOfType }) {
   const [usageCount, setUsageCount] = useState(null);
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.CustomTag.create(data),
+    mutationFn: (data) => base44.entities.CustomTag.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customTags'] });
       setNewName('');

@@ -32,6 +32,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 const MONTHS = [
   'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
@@ -69,7 +70,7 @@ export default function Marketing() {
   const annualMarketingBudget = openingBalances.find(b => b.type === 'marketing_budget')?.amount || 0;
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.MarketingBudget.create(data),
+    mutationFn: (data) => base44.entities.MarketingBudget.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['marketing'] });
       closeDialog();

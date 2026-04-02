@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCustomTags } from '../hooks/useCustomTags';
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { formatCurrency } from '../lib/formatters';
+import { format } from 'date-fns';
 import { Loader2, CheckCircle } from 'lucide-react';
 
 /**
@@ -39,9 +40,18 @@ export default function RegisterIncassoDialog({ open, onOpenChange, installment,
     tag: '',
     description: '',
   });
+  const initializedKeyRef = useRef(null);
 
   useEffect(() => {
-    if (!open || !installment || !fee) return;
+    if (!open) {
+      initializedKeyRef.current = null;
+      return;
+    }
+    if (!installment || !fee) return;
+
+    const initKey = `${installment.id || 'no-installment'}:${fee.id || 'no-fee'}`;
+    if (initializedKeyRef.current === initKey) return;
+    initializedKeyRef.current = initKey;
 
     // Build description
     let desc = 'Incasso compenso';
@@ -65,7 +75,7 @@ export default function RegisterIncassoDialog({ open, onOpenChange, installment,
 
     setForm({
       amount: installment.amount || '',
-      payment_date: new Date().toISOString().split('T')[0],
+      payment_date: format(new Date(), 'yyyy-MM-dd'),
       payment_method: methodMap[installment.payment_method] || 'bank_transfer',
       tag: suggestedTag,
       description: desc,

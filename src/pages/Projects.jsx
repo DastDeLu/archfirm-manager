@@ -37,6 +37,7 @@ import ProjectDocuments from '../components/project/ProjectDocuments';
 import QuickAddClient from '../components/forms/QuickAddClient';
 import SearchableSelect from '../components/ui/searchable-select';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 export default function Projects() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -70,7 +71,7 @@ export default function Projects() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Project.create(data),
+    mutationFn: (data) => base44.entities.Project.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       closeDialog();

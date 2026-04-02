@@ -27,6 +27,8 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { useCustomTags } from '../components/hooks/useCustomTags';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 export default function CapitoliSpesa() {
   const { 
@@ -66,14 +68,15 @@ export default function CapitoliSpesa() {
   });
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const createVoceMutation = useMutation({
-    mutationFn: (data) => base44.entities.VoceSpesa.create({
+    mutationFn: (data) => base44.entities.VoceSpesa.create(withOwner({
       ...data,
       speso_reale: 0,
       residuo: data.budget_totale,
       data_aggiornamento: new Date().toISOString()
-    }),
+    }, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vociSpesa'] });
       setDialogOpen(false);
@@ -91,7 +94,7 @@ export default function CapitoliSpesa() {
   });
 
   const createCategoriaMutation = useMutation({
-    mutationFn: (data) => base44.entities.CategoriaSpesa.create(data),
+    mutationFn: (data) => base44.entities.CategoriaSpesa.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categorieSpesa'] });
       setCategoriaDialogOpen(false);
@@ -101,7 +104,7 @@ export default function CapitoliSpesa() {
 
   const createSpesaMutation = useMutation({
     mutationFn: async (data) => {
-      const spesa = await base44.entities.Expense.create(data);
+      const spesa = await base44.entities.Expense.create(withOwner(data, uid));
       
       // Aggiorna il budget se la spesa è pagata
       if (spesa.stato === 'Pagato' && spesa.id_voce_spesa) {

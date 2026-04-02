@@ -13,13 +13,16 @@ import {
 import { Upload, FileText, Image, Download, Trash2, File } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { withOwner } from '@/lib/withOwner';
 
 export default function ProjectDocuments({ projectId }) {
   const [uploading, setUploading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
-  
+
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ['projectDocuments', projectId],
@@ -60,14 +63,20 @@ export default function ProjectDocuments({ projectId }) {
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
         
         // Create document record
-        await base44.entities.ProjectDocument.create({
-          project_id: projectId,
-          file_name: file.name,
-          file_url,
-          mime_type: file.type,
-          file_size: file.size,
-          uploaded_by: (await base44.auth.me()).email
-        });
+        const me = await base44.auth.me();
+        await base44.entities.ProjectDocument.create(
+          withOwner(
+            {
+              project_id: projectId,
+              file_name: file.name,
+              file_url,
+              mime_type: file.type,
+              file_size: file.size,
+              uploaded_by: me.email,
+            },
+            uid || me.id,
+          ),
+        );
       }
       
       queryClient.invalidateQueries({ queryKey: ['projectDocuments', projectId] });

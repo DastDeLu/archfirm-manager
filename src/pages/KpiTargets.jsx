@@ -13,6 +13,7 @@ import { Plus, Target, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 export default function KpiTargets() {
   const [user, setUser] = useState(null);
@@ -53,7 +54,7 @@ export default function KpiTargets() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.KpiTarget.create(data),
+    mutationFn: (data) => base44.entities.KpiTarget.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kpiTargets'] });
       toast.success('Obiettivo creato');

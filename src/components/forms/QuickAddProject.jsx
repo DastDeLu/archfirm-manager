@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { withOwner } from '@/lib/withOwner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +26,7 @@ import QuickAddClient from './QuickAddClient';
 import SearchableSelect from '../ui/searchable-select';
 
 export default function QuickAddProject({ open, onOpenChange, onProjectCreated }) {
+  const uid = useCurrentUserId();
   const [formData, setFormData] = useState({
     name: '',
     client_id: '',
@@ -39,7 +42,7 @@ export default function QuickAddProject({ open, onOpenChange, onProjectCreated }
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Project.create(data),
+    mutationFn: (data) => base44.entities.Project.create(withOwner(data, uid)),
     onSuccess: (newProject) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast.success('Progetto creato');

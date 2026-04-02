@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { withOwner } from '@/lib/withOwner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,6 +42,7 @@ const ENTITY_FIELDS = {
 
 export default function AutomationRuleForm({ rule, onClose }) {
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
   const [formData, setFormData] = useState({
     name: rule?.name || '',
     description: rule?.description || '',
@@ -59,7 +62,7 @@ export default function AutomationRuleForm({ rule, onClose }) {
       if (rule) {
         return base44.entities.AutomationRule.update(rule.id, data);
       }
-      return base44.entities.AutomationRule.create(data);
+      return base44.entities.AutomationRule.create(withOwner(data, uid));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['automationRules'] });

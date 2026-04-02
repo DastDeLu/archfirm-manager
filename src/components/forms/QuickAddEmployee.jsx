@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { withOwner } from '@/lib/withOwner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +17,7 @@ import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function QuickAddEmployee({ open, onOpenChange, onEmployeeCreated }) {
+  const uid = useCurrentUserId();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -24,7 +27,7 @@ export default function QuickAddEmployee({ open, onOpenChange, onEmployeeCreated
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Employee.create(data),
+    mutationFn: (data) => base44.entities.Employee.create(withOwner(data, uid)),
     onSuccess: (newEmployee) => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       toast.success('Dipendente creato');

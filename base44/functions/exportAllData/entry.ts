@@ -1,11 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import { jsPDF } from 'npm:jspdf@4.0.0';
+import { requireUser, withAuth } from '../_lib/authz.ts';
 
 const ENTITY_CONFIG = [
   { name: 'Client', label: 'Clienti', fields: ['name', 'contact_person', 'email', 'phone', 'address', 'status'] },
   { name: 'Project', label: 'Progetti', fields: ['name', 'client_name', 'description', 'start_date', 'end_date', 'budget', 'status', 'priority'] },
   { name: 'Fee', label: 'Compensi', fields: ['client_name', 'project_name', 'amount', 'category', 'payment_status', 'payment_method', 'date', 'notes'] },
-  { name: 'Revenue', label: 'Ricavi', fields: ['amount', 'date', 'description', 'tag', 'payment_method', 'project_name'] },
+  { name: 'Revenue', label: 'Ricavi', fields: ['amount', 'date', 'description', 'tag', 'payment_method', 'project_name', 'installment_id'] },
   { name: 'Expense', label: 'Spese', fields: ['amount', 'date', 'description', 'tag', 'expense_type', 'payment_method', 'chapter_name', 'stato'] },
   { name: 'Quote', label: 'Preventivi', fields: ['client_name', 'project_name', 'amount', 'tag', 'status', 'sent_date', 'valid_until'] },
   { name: 'Installment', label: 'Rate', fields: ['fee_id', 'amount', 'due_date', 'paid_date', 'payment_method', 'status', 'kind'] },
@@ -15,12 +16,9 @@ const ENTITY_CONFIG = [
   { name: 'MarketingBudget', label: 'Marketing', fields: ['month', 'year', 'budget', 'spent', 'conversions', 'channel'] },
 ];
 
-Deno.serve(async (req) => {
+Deno.serve(withAuth(async (req) => {
   const base44 = createClientFromRequest(req);
-  const user = await base44.auth.me();
-  if (!user) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const user = await requireUser(base44);
 
   const { format: exportFormat } = await req.json();
 
@@ -171,4 +169,4 @@ Deno.serve(async (req) => {
   }
 
   return Response.json({ error: 'Formato non supportato. Usa: json, excel, pdf' }, { status: 400 });
-});
+}));

@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { requireUser, stampOwnerExtra, withAuth } from '../_lib/authz.ts';
 
 /**
  * Financial Data Import Function
@@ -7,15 +8,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
  * Supported entities: Revenue, Expense, Client, Project, Chapter
  */
 
-Deno.serve(async (req) => {
+Deno.serve(withAuth(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
-    // Authenticate user
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = await requireUser(base44);
 
     // Only admin can import data
     if (user.role !== 'admin') {
@@ -211,7 +207,7 @@ Only include arrays that have data.`;
     if (mappedData.clients && mappedData.clients.length > 0) {
       for (const client of mappedData.clients) {
         try {
-          const created = await base44.asServiceRole.entities.Client.create(client);
+          const created = await base44.asServiceRole.entities.Client.create({ ...client, ...stampOwnerExtra(user.id) });
           clientMap.set(client.name.toLowerCase(), created.id);
           results.clients++;
         } catch (e) {
@@ -237,7 +233,8 @@ Only include arrays that have data.`;
             client_name: project.client_name,
             description: project.description,
             budget: project.budget,
-            status: 'planning'
+            status: 'planning',
+            ...stampOwnerExtra(user.id),
           };
           
           await base44.asServiceRole.entities.Project.create(projectData);
@@ -257,7 +254,8 @@ Only include arrays that have data.`;
             date: revenue.date,
             description: revenue.description,
             tag: revenue.tag || 'Other',
-            payment_method: revenue.payment_method || 'bank_transfer'
+            payment_method: revenue.payment_method || 'bank_transfer',
+            ...stampOwnerExtra(user.id),
           };
 
           await base44.asServiceRole.entities.Revenue.create(revenueData);
@@ -277,7 +275,8 @@ Only include arrays that have data.`;
             date: expense.date,
             description: expense.description,
             tag: expense.tag || 'Other',
-            payment_method: expense.payment_method || 'bank_transfer'
+            payment_method: expense.payment_method || 'bank_transfer',
+            ...stampOwnerExtra(user.id),
           };
 
           await base44.asServiceRole.entities.Expense.create(expenseData);
@@ -297,7 +296,7 @@ Only include arrays that have data.`;
           // Get or create client
           let clientId = clientMap.get(fee.client_name?.toLowerCase());
           if (!clientId && fee.client_name) {
-            const newClient = await base44.asServiceRole.entities.Client.create({ name: fee.client_name });
+            const newClient = await base44.asServiceRole.entities.Client.create({ name: fee.client_name, ...stampOwnerExtra(user.id) });
             clientId = newClient.id;
             clientMap.set(fee.client_name.toLowerCase(), clientId);
             results.clients++;
@@ -310,7 +309,8 @@ Only include arrays that have data.`;
               name: fee.project_name,
               client_id: clientId,
               client_name: fee.client_name,
-              status: 'in_progress'
+              status: 'in_progress',
+              ...stampOwnerExtra(user.id),
             });
             projectId = newProject.id;
             projectMap.set(fee.project_name.toLowerCase(), projectId);
@@ -322,7 +322,8 @@ Only include arrays that have data.`;
             await base44.asServiceRole.entities.Fee.create({
               project_id: projectId,
               total_amount: fee.total_amount,
-              status: fee.status || 'agreed'
+              status: fee.status || 'agreed',
+              ...stampOwnerExtra(user.id),
             });
             results.fees++;
           }
@@ -340,7 +341,8 @@ Only include arrays that have data.`;
             year: budget.year || 2026,
             channel: budget.channel,
             yearly_budget: budget.yearly_budget,
-            spent: budget.spent || 0
+            spent: budget.spent || 0,
+            ...stampOwnerExtra(user.id),
           });
           results.marketing_budgets++;
         } catch (e) {
@@ -358,7 +360,8 @@ Only include arrays that have data.`;
             month: forecast.month || 1,
             revenue_amount: forecast.revenue_amount || 0,
             expense_amount: forecast.expense_amount || 0,
-            prestazioni: 'Progettazione'
+            prestazioni: 'Progettazione',
+            ...stampOwnerExtra(user.id),
           });
           results.forecasts++;
         } catch (e) {
@@ -380,4 +383,4 @@ Only include arrays that have data.`;
       error: error.message
     }, { status: 500 });
   }
-});
+}));

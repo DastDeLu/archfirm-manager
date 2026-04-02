@@ -32,6 +32,7 @@ import {
 import { Plus, MoreHorizontal, Pencil, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 export default function Chapters() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -68,7 +69,7 @@ export default function Chapters() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Chapter.create(data),
+    mutationFn: (data) => base44.entities.Chapter.create(withOwner(data, uid)),
     onSuccess: () => {
       invalidateChapters();
       toast.success('Capitolo creato con successo');

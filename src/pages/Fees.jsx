@@ -36,6 +36,7 @@ import SearchableSelect from '../components/ui/searchable-select';
 import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
 import FeeRevenueDropdown from '../components/fees/FeeRevenueDropdown';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 const categoryColors = {
   'Progettazione': 'bg-blue-100 text-blue-700',
@@ -86,7 +87,7 @@ export default function Fees() {
   });
 
   const createFeeMutation = useMutation({
-    mutationFn: (data) => base44.entities.Fee.create(data),
+    mutationFn: (data) => base44.entities.Fee.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fees'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });

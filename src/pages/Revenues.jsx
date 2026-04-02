@@ -39,6 +39,7 @@ import SuggestTextInput from '../components/ui/suggest-text-input';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 export default function Revenues() {
   const currentYear = new Date().getFullYear();
@@ -76,7 +77,7 @@ export default function Revenues() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Revenue.create(data),
+    mutationFn: (data) => base44.entities.Revenue.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
@@ -85,10 +86,24 @@ export default function Revenues() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Revenue.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const updatedRevenue = await base44.entities.Revenue.update(id, data);
+
+      if (editingRevenue?.installment_id) {
+        await base44.entities.Installment.update(editingRevenue.installment_id, {
+          amount: data.amount,
+          paid_date: data.date,
+          payment_method: data.payment_method === 'cash' ? 'cash' : 'bank',
+          status: 'paid',
+        });
+      }
+
+      return updatedRevenue;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
+      queryClient.invalidateQueries({ queryKey: ['installments'] });
       closeDialog();
     },
   });

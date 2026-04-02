@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation } from '@tanstack/react-query';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { withOwner } from '@/lib/withOwner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +18,7 @@ import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function QuickAddChapter({ open, onOpenChange, onChapterCreated }) {
+  const uid = useCurrentUserId();
   const [formData, setFormData] = useState({
     name: '',
     code: '',
@@ -24,7 +27,7 @@ export default function QuickAddChapter({ open, onOpenChange, onChapterCreated }
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Chapter.create(data),
+    mutationFn: (data) => base44.entities.Chapter.create(withOwner(data, uid)),
     onSuccess: (created) => {
       toast.success('Capitolo creato');
       if (onChapterCreated) onChapterCreated(created);

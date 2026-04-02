@@ -25,6 +25,7 @@ import { Plus, Pencil, Trash2, Target } from 'lucide-react';
 import { formatCurrency, formatPercent } from '../components/lib/formatters';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 export default function Baselines() {
   const currentYear = new Date().getFullYear();
@@ -65,7 +66,7 @@ export default function Baselines() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Baseline.create(data),
+    mutationFn: (data) => base44.entities.Baseline.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['baselines'] });
       closeDialog();

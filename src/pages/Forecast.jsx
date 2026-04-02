@@ -32,6 +32,7 @@ import { formatCurrency, tickCurrency } from '../components/lib/formatters';
 import { format } from 'date-fns';
 import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 const MONTHS = [
   'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
@@ -84,7 +85,7 @@ export default function Forecast() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Forecast.create(data),
+    mutationFn: (data) => base44.entities.Forecast.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['forecasts'] });
       closeDialog();

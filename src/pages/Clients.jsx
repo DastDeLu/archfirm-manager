@@ -32,6 +32,7 @@ import { Plus, MoreHorizontal, Pencil, Trash2, Building2, Mail, Phone, MapPin, F
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 export default function Clients() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -56,7 +57,7 @@ export default function Clients() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Client.create(data),
+    mutationFn: (data) => base44.entities.Client.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       closeDialog();

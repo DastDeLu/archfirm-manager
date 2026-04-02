@@ -20,8 +20,11 @@ import {
 } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { withOwner } from '@/lib/withOwner';
 
 export default function QuickAddClient({ open, onOpenChange, onClientCreated }) {
+  const uid = useCurrentUserId();
   const [formData, setFormData] = useState({
     name: '',
     contact_person: '',
@@ -31,7 +34,7 @@ export default function QuickAddClient({ open, onOpenChange, onClientCreated }) 
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Client.create(data),
+    mutationFn: (data) => base44.entities.Client.create(withOwner(data, uid)),
     onSuccess: (createdClient) => {
       toast.success('Cliente creato');
       if (onClientCreated) {

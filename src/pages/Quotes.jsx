@@ -37,6 +37,7 @@ import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddClient from '../components/forms/QuickAddClient';
 import SearchableSelect from '../components/ui/searchable-select';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 const statusColors = {
   draft: 'bg-slate-100 text-slate-700',
@@ -88,7 +89,7 @@ export default function Quotes() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Quote.create(data),
+    mutationFn: (data) => base44.entities.Quote.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['quotes'] });
       closeDialog();

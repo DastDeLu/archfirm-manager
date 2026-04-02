@@ -14,6 +14,8 @@ import ObjectiveCard from '../components/objectives/ObjectiveCard';
 import ObjectiveSummary from '../components/objectives/ObjectiveSummary';
 import PageHeader from '../components/ui/PageHeader';
 import { CATEGORY_LABELS } from '../components/lib/kpiDashboard';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 export default function Objectives() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -37,6 +39,7 @@ export default function Objectives() {
   });
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const { data: objectives = [], isLoading } = useQuery({
     queryKey: ['objectives'],
@@ -44,7 +47,7 @@ export default function Objectives() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Objective.create(data),
+    mutationFn: (data) => base44.entities.Objective.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['objectives'] });
       queryClient.invalidateQueries({ queryKey: ['objectives-notifications'] });

@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Calendar, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { withOwner } from '@/lib/withOwner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +44,7 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
   const [syncing, setSyncing] = useState(false);
   const [showCalendarConsent, setShowCalendarConsent] = useState(false);
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   // Check if Google Calendar connector is active
   const { data: calendarStatus } = useQuery({
@@ -53,6 +56,7 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
     retry: false,
   });
   const calendarConnected = calendarStatus?.connected === true;
+  const toRevenuePaymentMethod = (installmentMethod) => (installmentMethod === 'cash' ? 'cash' : 'bank_transfer');
 
   useEffect(() => {
     if (installment) {
@@ -72,7 +76,7 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
   }, [installment, fee, open]);
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Installment.create(data),
+    mutationFn: (data) => base44.entities.Installment.create(withOwner(data, uid)),
     onSuccess: async (newInst) => {
       queryClient.invalidateQueries({ queryKey: ['installments'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
@@ -87,10 +91,28 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data) => base44.entities.Installment.update(installment.id, data),
+    mutationFn: async (data) => {
+      await base44.entities.Installment.update(installment.id, data);
+
+      if (data.status === 'paid') {
+        const linkedRevenues = await base44.entities.Revenue.filter({ installment_id: installment.id });
+        const linkedRevenue = linkedRevenues[0];
+        if (linkedRevenue) {
+          await base44.entities.Revenue.update(linkedRevenue.id, {
+            amount: data.amount,
+            date: data.paid_date || linkedRevenue.date,
+            payment_method: toRevenuePaymentMethod(data.payment_method),
+          });
+        }
+      }
+    },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['installments'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
+      queryClient.invalidateQueries({ queryKey: ['revenues'] });
+      if (fee?.id) {
+        queryClient.invalidateQueries({ queryKey: ['revenues-by-fee', fee.id] });
+      }
       // Sync to Calendar if enabled (update existing event)
       if (calendarConnected) {
         const action = form.calendar_sync_enabled ? 'update' : 'delete';

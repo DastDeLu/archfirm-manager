@@ -34,6 +34,7 @@ import { cn } from '@/lib/utils';
 import QuickAddEmployee from '../components/forms/QuickAddEmployee';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 function WBSItem({ item, children, level, onEdit, onDelete, onAddChild, computedCosts }) {
   const [expanded, setExpanded] = useState(true);
@@ -216,7 +217,7 @@ export default function WBS() {
   }, [allWbsItems]);
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.WBS.create(data),
+    mutationFn: (data) => base44.entities.WBS.create(withOwner(data, uid)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wbs'] });
       closeDialog();

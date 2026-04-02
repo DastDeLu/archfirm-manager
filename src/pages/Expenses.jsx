@@ -41,6 +41,7 @@ import SuggestTextInput from '../components/ui/suggest-text-input';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { withOwner } from '../lib/withOwner';
 
 export default function Expenses() {
   const currentYear = new Date().getFullYear();
@@ -95,7 +96,7 @@ export default function Expenses() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const spesa = await base44.entities.Expense.create(data);
+      const spesa = await base44.entities.Expense.create(withOwner(data, uid));
       if (data.id_voce_spesa) {
         await updateVoceSpesa(data.id_voce_spesa, data.amount);
       }

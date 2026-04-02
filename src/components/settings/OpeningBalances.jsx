@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Banknote, PiggyBank, Save, Megaphone } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { withOwner } from '@/lib/withOwner';
 
 export default function OpeningBalances() {
   const currentYear = new Date().getFullYear();
@@ -17,6 +19,7 @@ export default function OpeningBalances() {
   const [marketingBudget, setMarketingBudget] = useState('');
 
   const queryClient = useQueryClient();
+  const uid = useCurrentUserId();
 
   const { data: balances = [] } = useQuery({
     queryKey: ['openingBalances', selectedYear],
@@ -32,12 +35,12 @@ export default function OpeningBalances() {
           updated_date: new Date().toISOString().split('T')[0]
         });
       } else {
-        return base44.entities.OpeningBalance.create({
+        return base44.entities.OpeningBalance.create(withOwner({
           type,
           year: selectedYear,
           amount: parseFloat(amount),
           updated_date: new Date().toISOString().split('T')[0]
-        });
+        }, uid));
       }
     },
     onSuccess: () => {
