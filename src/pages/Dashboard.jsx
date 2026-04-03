@@ -346,7 +346,7 @@ export default function Dashboard() {
                   <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
                   <YAxis stroke="#64748b" fontSize={12} tickFormatter={tickCurrency} />
                   <Tooltip 
-                   formatter={(value, name) => [formatCurrency(value), name === 'revenue' ? 'Ricavi' : 'Costi']}
+                   formatter={(value, name) => [formatCurrency(value), name]}
                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                   />
                   <Area type="monotone" dataKey="revenue" name="Ricavi" stroke="#10b981" fill="url(#colorRevenue)" strokeWidth={2} />

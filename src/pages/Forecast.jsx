@@ -24,7 +24,7 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
-import { Plus, Pencil, TrendingUp, TrendingDown, Calendar, Euro, AlertTriangle, CheckCircle, AlertCircle, ArrowDownCircle, ChevronDown, List } from 'lucide-react';
+import { Plus, Pencil, TrendingUp, TrendingDown, Euro, AlertTriangle, CheckCircle, AlertCircle, ArrowDownCircle, ChevronDown, List } from 'lucide-react';
 import InstallmentsDrawer from '../components/forecast/InstallmentsDrawer';
 import { cn } from '@/lib/utils';
 import { calculateCashForecast } from '../components/utils/cashForecast.jsx';
@@ -425,8 +425,8 @@ export default function Forecast() {
                 <Legend />
                 <Bar dataKey="forecastRevenue" name="Ricavi Previsti" fill="#10b981" opacity={0.5} />
                 <Bar dataKey="actualRevenue" name="Ricavi Effettivi" fill="#10b981" />
-                <Bar dataKey="forecastExpense" name="Costi Previsti" fill="#ef4444" opacity={0.5} />
-                <Bar dataKey="actualExpense" name="Costi Effettivi" fill="#ef4444" />
+                <Bar dataKey="forecastExpense" name="Costi Previsti" fill="#f87171" opacity={0.55} />
+                <Bar dataKey="actualExpense" name="Costi Effettivi" fill="#dc2626" />
               </BarChart>
             </ResponsiveContainer>
           </div>

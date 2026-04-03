@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Bell, AlertCircle, Calendar, TrendingDown } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,10 +11,13 @@ import { useKpiData } from '../hooks/useKpiData';
 import { KPI_CATEGORIES } from '../lib/kpiDashboard';
 import { format, isAfter, isBefore, addDays } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { formatCurrency } from '../lib/formatters';
+import { createPageUrl } from '../../utils';
 
 export default function NotificationCenter() {
   const [open, setOpen] = useState(false);
   const { kpis } = useKpiData();
+  const navigate = useNavigate();
 
   // Fetch scadenze - sincronizzato con objectives principal
    const { data: objectives = [] } = useQuery({
@@ -60,6 +64,25 @@ export default function NotificationCenter() {
 
   const totalNotifications = criticalKpis.length + upcomingObjectives.length + overdueInstallments.length + notifications.length;
 
+  const navigateAndClose = (targetUrl) => {
+    if (!targetUrl) return;
+    navigate(targetUrl);
+    setOpen(false);
+  };
+
+  const getEntityUrl = (entityType, entityId) => {
+    if (!entityType || !entityId) return null;
+    const normalizedType = String(entityType).toLowerCase();
+    if (normalizedType === 'client') return createPageUrl(`Clients?clientId=${entityId}`);
+    if (normalizedType === 'project') return createPageUrl(`Projects?projectId=${entityId}`);
+    if (normalizedType === 'fee') return createPageUrl(`Fees?feeId=${entityId}`);
+    if (normalizedType === 'revenue') return createPageUrl(`Revenues?revenueId=${entityId}`);
+    if (normalizedType === 'expense') return createPageUrl(`Expenses?expenseId=${entityId}`);
+    if (normalizedType === 'objective') return createPageUrl(`Objectives?objectiveId=${entityId}`);
+    if (normalizedType === 'installment') return createPageUrl(`Fees?installmentId=${entityId}`);
+    return null;
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -97,7 +120,19 @@ export default function NotificationCenter() {
             <div className="divide-y divide-slate-100">
               {/* Notifiche da Automazioni */}
               {notifications.map(notif => (
-                <div key={notif.id} className="p-3 hover:bg-slate-50 transition-colors">
+                <div
+                  key={notif.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigateAndClose(notif.action_url || getEntityUrl(notif.related_entity_type, notif.related_entity_id))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigateAndClose(notif.action_url || getEntityUrl(notif.related_entity_type, notif.related_entity_id));
+                    }
+                  }}
+                  className="p-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
                   <div className="flex items-start gap-3">
                     <div className={cn(
                       'p-2 rounded-lg',
@@ -129,7 +164,19 @@ export default function NotificationCenter() {
 
               {/* KPI Critici */}
               {criticalKpis.map(kpi => (
-                <div key={kpi.id} className="p-3 hover:bg-slate-50 transition-colors">
+                <div
+                  key={kpi.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigateAndClose(createPageUrl('KpiTargets'))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigateAndClose(createPageUrl('KpiTargets'));
+                    }
+                  }}
+                  className="p-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-red-100 rounded-lg">
                       <AlertCircle className="h-4 w-4 text-red-600" />
@@ -152,7 +199,19 @@ export default function NotificationCenter() {
 
               {/* Obiettivi in scadenza */}
               {upcomingObjectives.map(obj => (
-                <div key={obj.id} className="p-3 hover:bg-slate-50 transition-colors">
+                <div
+                  key={obj.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigateAndClose(createPageUrl(`Objectives?objectiveId=${obj.id}`))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigateAndClose(createPageUrl(`Objectives?objectiveId=${obj.id}`));
+                    }
+                  }}
+                  className="p-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-amber-100 rounded-lg">
                       <TrendingDown className="h-4 w-4 text-amber-600" />
@@ -171,7 +230,19 @@ export default function NotificationCenter() {
               {overdueInstallments.map(inst => {
                 const isOverdue = isBefore(new Date(inst.due_date), today);
                 return (
-                  <div key={inst.id} className="p-3 hover:bg-slate-50 transition-colors">
+                  <div
+                    key={inst.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigateAndClose(createPageUrl(`Fees?feeId=${inst.fee_id || ''}&installmentId=${inst.id}`))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigateAndClose(createPageUrl(`Fees?feeId=${inst.fee_id || ''}&installmentId=${inst.id}`));
+                      }
+                    }}
+                    className="p-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
                     <div className="flex items-start gap-3">
                       <div className={cn(
                         'p-2 rounded-lg',
@@ -190,7 +261,7 @@ export default function NotificationCenter() {
                           'text-xs font-medium mt-1',
                           isOverdue ? 'text-red-600' : 'text-amber-600'
                         )}>
-                          €{inst.amount?.toLocaleString('it-IT')} - {format(new Date(inst.due_date), 'dd MMM yyyy', { locale: it })}
+                          {formatCurrency(inst.amount || 0)} - {format(new Date(inst.due_date), 'dd MMM yyyy', { locale: it })}
                         </p>
                       </div>
                     </div>

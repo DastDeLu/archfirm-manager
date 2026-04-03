@@ -109,7 +109,7 @@ export default function CashFlowLineChart({ bankCashEntries = [], pettyCashEntri
               <Line 
                 type="monotone" 
                 dataKey="liquid" 
-                name="Cassa"
+                name="Liquidi"
                 stroke="#f59e0b" 
                 strokeWidth={2.5}
                 dot={{ r: 4, fill: '#f59e0b' }}

@@ -1,5 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import { requireUser, assertOwned, stampOwnerExtra, withAuth } from '../_lib/authz.ts';
+import {
+  buildRevenueDescription,
+  normalizeAmount,
+  recomputeFeePaymentStatus,
+  resolveDefaultRevenueTag,
+  toRevenuePaymentMethod,
+  todayIsoDate,
+} from '../_lib/revenueInstallmentSync.ts';
 
 Deno.serve(withAuth(async (req) => {
   const base44 = createClientFromRequest(req);
@@ -41,20 +49,11 @@ Deno.serve(withAuth(async (req) => {
 
   assertOwned(fee, user.id);
 
-  const resolvedDate = payment_date || new Date().toISOString().split('T')[0];
-  const resolvedAmount = amount_override && !isNaN(amount_override) ? amount_override : installment.amount;
-  const resolvedDescription = revenue_description || `Incasso rata ${installment.installment_number || ''} - ${fee.project_name || fee.client_name || 'Progetto'}`;
-  const resolvedPaymentMethod = payment_method || (installment.payment_method === 'cash' ? 'cash' : 'bank_transfer');
-
-  let resolvedTag = revenue_tag;
-  if (!resolvedTag) {
-    try {
-      const customTags = await base44.asServiceRole.entities.CustomTag.filter({ type: 'revenue' });
-      resolvedTag = customTags.length > 0 ? customTags[0].name : 'Progettazione';
-    } catch {
-      resolvedTag = 'Progettazione';
-    }
-  }
+  const resolvedDate = payment_date || todayIsoDate();
+  const resolvedAmount = normalizeAmount(amount_override, installment.amount || 0);
+  const resolvedDescription = revenue_description || buildRevenueDescription(installment, fee);
+  const resolvedPaymentMethod = payment_method || toRevenuePaymentMethod(installment.payment_method);
+  const resolvedTag = revenue_tag || await resolveDefaultRevenueTag(base44);
 
   await base44.asServiceRole.entities.Installment.update(installment_id, {
     status: 'paid',
@@ -116,15 +115,7 @@ Deno.serve(withAuth(async (req) => {
     }
   }
 
-  const allRevenues = await base44.asServiceRole.entities.Revenue.filter({ fee_id: installment.fee_id });
-  const totalIncassato = allRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
-  const feeAmount = fee.amount || 0;
-
-  if (feeAmount > 0 && totalIncassato >= feeAmount) {
-    await base44.asServiceRole.entities.Fee.update(installment.fee_id, { payment_status: 'Incassati' });
-  } else {
-    await base44.asServiceRole.entities.Fee.update(installment.fee_id, { payment_status: 'Da incassare' });
-  }
+  await recomputeFeePaymentStatus(base44, installment.fee_id);
 
   return Response.json({ success: true, message: 'Pagamento elaborato con successo' });
 }));

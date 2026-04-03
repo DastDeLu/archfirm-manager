@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import PageHeader from '../components/ui/PageHeader';
 import DataTable from '../components/ui/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
@@ -29,7 +29,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MoreHorizontal, Pencil, Trash2, TrendingUp, Euro, Filter, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, TrendingUp, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { formatCurrency } from '../components/lib/formatters';
 import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
@@ -63,6 +63,7 @@ export default function Revenues() {
 
   const queryClient = useQueryClient();
   const uid = useCurrentUserId();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { data: revenues = [], isLoading } = useQuery({
     queryKey: ['revenues', uid],
@@ -87,18 +88,16 @@ export default function Revenues() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }) => {
-      const updatedRevenue = await base44.entities.Revenue.update(id, data);
-
       if (editingRevenue?.installment_id) {
-        await base44.entities.Installment.update(editingRevenue.installment_id, {
-          amount: data.amount,
-          paid_date: data.date,
-          payment_method: data.payment_method === 'cash' ? 'cash' : 'bank',
-          status: 'paid',
+        await base44.functions.invoke('syncInstallmentRevenuePair', {
+          origin: 'revenue',
+          revenue_id: id,
+          revenue_patch: data,
         });
+        return { id, ...data };
       }
 
-      return updatedRevenue;
+      return base44.entities.Revenue.update(id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
@@ -109,10 +108,21 @@ export default function Revenues() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Revenue.delete(id),
+    mutationFn: async (revenue) => {
+      if (revenue.installment_id || revenue.fee_id) {
+        await base44.functions.invoke('syncInstallmentRevenuePair', {
+          action: 'delete_revenue',
+          revenue_id: revenue.id,
+        });
+        return;
+      }
+      await base44.entities.Revenue.delete(revenue.id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
+      queryClient.invalidateQueries({ queryKey: ['installments'] });
+      queryClient.invalidateQueries({ queryKey: ['fees'] });
     },
   });
 
@@ -147,6 +157,19 @@ export default function Revenues() {
     setDialogOpen(false);
     setEditingRevenue(null);
   };
+
+  useEffect(() => {
+    const revenueId = searchParams.get('revenueId');
+    if (!revenueId || revenues.length === 0) return;
+
+    const target = revenues.find((revenue) => revenue.id === revenueId);
+    if (!target) return;
+
+    openDialog(target);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('revenueId');
+    setSearchParams(nextParams, { replace: true });
+  }, [revenues, searchParams, setSearchParams, openDialog]);
 
 
 
@@ -259,7 +282,7 @@ export default function Revenues() {
       cell: (row) => (
         <ContextMenuWrapper
           onEdit={() => openDialog(row)}
-          onDelete={() => deleteMutation.mutate(row.id)}
+          onDelete={() => deleteMutation.mutate(row)}
         >
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -273,7 +296,7 @@ export default function Revenues() {
                 Modifica
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => deleteMutation.mutate(row.id)}
+                onClick={() => deleteMutation.mutate(row)}
                 className="text-red-600"
               >
                 <Trash2 className="h-4 w-4 mr-2" />

@@ -13,6 +13,8 @@
  * @param {number} params.meseCorrente - Mese corrente (1-12)
  * @returns {Object} - Risultati con cassaFineAnnoPrevista, incassiAttesiTotali, alerts
  */
+import { formatCurrency } from '../lib/formatters';
+
 export function calculateCashForecast({
   cassaAttuale,
   riporti,
@@ -44,26 +46,27 @@ export function calculateCashForecast({
     alerts.push({
       id: 'liquidita',
       level: 'critical',
-      message: `Cassa prevista a fine anno: €${cassaFineAnnoPrevista.toLocaleString('it-IT')}. Sotto la soglia critica di €55.000.`
+      message: `Cassa prevista a fine anno: ${formatCurrency(cassaFineAnnoPrevista)}. Sotto la soglia critica di €55.000.`
     });
   } else if (cassaFineAnnoPrevista < 65000) {
     alerts.push({
       id: 'liquidita',
       level: 'attention',
-      message: `Cassa prevista a fine anno: €${cassaFineAnnoPrevista.toLocaleString('it-IT')}. Sotto la soglia di attenzione di €65.000.`
+      message: `Cassa prevista a fine anno: ${formatCurrency(cassaFineAnnoPrevista)}. Sotto la soglia di attenzione di €65.000.`
     });
   } else {
     alerts.push({
       id: 'liquidita',
       level: 'ok',
-      message: `Cassa prevista a fine anno: €${cassaFineAnnoPrevista.toLocaleString('it-IT')}. Liquidità in linea con gli obiettivi.`
+      message: `Cassa prevista a fine anno: ${formatCurrency(cassaFineAnnoPrevista)}. Liquidità in linea con gli obiettivi.`
     });
   }
 
   // Alert incassi
   const targetIncassiMensile = targetAnnuale / 12;
   const targetIncassiYTD = targetIncassiMensile * meseCorrente;
-  const percentualeRaggiungimento = (cfIncassiYTD / targetIncassiYTD) * 100;
+  const percentualeRaggiungimento = targetIncassiYTD > 0 ? (cfIncassiYTD / targetIncassiYTD) * 100 : 0;
+  const deltaIncassiYTD = cfIncassiYTD - targetIncassiYTD;
 
   if (percentualeRaggiungimento < 70) {
     alerts.push({
@@ -113,6 +116,10 @@ export function calculateCashForecast({
   return {
     cassaFineAnnoPrevista,
     incassiAttesiTotali,
+    deltaIncassiYTD,
+    targetIncassiYTD,
+    cfIncassiYTD,
+    percentualeRaggiungimento,
     speseResidue,
     alerts
   };

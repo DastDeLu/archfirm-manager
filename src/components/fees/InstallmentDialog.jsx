@@ -56,8 +56,6 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
     retry: false,
   });
   const calendarConnected = calendarStatus?.connected === true;
-  const toRevenuePaymentMethod = (installmentMethod) => (installmentMethod === 'cash' ? 'cash' : 'bank_transfer');
-
   useEffect(() => {
     if (installment) {
       setForm({
@@ -92,18 +90,14 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
-      await base44.entities.Installment.update(installment.id, data);
-
       if (data.status === 'paid') {
-        const linkedRevenues = await base44.entities.Revenue.filter({ installment_id: installment.id });
-        const linkedRevenue = linkedRevenues[0];
-        if (linkedRevenue) {
-          await base44.entities.Revenue.update(linkedRevenue.id, {
-            amount: data.amount,
-            date: data.paid_date || linkedRevenue.date,
-            payment_method: toRevenuePaymentMethod(data.payment_method),
-          });
-        }
+        await base44.functions.invoke('syncInstallmentRevenuePair', {
+          origin: 'installment',
+          installment_id: installment.id,
+          installment_patch: data,
+        });
+      } else {
+        await base44.entities.Installment.update(installment.id, data);
       }
     },
     onSuccess: async () => {

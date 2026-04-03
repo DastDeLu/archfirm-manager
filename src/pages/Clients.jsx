@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '../components/ui/PageHeader';
@@ -28,8 +28,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, MoreHorizontal, Pencil, Trash2, Building2, Mail, Phone, MapPin, FolderKanban, Receipt, AlertCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Plus, MoreHorizontal, Pencil, Trash2, Building2, Mail, Phone, FolderKanban, Receipt, AlertCircle } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
@@ -50,6 +50,7 @@ export default function Clients() {
 
   const queryClient = useQueryClient();
   const uid = useCurrentUserId();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ['clients', uid],
@@ -118,6 +119,19 @@ export default function Clients() {
     setDialogOpen(false);
     setEditingClient(null);
   };
+
+  useEffect(() => {
+    const clientId = searchParams.get('clientId');
+    if (!clientId || clients.length === 0) return;
+
+    const targetClient = clients.find((client) => client.id === clientId);
+    if (!targetClient) return;
+
+    openDialog(targetClient);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('clientId');
+    setSearchParams(nextParams, { replace: true });
+  }, [clients, searchParams, setSearchParams, openDialog]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

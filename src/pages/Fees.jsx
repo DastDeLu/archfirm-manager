@@ -37,6 +37,7 @@ import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
 import FeeRevenueDropdown from '../components/fees/FeeRevenueDropdown';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
+import { useSearchParams } from 'react-router-dom';
 
 const categoryColors = {
   'Progettazione': 'bg-blue-100 text-blue-700',
@@ -70,6 +71,7 @@ export default function Fees() {
 
   const queryClient = useQueryClient();
   const uid = useCurrentUserId();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { data: fees = [], isLoading } = useQuery({
     queryKey: ['fees', uid],
@@ -144,6 +146,22 @@ export default function Fees() {
     }
     setDialogOpen(true);
   };
+
+  React.useEffect(() => {
+    const feeId = searchParams.get('feeId');
+    if (!feeId || fees.length === 0) return;
+
+    const targetFee = fees.find((fee) => fee.id === feeId);
+    if (!targetFee) return;
+
+    setExpandedClient(targetFee.client_id || 'unknown');
+    openDialog(targetFee);
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('feeId');
+    nextParams.delete('installmentId');
+    setSearchParams(nextParams, { replace: true });
+  }, [fees, searchParams, setSearchParams, openDialog]);
 
   const closeDialog = () => {
     setDialogOpen(false);
@@ -266,7 +284,7 @@ export default function Fees() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <Banknote className="h-4 w-4" />
-              <span>Banca</span>
+              <span>Banca da incassare</span>
             </div>
             <p className="text-xl font-bold text-blue-600">
               {formatCurrency(stats.byMethod['Banca'])}
@@ -277,7 +295,7 @@ export default function Fees() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
               <PiggyBank className="h-4 w-4" />
-              <span>Contanti</span>
+              <span>Liquidi da incassare</span>
             </div>
             <p className="text-xl font-bold text-amber-600">
               {formatCurrency(stats.byMethod['Contanti'])}

@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { formatCurrency } from './components/lib/formatters';
 import {
   LayoutDashboard,
   Building2,
   FolderKanban,
   Wallet,
-  Receipt,
   TrendingUp,
   FileText,
   Megaphone,
@@ -30,7 +28,7 @@ import GlobalSearch from './components/search/GlobalSearch';
 import ControlDashboardSidebarWidget from './components/dashboard/ControlDashboardSidebarWidget';
 import NotificationCenter from './components/notifications/NotificationCenter';
 import { BudgetProvider } from './components/budget/BudgetContext';
-import { calculateCashForecast } from './components/utils/cashForecast.jsx';
+import { useCashForecastInputs } from './hooks/useCashForecastInputs';
 
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: 'Dashboard' },
@@ -71,7 +69,7 @@ const navItems = [
         },
 ];
 
-function CashDisplay({ bankCash, pettyCash, forecast, expectedCash }) {
+function CashDisplay({ bankCash, pettyCash, forecast: _forecast, expectedCash }) {
   return (
     <div className="px-4 py-5 border-b border-slate-200/60">
       <div className="space-y-3">
@@ -95,7 +93,7 @@ function CashDisplay({ bankCash, pettyCash, forecast, expectedCash }) {
             <div className="p-2 bg-amber-500/10 rounded-lg">
               <PiggyBank className="h-4 w-4 text-amber-600" />
             </div>
-            <span className="text-xs font-medium text-slate-600">Cassa</span>
+            <span className="text-xs font-medium text-slate-600">Liquidi</span>
           </div>
           <span className={cn(
             "text-sm font-bold",
@@ -201,101 +199,14 @@ export default function Layout({ children, currentPageName }) {
       try {
         const userData = await base44.auth.me();
         setUser(userData);
-      } catch (e) {
+      } catch {
         console.log('User not authenticated');
       }
     };
     loadUser();
   }, []);
 
-  // React Query per i dati della cassa - si aggiorna automaticamente
-  const { data: cashData = { bankCash: 0, pettyCash: 0, forecast: 0, expectedCash: 0, cashForecastAlerts: [] } } = useQuery({
-    queryKey: ['cashData'],
-    queryFn: async () => {
-      const [revenues, expenses, forecasts, openingBalances, installments] = await Promise.all([
-        base44.entities.Revenue.list(),
-        base44.entities.Expense.list(),
-        base44.entities.Forecast.list(),
-        base44.entities.OpeningBalance.list(),
-        base44.entities.Installment.list()
-      ]);
-
-      const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth() + 1;
-      const previousYear = currentYear - 1;
-
-      // Get opening balances for current year
-      const bankOpening = openingBalances.find(ob => ob.type === 'bank' && ob.year === currentYear)?.amount || 0;
-      const pettyOpening = openingBalances.find(ob => ob.type === 'petty' && ob.year === currentYear)?.amount || 0;
-
-      // Calculate bank balance: revenues without payment_method or with bank methods
-      const bankRevenues = revenues
-        .filter(r => !r.payment_method || ['bank_transfer', 'card'].includes(r.payment_method))
-        .reduce((sum, r) => sum + (r.amount || 0), 0);
-      
-      const bankExpenses = expenses
-        .filter(e => !e.payment_method || ['bank_transfer', 'card'].includes(e.payment_method))
-        .reduce((sum, e) => sum + (e.amount || 0), 0);
-      
-      const bankTotal = bankOpening + bankRevenues - bankExpenses;
-
-      // Calculate petty cash balance: only cash payment_method
-      const pettyRevenues = revenues
-        .filter(r => r.payment_method === 'cash')
-        .reduce((sum, r) => sum + (r.amount || 0), 0);
-      
-      const pettyExpenses = expenses
-        .filter(e => e.payment_method === 'cash')
-        .reduce((sum, e) => sum + (e.amount || 0), 0);
-      
-      const pettyTotal = pettyOpening + pettyRevenues - pettyExpenses;
-
-      // Forecast calculation
-      const currentForecast = forecasts.find(f => f.month === currentMonth && f.year === currentYear);
-      const forecastNet = currentForecast 
-        ? (currentForecast.revenue_amount || 0) - (currentForecast.expense_amount || 0)
-        : 0;
-
-      // Calculate cash forecast
-      const ytdRevenues = revenues.filter(r => r.date?.startsWith(String(currentYear)));
-      const ytdExpenses = expenses.filter(e => e.date?.startsWith(String(currentYear)));
-      const cfIncassiYTD = ytdRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
-      const cfSpeseYTD = ytdExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-      
-      const riporti = installments
-        .filter(i => i.status !== 'paid' && i.status !== 'cancelled')
-        .reduce((sum, i) => sum + (i.amount || 0), 0);
-      
-      const previousYearRevenues = revenues.filter(r => r.date?.startsWith(String(previousYear)));
-      const baseAnnoPrecedente = previousYearRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
-
-      const cashForecast = calculateCashForecast({
-        cassaAttuale: bankTotal,
-        riporti,
-        percentualeIncasso: 0.70,
-        baseAnnoPrecedente,
-        growthRate: 0.35,
-        speseAnnuePreviste: 117000,
-        cfIncassiYTD,
-        cfSpeseYTD,
-        meseCorrente: currentMonth
-      });
-
-      // Cassa Prevista: somma rate pendenti (non pagate né cancellate)
-      const expectedCash = installments
-        .filter(i => i.status !== 'paid' && i.status !== 'cancelled')
-        .reduce((sum, i) => sum + (i.amount || 0), 0);
-
-      return { 
-        bankCash: bankTotal, 
-        pettyCash: pettyTotal, 
-        forecast: forecastNet,
-        expectedCash,
-        cashForecastAlerts: cashForecast.alerts
-      };
-    },
-    refetchInterval: 30000,
-  });
+  const { data: cashData = { bankCash: 0, pettyCash: 0, forecast: 0, expectedCash: 0, cashForecastAlerts: [] } } = useCashForecastInputs();
 
   useEffect(() => {
     const handleKeyDown = (e) => {

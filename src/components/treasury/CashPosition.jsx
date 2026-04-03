@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Wallet, TrendingUp, Clock, AlertCircle } from 'lucide-react';
 import { formatCurrency } from '../lib/formatters';
 import { isAfter, parseISO } from 'date-fns';
@@ -91,7 +91,7 @@ export default function CashPosition() {
             {formatCurrency(realCash)}
           </p>
           <p className="text-xs text-emerald-600 mt-1">
-            Banca: {formatCurrency(bankBalance)} | Contanti: {formatCurrency(pettyBalance)}
+            Banca: {formatCurrency(bankBalance)} | Liquidi: {formatCurrency(pettyBalance)}
           </p>
         </CardContent>
       </Card>

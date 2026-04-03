@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -38,6 +38,7 @@ import QuickAddClient from '../components/forms/QuickAddClient';
 import SearchableSelect from '../components/ui/searchable-select';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
+import { formatNumber } from '../components/lib/formatters';
 
 export default function Projects() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -59,6 +60,7 @@ export default function Projects() {
 
   const queryClient = useQueryClient();
   const uid = useCurrentUserId();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['projects', uid],
@@ -128,6 +130,19 @@ export default function Projects() {
     setDialogOpen(false);
     setEditingProject(null);
   };
+
+  useEffect(() => {
+    const projectId = searchParams.get('projectId');
+    if (!projectId || projects.length === 0) return;
+
+    const targetProject = projects.find((project) => project.id === projectId);
+    if (!targetProject) return;
+
+    openDialog(targetProject);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('projectId');
+    setSearchParams(nextParams, { replace: true });
+  }, [projects, searchParams, setSearchParams, openDialog]);
 
   const handleClientChange = (clientId) => {
     const client = clients.find(c => c.id === clientId);
@@ -209,7 +224,7 @@ export default function Projects() {
       cell: (row) => (
         <div className="flex items-center gap-1 font-medium text-slate-900">
           <Euro className="h-3 w-3" />
-          {row.budget ? row.budget.toLocaleString('it-IT') : '-'}
+          {row.budget ? formatNumber(row.budget, 0) : '-'}
         </div>
       ),
     },

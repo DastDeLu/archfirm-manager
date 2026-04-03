@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useBudget } from '../components/budget/BudgetContext';
+import { useSearchParams } from 'react-router-dom';
 import PageHeader from '../components/ui/PageHeader';
 import DataTable from '../components/ui/DataTable';
 import { Button } from '@/components/ui/button';
@@ -69,6 +70,7 @@ export default function Expenses() {
 
   const queryClient = useQueryClient();
   const uid = useCurrentUserId();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ['expenses', uid],
@@ -188,6 +190,19 @@ export default function Expenses() {
     setDialogOpen(false);
     setEditingExpense(null);
   };
+
+  useEffect(() => {
+    const expenseId = searchParams.get('expenseId');
+    if (!expenseId || expenses.length === 0) return;
+
+    const targetExpense = expenses.find((expense) => expense.id === expenseId);
+    if (!targetExpense) return;
+
+    openDialog(targetExpense);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('expenseId');
+    setSearchParams(nextParams, { replace: true });
+  }, [expenses, searchParams, setSearchParams, openDialog]);
 
   const handleChapterChange = (chapterId) => {
     const chapter = chapters.find((c) => c.id === chapterId);

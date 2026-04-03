@@ -7,7 +7,6 @@ import {
   DialogContent,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   Search,
   Building2,
@@ -19,11 +18,31 @@ import {
 } from 'lucide-react';
 
 const entityConfig = {
-  Client: { icon: Building2, color: 'bg-blue-100 text-blue-700', page: 'Clients' },
-  Project: { icon: FolderKanban, color: 'bg-purple-100 text-purple-700', page: 'Projects' },
-  Fee: { icon: Receipt, color: 'bg-amber-100 text-amber-700', page: 'Fees' },
-  Revenue: { icon: Wallet, color: 'bg-emerald-100 text-emerald-700', page: 'Revenues' },
-  Expense: { icon: Wallet, color: 'bg-red-100 text-red-700', page: 'Expenses' },
+  Client: {
+    icon: Building2,
+    color: 'bg-blue-100 text-blue-700',
+    buildUrl: (item) => createPageUrl(`Clients?clientId=${item.id}`),
+  },
+  Project: {
+    icon: FolderKanban,
+    color: 'bg-purple-100 text-purple-700',
+    buildUrl: (item) => createPageUrl(`Projects?projectId=${item.id}`),
+  },
+  Fee: {
+    icon: Receipt,
+    color: 'bg-amber-100 text-amber-700',
+    buildUrl: (item) => createPageUrl(`Fees?feeId=${item.id}`),
+  },
+  Revenue: {
+    icon: Wallet,
+    color: 'bg-emerald-100 text-emerald-700',
+    buildUrl: (item) => createPageUrl(`Revenues?revenueId=${item.id}`),
+  },
+  Expense: {
+    icon: Wallet,
+    color: 'bg-red-100 text-red-700',
+    buildUrl: (item) => createPageUrl(`Expenses?expenseId=${item.id}`),
+  },
 };
 
 export default function GlobalSearch({ open, onOpenChange }) {
@@ -86,8 +105,8 @@ export default function GlobalSearch({ open, onOpenChange }) {
 
   const handleSelect = (type, item) => {
     const config = entityConfig[type];
-    if (config) {
-      navigate(createPageUrl(config.page));
+    if (config?.buildUrl) {
+      navigate(config.buildUrl(item));
       onOpenChange(false);
     }
   };
@@ -144,7 +163,7 @@ export default function GlobalSearch({ open, onOpenChange }) {
                     <div className="px-4 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">
                       {type}s
                     </div>
-                    {items.map((item, idx) => {
+                    {items.map((item) => {
                       const globalIdx = flatResults.findIndex(r => r.type === type && r.item.id === item.id);
                       const isSelected = globalIdx === selectedIndex;
                       

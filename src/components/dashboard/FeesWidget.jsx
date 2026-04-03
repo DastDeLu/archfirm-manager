@@ -7,6 +7,7 @@ import { formatCurrency } from '../lib/formatters';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 import { Button } from '@/components/ui/button';
+import { useCashForecastInputs } from '../../hooks/useCashForecastInputs';
 
 export default function FeesWidget() {
   const { data: fees = [] } = useQuery({
@@ -14,16 +15,22 @@ export default function FeesWidget() {
     queryFn: () => base44.entities.Fee.list(),
   });
 
+  const { data: cashData = { deltaIncassiYTD: 0 } } = useCashForecastInputs();
+
   const stats = useMemo(() => {
     const toCollect = fees
       .filter(f => f.payment_status === 'Da incassare')
       .reduce((sum, f) => sum + (f.amount || 0), 0);
     
-    const collected = fees
-      .filter(f => f.payment_status === 'Incassati')
-      .reduce((sum, f) => sum + (f.amount || 0), 0);
+    const byMethodToCollect = fees
+      .filter((fee) => fee.payment_status === 'Da incassare')
+      .reduce((acc, fee) => {
+        const method = fee.payment_method === 'Contanti' ? 'Contanti' : 'Banca';
+        acc[method] += fee.amount || 0;
+        return acc;
+      }, { Banca: 0, Contanti: 0 });
 
-    return { toCollect, collected };
+    return { toCollect, byMethodToCollect };
   }, [fees]);
 
   return (
@@ -41,21 +48,31 @@ export default function FeesWidget() {
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg">
             <div>
-              <p className="text-sm text-amber-700 font-medium">Da Incassare</p>
+              <p className="text-sm text-amber-700 font-medium">Banca da incassare</p>
               <p className="text-xs text-amber-600 mt-1">Compensi attesi</p>
             </div>
             <p className="text-xl font-bold text-amber-700">
-              {formatCurrency(stats.toCollect)}
+              {formatCurrency(stats.byMethodToCollect.Banca)}
             </p>
           </div>
           
           <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
             <div>
-              <p className="text-sm text-emerald-700 font-medium">Incassati</p>
-              <p className="text-xs text-emerald-600 mt-1">Compensi ricevuti</p>
+              <p className="text-sm text-emerald-700 font-medium">Liquidi da incassare</p>
+              <p className="text-xs text-emerald-600 mt-1">Rate in contanti</p>
             </div>
             <p className="text-xl font-bold text-emerald-700">
-              {formatCurrency(stats.collected)}
+              {formatCurrency(stats.byMethodToCollect.Contanti)}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+            <div>
+              <p className="text-sm text-slate-700 font-medium">Delta incassi (YTD vs target)</p>
+              <p className="text-xs text-slate-500 mt-1">Effettivo YTD - target YTD</p>
+            </div>
+            <p className={`text-lg font-bold ${cashData.deltaIncassiYTD >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+              {cashData.deltaIncassiYTD >= 0 ? '+' : ''}{formatCurrency(cashData.deltaIncassiYTD)}
             </p>
           </div>
           
@@ -63,7 +80,7 @@ export default function FeesWidget() {
             <div className="flex items-center gap-2 text-slate-600">
               <TrendingUp className="h-4 w-4" />
               <span className="text-sm font-medium">
-                Totale: {formatCurrency(stats.toCollect + stats.collected)}
+                Totale da incassare: {formatCurrency(stats.toCollect)}
               </span>
             </div>
           </div>
