@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger } from
 '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MoreHorizontal, Pencil, Trash2, TrendingDown, Filter, ArrowUpCircle, ArrowDownCircle, BarChart3, Calendar, Receipt } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, TrendingDown, Filter, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { formatCurrency } from '../components/lib/formatters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
@@ -39,6 +39,7 @@ import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddChapter from '../components/forms/QuickAddChapter';
 import SearchableSelect from '../components/ui/searchable-select';
 import SuggestTextInput from '../components/ui/suggest-text-input';
+import YearSelect from '../components/ui/YearSelect';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
@@ -242,6 +243,25 @@ export default function Expenses() {
   };
 
   const previousYear = currentYear - 1;
+  const linkedCapitoloId = searchParams.get('capitoloId');
+  const linkedVoceSpesaId = searchParams.get('voceSpesaId');
+  const hasLinkedFilters = Boolean(linkedCapitoloId || linkedVoceSpesaId);
+
+  useEffect(() => {
+    if (!hasLinkedFilters) return;
+    setSelectedYear(0);
+    setSelectedMonth(0);
+    setActiveTag('all');
+  }, [hasLinkedFilters]);
+
+  const linkedVoceIds = useMemo(() => {
+    if (!linkedCapitoloId) return new Set();
+    return new Set(
+      vociSpesa
+        .filter((voce) => voce.id_categoria === linkedCapitoloId)
+        .map((voce) => voce.id)
+    );
+  }, [linkedCapitoloId, vociSpesa]);
 
   // Filtra per tag, anno e mese selezionati
   const filteredExpenses = useMemo(() => {
@@ -249,9 +269,34 @@ export default function Expenses() {
       const tagMatch = activeTag === 'all' || e.tag === activeTag;
       const yearMatch = !selectedYear || e.date?.startsWith(String(selectedYear));
       const monthMatch = !selectedMonth || e.date?.substring(5, 7) === String(selectedMonth).padStart(2, '0');
-      return tagMatch && yearMatch && monthMatch;
+      let linkedMatch = true;
+
+      if (linkedVoceSpesaId) {
+        linkedMatch = e.id_voce_spesa === linkedVoceSpesaId;
+      } else if (linkedCapitoloId) {
+        linkedMatch =
+          e.chapter_id === linkedCapitoloId ||
+          (Boolean(e.id_voce_spesa) && linkedVoceIds.has(e.id_voce_spesa));
+      }
+
+      return tagMatch && yearMatch && monthMatch && linkedMatch;
     });
-  }, [expenses, activeTag, selectedYear, selectedMonth]);
+  }, [
+    expenses,
+    activeTag,
+    selectedYear,
+    selectedMonth,
+    linkedCapitoloId,
+    linkedVoceSpesaId,
+    linkedVoceIds,
+  ]);
+
+  const clearLinkedFilters = () => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('capitoloId');
+    nextParams.delete('voceSpesaId');
+    setSearchParams(nextParams, { replace: true });
+  };
 
   const yearlyData = useMemo(() => {
     const currentYearExpenses = expenses.filter((e) => e.date?.startsWith(String(currentYear)));
@@ -371,16 +416,12 @@ export default function Expenses() {
   return (
     <div>
       <PageHeader title="Spese" description="Traccia tutte le spese aziendali">
-        <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {[currentYear - 1, currentYear, currentYear + 1].map((year) =>
-            <SelectItem key={year} value={String(year)}>{year}</SelectItem>
-            )}
-          </SelectContent>
-        </Select>
+        <YearSelect
+          value={selectedYear}
+          onValueChange={setSelectedYear}
+          includeAll
+          className="w-40"
+        />
         <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
           <SelectTrigger className="w-36">
             <SelectValue placeholder="Tutti i mesi" />
@@ -397,6 +438,17 @@ export default function Expenses() {
           Aggiungi Spesa
         </Button>
       </PageHeader>
+
+      {hasLinkedFilters && (
+        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-blue-800">
+            Filtro automatico attivo: stai vedendo solo le spese collegate al capitolo selezionato.
+          </p>
+          <Button variant="outline" size="sm" onClick={clearLinkedFilters}>
+            Mostra tutte le spese
+          </Button>
+        </div>
+      )}
 
       {/* Summary Cards by Type */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

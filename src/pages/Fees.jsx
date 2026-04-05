@@ -35,6 +35,8 @@ import QuickAddProject from '../components/forms/QuickAddProject';
 import SearchableSelect from '../components/ui/searchable-select';
 import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
 import FeeRevenueDropdown from '../components/fees/FeeRevenueDropdown';
+import DeltaWidget from '../components/fees/DeltaWidget';
+import YearSelect from '../components/ui/YearSelect';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
 import { useSearchParams } from 'react-router-dom';
@@ -47,10 +49,13 @@ const categoryColors = {
 };
 
 export default function Fees() {
+  const currentYear = new Date().getFullYear();
+  const previousYear = currentYear - 1;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickAddClientOpen, setQuickAddClientOpen] = useState(false);
   const [quickAddProjectOpen, setQuickAddProjectOpen] = useState(false);
   const [editingFee, setEditingFee] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(currentYear);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [monthFilter, setMonthFilter] = useState('all');
   const [expandedClient, setExpandedClient] = useState(null);
@@ -200,13 +205,29 @@ export default function Fees() {
     });
   };
 
+  const feesForSelectedYear = useMemo(() => {
+    return fees.filter((fee) => fee.date?.startsWith(String(selectedYear)));
+  }, [fees, selectedYear]);
+
+  const totalsByYear = useMemo(() => {
+    const totalForYear = (year) =>
+      fees
+        .filter((fee) => fee.date?.startsWith(String(year)))
+        .reduce((sum, fee) => sum + (fee.amount || 0), 0);
+
+    return {
+      previousTotal: totalForYear(previousYear),
+      currentTotal: totalForYear(currentYear),
+    };
+  }, [fees, previousYear, currentYear]);
+
   // Summary stats (rispetta i filtri attivi)
   const stats = useMemo(() => {
     const byCategory = {};
     const byStatus = { 'Da incassare': 0, 'Incassati': 0 };
     const byMethod = { 'Banca': 0, 'Contanti': 0 };
 
-    const filteredForStats = fees.filter(fee => {
+    const filteredForStats = feesForSelectedYear.filter(fee => {
       const catMatch = categoryFilter === 'all' || fee.category === categoryFilter;
       const monthMatch = monthFilter === 'all' || (fee.date && fee.date.slice(5, 7) === monthFilter);
       return catMatch && monthMatch;
@@ -234,12 +255,12 @@ export default function Fees() {
     });
 
     return { byCategory, byStatus, byMethod };
-  }, [fees, categoryFilter, monthFilter]);
+  }, [feesForSelectedYear, categoryFilter, monthFilter]);
 
   // Group fees by client
   const feesByClient = useMemo(() => {
     const grouped = {};
-    fees.forEach(fee => {
+    feesForSelectedYear.forEach(fee => {
       const clientId = fee.client_id || 'unknown';
       if (!grouped[clientId]) {
         grouped[clientId] = {
@@ -251,11 +272,12 @@ export default function Fees() {
       grouped[clientId].fees.push(fee);
     });
     return Object.values(grouped);
-  }, [fees]);
+  }, [feesForSelectedYear]);
 
   return (
     <div>
       <PageHeader title="Previsionale Incassi" description="Gestisci compensi clienti e traccia incassi">
+        <YearSelect value={selectedYear} onValueChange={setSelectedYear} className="w-36" />
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
           Aggiungi Compenso
@@ -302,14 +324,12 @@ export default function Fees() {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-sm text-slate-500 mb-1">Totale</p>
-            <p className="text-2xl font-bold text-slate-900">
-              {formatCurrency(stats.byStatus['Da incassare'] + stats.byStatus['Incassati'])}
-            </p>
-          </CardContent>
-        </Card>
+        <DeltaWidget
+          previousYear={previousYear}
+          currentYear={currentYear}
+          previousTotal={totalsByYear.previousTotal}
+          currentTotal={totalsByYear.currentTotal}
+        />
       </div>
 
       {/* Category Stats */}

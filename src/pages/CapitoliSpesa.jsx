@@ -20,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, Edit, TrendingDown, TrendingUp, AlertCircle, Receipt, MoreVertical, Trash2 } from 'lucide-react';
+import { Plus, Edit, AlertCircle, Receipt, MoreVertical, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../components/lib/formatters';
 import { cn } from '@/lib/utils';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
@@ -29,12 +29,13 @@ import { toast } from 'sonner';
 import { useCustomTags } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
+import { useNavigate } from 'react-router-dom';
+import YearSelect from '../components/ui/YearSelect';
 
 export default function CapitoliSpesa() {
   const { 
     categorie, 
-    vociPerCategoria, 
-    statistichePerCategoria, 
+    vociSpesa: budgetVociSpesa,
     aggiornaBudgetTotale,
     loading 
   } = useBudget();
@@ -69,6 +70,14 @@ export default function CapitoliSpesa() {
 
   const queryClient = useQueryClient();
   const uid = useCurrentUserId();
+  const navigate = useNavigate();
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+
+  const { data: expenses = [] } = useQuery({
+    queryKey: ['expenses', uid],
+    queryFn: () => base44.entities.Expense.list(),
+  });
 
   const createVoceMutation = useMutation({
     mutationFn: (data) => base44.entities.VoceSpesa.create(withOwner({
@@ -175,8 +184,56 @@ export default function CapitoliSpesa() {
     },
   });
 
-  const { vociSpesa: allVoci, vociSpesa } = useBudget();
   const { expenseTags } = useCustomTags();
+
+  const vociSpesa = useMemo(() => {
+    return budgetVociSpesa.map((voce) => {
+      if (selectedYear !== currentYear) {
+        return {
+          ...voce,
+          speso_reale: 0,
+          residuo: voce.budget_totale,
+        };
+      }
+
+      const spesoNellAnno = expenses
+        .filter(
+          (spesa) =>
+            spesa.id_voce_spesa === voce.id &&
+            spesa.date?.startsWith(String(selectedYear))
+        )
+        .reduce((sum, spesa) => sum + (spesa.amount || 0), 0);
+
+      return {
+        ...voce,
+        speso_reale: spesoNellAnno,
+        residuo: voce.budget_totale - spesoNellAnno,
+      };
+    });
+  }, [budgetVociSpesa, currentYear, expenses, selectedYear]);
+
+  const vociPerCategoria = useMemo(() => {
+    const grouped = {};
+    categorie.forEach((cat) => {
+      grouped[cat.id] = vociSpesa.filter((voce) => voce.id_categoria === cat.id);
+    });
+    return grouped;
+  }, [categorie, vociSpesa]);
+
+  const statistichePerCategoria = useMemo(() => {
+    const stats = {};
+    categorie.forEach((cat) => {
+      const vociCategoria = vociPerCategoria[cat.id] || [];
+      const budgetTotale = vociCategoria.reduce((sum, voce) => sum + (voce.budget_totale || 0), 0);
+      const spesoTotale = vociCategoria.reduce((sum, voce) => sum + (voce.speso_reale || 0), 0);
+      stats[cat.id] = {
+        budgetTotale,
+        spesoTotale,
+        residuoTotale: budgetTotale - spesoTotale,
+      };
+    });
+    return stats;
+  }, [categorie, vociPerCategoria]);
 
   // Totale generale tra tutte le categorie
   const totaleGenerale = useMemo(() => {
@@ -193,7 +250,7 @@ export default function CapitoliSpesa() {
     e.preventDefault();
     setNomeError('');
     // Controllo duplicati nome voce
-    const duplicate = allVoci.find(v => 
+    const duplicate = budgetVociSpesa.find(v => 
       v.nome.trim().toLowerCase() === formData.nome.trim().toLowerCase() && 
       (!editingVoce || v.id !== editingVoce.id)
     );
@@ -285,6 +342,14 @@ export default function CapitoliSpesa() {
     setSpesaDialogOpen(true);
   };
 
+  const handleViewLinkedExpenses = (voce) => {
+    const params = new URLSearchParams({
+      capitoloId: voce.id_categoria,
+      voceSpesaId: voce.id,
+    });
+    navigate(`/Expenses?${params.toString()}`);
+  };
+
   const handleSpesaSubmit = (e) => {
     e.preventDefault();
     const cat = categorie.find(c => c.id === selectedVoce.id_categoria);
@@ -312,7 +377,8 @@ export default function CapitoliSpesa() {
         title="Capitoli di Spesa" 
         description="Gestisci budget e monitoraggio spese per categoria"
       >
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <YearSelect value={selectedYear} onValueChange={setSelectedYear} />
           <Button 
             variant="outline" 
             onClick={() => setCategoriaDialogOpen(true)}
@@ -519,6 +585,10 @@ export default function CapitoliSpesa() {
                                     <DropdownMenuItem onClick={() => handleEditVoce(voce)}>
                                       <Edit className="h-4 w-4 mr-2" />
                                       Modifica Voce
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleViewLinkedExpenses(voce)}>
+                                      <Receipt className="h-4 w-4 mr-2" />
+                                      Vedi Spese Collegate
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleToggleStato(voce)}>
                                       {voce.stato === 'attivo' ? 'Chiudi Voce' : 'Riapri Voce'}
