@@ -11,14 +11,25 @@ export default function ContextMenuWrapper({ children, onEdit, onDelete }) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        {children}
+        <div className="inline-flex w-full justify-end">{children}</div>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onSelect={onEdit}>
+        <ContextMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            onEdit?.();
+          }}
+        >
           <Pencil className="h-4 w-4 mr-2" />
           Modifica
         </ContextMenuItem>
-        <ContextMenuItem onSelect={onDelete} className="text-red-600">
+        <ContextMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            onDelete?.();
+          }}
+          className="text-red-600"
+        >
           <Trash2 className="h-4 w-4 mr-2" />
           Elimina
         </ContextMenuItem>

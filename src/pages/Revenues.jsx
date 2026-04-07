@@ -16,6 +16,16 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -41,32 +51,11 @@ import { toast } from 'sonner';
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
-
-/** Base44 functions.invoke usa axios senza unwrap: di solito { data, status, headers, config }. */
-async function assertFunctionResponse(fnPromise) {
-  const res = await fnPromise;
-  // Alcuni client/restituicono direttamente il body JSON senza wrapper axios
-  if (res && typeof res === 'object' && !('config' in res) && !('headers' in res)) {
-    if (res.error != null && res.error !== '') {
-      const msg = typeof res.error === 'string' ? res.error : JSON.stringify(res.error);
-      throw new Error(msg);
-    }
-    return res;
-  }
-  const status = res?.status ?? 0;
-  const body = res?.data;
-  if (status >= 400) {
-    const msg =
-      (typeof body?.error === 'string' && body.error) ||
-      (typeof body?.message === 'string' && body.message) ||
-      `Errore server (${status})`;
-    throw new Error(msg);
-  }
-  if (body && typeof body === 'object' && body.error != null && body.error !== '') {
-    const msg = typeof body.error === 'string' ? body.error : JSON.stringify(body.error);
-    throw new Error(msg);
-  }
-}
+import {
+  assertFunctionResponse,
+  deleteRevenueByCloudFunction,
+  getRevenueRowId,
+} from '@/lib/revenueDelete';
 
 export default function Revenues() {
   const currentYear = new Date().getFullYear();
@@ -76,6 +65,7 @@ export default function Revenues() {
   const [selectedMonth, setSelectedMonth] = useState(0); // 0 = tutti i mesi
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [revenueToDelete, setRevenueToDelete] = useState(null);
   const [editingRevenue, setEditingRevenue] = useState(null);
   const [activeTag, setActiveTag] = useState('all');
   const [formData, setFormData] = useState({
@@ -156,40 +146,29 @@ export default function Revenues() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (revenue) => {
-      const revenueId = revenue?.id ?? revenue?._id;
-      if (!revenueId) {
-        throw new Error('Ricavo senza identificativo');
-      }
-      // Sempre tramite cloud function: la riga in lista può non avere fee_id/installment_id
-      // (camelCase, campi parziali) ma il backend legge il record completo e riconcilia rate/compensi.
-      await assertFunctionResponse(
-        base44.functions.invoke('syncInstallmentRevenuePair', {
-          action: 'delete_revenue',
-          origin: 'revenue',
-          revenue_id: revenueId,
-        }),
-      );
-    },
-    onSuccess: async (_, revenue) => {
-      const rid = revenue?.id ?? revenue?._id;
-      if (rid) {
-        queryClient.setQueryData(['revenues', uid], (old) => {
-          if (!Array.isArray(old)) return old;
-          return old.filter((r) => (r.id ?? r._id) !== rid);
-        });
-      }
+    mutationFn: (revenue) =>
+      deleteRevenueByCloudFunction(base44, getRevenueRowId(revenue)),
+    onSuccess: async () => {
       toast.success('Ricavo eliminato');
+      setRevenueToDelete(null);
       await queryClient.invalidateQueries({ queryKey: ['revenues'] });
+      if (uid != null) {
+        await queryClient.refetchQueries({ queryKey: ['revenues', uid] });
+      }
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
       queryClient.invalidateQueries({ queryKey: ['installments'] });
       queryClient.invalidateQueries({ queryKey: ['fees'] });
       queryClient.invalidateQueries({ queryKey: ['revenues-by-fee'] });
     },
     onError: (error) => {
+      setRevenueToDelete(null);
       toast.error(getMutationErrorMessage(error, "Errore durante l'eliminazione del ricavo"));
     },
   });
+
+  const scheduleDelete = useCallback((row) => {
+    setRevenueToDelete(row);
+  }, []);
 
   const openDialog = useCallback((revenue = null) => {
     if (revenue) {
@@ -350,7 +329,7 @@ export default function Revenues() {
       cell: (row) => (
         <ContextMenuWrapper
           onEdit={() => openDialog(row)}
-          onDelete={() => deleteMutation.mutate(row)}
+          onDelete={() => scheduleDelete(row)}
         >
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -359,12 +338,20 @@ export default function Revenues() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => openDialog(row)}>
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  openDialog(row);
+                }}
+              >
                 <Pencil className="h-4 w-4 mr-2" />
                 Modifica
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onSelect={() => deleteMutation.mutate(row)}
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  scheduleDelete(row);
+                }}
                 className="text-red-600"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -607,6 +594,37 @@ export default function Revenues() {
           });
         }}
       />
+
+      <AlertDialog
+        open={!!revenueToDelete}
+        onOpenChange={(open) => {
+          if (!open) setRevenueToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminare questo ricavo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              L&apos;operazione non può essere annullata. Se il ricavo è collegato a compenso o rata, la
+              sincronizzazione verrà aggiornata sul server.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                if (revenueToDelete) {
+                  deleteMutation.mutate(revenueToDelete);
+                }
+              }}
+            >
+              Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
