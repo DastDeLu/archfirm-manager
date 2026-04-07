@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useBudget } from '../components/budget/BudgetContext';
@@ -152,7 +152,7 @@ export default function Expenses() {
     }
   });
 
-  const openDialog = (expense = null) => {
+  const openDialog = useCallback((expense = null) => {
     if (expense) {
       setEditingExpense(expense);
       setFormData({
@@ -185,7 +185,7 @@ export default function Expenses() {
       });
     }
     setDialogOpen(true);
-  };
+  }, [expenseTags]);
 
   const closeDialog = () => {
     setDialogOpen(false);

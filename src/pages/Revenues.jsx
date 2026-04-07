@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
@@ -36,6 +36,7 @@ import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
 import QuickAddProject from '../components/forms/QuickAddProject';
 import SearchableSelect from '../components/ui/searchable-select';
 import SuggestTextInput from '../components/ui/suggest-text-input';
+import { toast } from 'sonner';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
@@ -65,6 +66,10 @@ export default function Revenues() {
   const uid = useCurrentUserId();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const getMutationErrorMessage = (error, fallbackMessage) => {
+    return error?.response?.data?.error || error?.message || fallbackMessage;
+  };
+
   const { data: revenues = [], isLoading } = useQuery({
     queryKey: ['revenues', uid],
     queryFn: () => base44.entities.Revenue.list('-date'),
@@ -83,6 +88,9 @@ export default function Revenues() {
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
       closeDialog();
+    },
+    onError: (error) => {
+      toast.error(getMutationErrorMessage(error, 'Errore durante la creazione del ricavo'));
     },
   });
 
@@ -105,6 +113,9 @@ export default function Revenues() {
       queryClient.invalidateQueries({ queryKey: ['installments'] });
       closeDialog();
     },
+    onError: (error) => {
+      toast.error(getMutationErrorMessage(error, "Errore durante l'aggiornamento del ricavo"));
+    },
   });
 
   const deleteMutation = useMutation({
@@ -112,6 +123,7 @@ export default function Revenues() {
       if (revenue.installment_id || revenue.fee_id) {
         await base44.functions.invoke('syncInstallmentRevenuePair', {
           action: 'delete_revenue',
+          origin: 'revenue',
           revenue_id: revenue.id,
         });
         return;
@@ -124,9 +136,12 @@ export default function Revenues() {
       queryClient.invalidateQueries({ queryKey: ['installments'] });
       queryClient.invalidateQueries({ queryKey: ['fees'] });
     },
+    onError: (error) => {
+      toast.error(getMutationErrorMessage(error, "Errore durante l'eliminazione del ricavo"));
+    },
   });
 
-  const openDialog = (revenue = null) => {
+  const openDialog = useCallback((revenue = null) => {
     if (revenue) {
       setEditingRevenue(revenue);
       setFormData({
@@ -151,12 +166,12 @@ export default function Revenues() {
       });
     }
     setDialogOpen(true);
-  };
+  }, [revenueTags]);
 
-  const closeDialog = () => {
+  const closeDialog = useCallback(() => {
     setDialogOpen(false);
     setEditingRevenue(null);
-  };
+  }, []);
 
   useEffect(() => {
     const revenueId = searchParams.get('revenueId');
@@ -296,7 +311,7 @@ export default function Revenues() {
                 Modifica
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => deleteMutation.mutate(row)}
+                onSelect={() => deleteMutation.mutate(row)}
                 className="text-red-600"
               >
                 <Trash2 className="h-4 w-4 mr-2" />

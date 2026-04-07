@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '../components/ui/PageHeader';
@@ -119,7 +119,7 @@ export default function Fees() {
     },
   });
 
-  const openDialog = (fee = null) => {
+  const openDialog = useCallback((fee = null) => {
     if (fee) {
       setEditingFee(fee);
       setFormData({
@@ -150,7 +150,7 @@ export default function Fees() {
       });
     }
     setDialogOpen(true);
-  };
+  }, []);
 
   React.useEffect(() => {
     const feeId = searchParams.get('feeId');

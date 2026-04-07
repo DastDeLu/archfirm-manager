@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
@@ -95,7 +95,7 @@ export default function Projects() {
     },
   });
 
-  const openDialog = (project = null) => {
+  const openDialog = useCallback((project = null) => {
     if (project) {
       setEditingProject(project);
       setFormData({
@@ -124,7 +124,7 @@ export default function Projects() {
       });
     }
     setDialogOpen(true);
-  };
+  }, []);
 
   const closeDialog = () => {
     setDialogOpen(false);

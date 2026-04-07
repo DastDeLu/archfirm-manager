@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '../components/ui/PageHeader';
@@ -88,7 +88,7 @@ export default function Clients() {
     },
   });
 
-  const openDialog = (client = null) => {
+  const openDialog = useCallback((client = null) => {
     if (client) {
       setEditingClient(client);
       setFormData({
@@ -113,7 +113,7 @@ export default function Clients() {
       });
     }
     setDialogOpen(true);
-  };
+  }, []);
 
   const closeDialog = () => {
     setDialogOpen(false);
