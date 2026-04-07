@@ -146,9 +146,14 @@ export default function Revenues() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (revenue) =>
-      deleteRevenueByCloudFunction(base44, getRevenueRowId(revenue)),
-    onSuccess: async () => {
+    mutationFn: async (revenue) => {
+      const rid = getRevenueRowId(revenue);
+      console.log('[Revenues] deleteMutation fired, row:', revenue, 'resolved id:', rid);
+      await deleteRevenueByCloudFunction(base44, rid);
+      return rid;
+    },
+    onSuccess: async (rid) => {
+      console.log('[Revenues] delete SUCCESS for id:', rid);
       toast.success('Ricavo eliminato');
       setRevenueToDelete(null);
       await queryClient.invalidateQueries({ queryKey: ['revenues'] });
@@ -161,12 +166,14 @@ export default function Revenues() {
       queryClient.invalidateQueries({ queryKey: ['revenues-by-fee'] });
     },
     onError: (error) => {
+      console.error('[Revenues] delete FAILED:', error);
       setRevenueToDelete(null);
       toast.error(getMutationErrorMessage(error, "Errore durante l'eliminazione del ricavo"));
     },
   });
 
   const scheduleDelete = useCallback((row) => {
+    console.log('[Revenues] scheduleDelete called, row:', row);
     setRevenueToDelete(row);
   }, []);
 
@@ -338,22 +345,11 @@ export default function Revenues() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
-                  openDialog(row);
-                }}
-              >
+              <DropdownMenuItem onClick={() => openDialog(row)}>
                 <Pencil className="h-4 w-4 mr-2" />
                 Modifica
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
-                  scheduleDelete(row);
-                }}
-                className="text-red-600"
-              >
+              <DropdownMenuItem onClick={() => scheduleDelete(row)} className="text-red-600">
                 <Trash2 className="h-4 w-4 mr-2" />
                 Elimina
               </DropdownMenuItem>
@@ -615,6 +611,7 @@ export default function Revenues() {
               className="bg-red-600 hover:bg-red-700"
               disabled={deleteMutation.isPending}
               onClick={() => {
+                console.log('[Revenues] AlertDialog confirm clicked, revenueToDelete:', revenueToDelete);
                 if (revenueToDelete) {
                   deleteMutation.mutate(revenueToDelete);
                 }

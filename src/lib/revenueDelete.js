@@ -43,10 +43,12 @@ export async function deleteRevenueByCloudFunction(base44, revenueId) {
   if (!revenueId) {
     throw new Error('Ricavo senza identificativo');
   }
-  await assertFunctionResponse(
-    base44.functions.invoke('syncInstallmentRevenuePair', {
-      action: 'delete_revenue',
-      revenue_id: revenueId,
-    }),
-  );
+  console.log('[revenueDelete] invoke delete_revenue, id:', revenueId);
+  const raw = await base44.functions.invoke('syncInstallmentRevenuePair', {
+    action: 'delete_revenue',
+    revenue_id: revenueId,
+  });
+  console.log('[revenueDelete] raw response:', JSON.stringify(raw?.data ?? raw, null, 2), 'status:', raw?.status);
+  await assertFunctionResponse(Promise.resolve(raw));
+  console.log('[revenueDelete] delete OK for id:', revenueId);
 }
