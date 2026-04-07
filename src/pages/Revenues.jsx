@@ -42,9 +42,17 @@ import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
 
-/** Base44 functions.invoke usa axios senza unwrap: la risposta è { data, status, ... }. */
+/** Base44 functions.invoke usa axios senza unwrap: di solito { data, status, headers, config }. */
 async function assertFunctionResponse(fnPromise) {
   const res = await fnPromise;
+  // Alcuni client/restituicono direttamente il body JSON senza wrapper axios
+  if (res && typeof res === 'object' && !('config' in res) && !('headers' in res)) {
+    if (res.error != null && res.error !== '') {
+      const msg = typeof res.error === 'string' ? res.error : JSON.stringify(res.error);
+      throw new Error(msg);
+    }
+    return res;
+  }
   const status = res?.status ?? 0;
   const body = res?.data;
   if (status >= 400) {
@@ -163,8 +171,16 @@ export default function Revenues() {
         }),
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['revenues'] });
+    onSuccess: async (_, revenue) => {
+      const rid = revenue?.id ?? revenue?._id;
+      if (rid) {
+        queryClient.setQueryData(['revenues', uid], (old) => {
+          if (!Array.isArray(old)) return old;
+          return old.filter((r) => (r.id ?? r._id) !== rid);
+        });
+      }
+      toast.success('Ricavo eliminato');
+      await queryClient.invalidateQueries({ queryKey: ['revenues'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
       queryClient.invalidateQueries({ queryKey: ['installments'] });
       queryClient.invalidateQueries({ queryKey: ['fees'] });

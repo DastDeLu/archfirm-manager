@@ -14,6 +14,18 @@ function isDifferent(currentValue: unknown, nextValue: unknown): boolean {
   return currentValue !== nextValue;
 }
 
+/** Carica un ricavo per id: GET primario, poi filter (alcuni tenant/API differiscono). */
+async function loadRevenueById(base44: any, revenueId: string): Promise<any | null> {
+  try {
+    const row = await base44.entities.Revenue.get(revenueId);
+    if (row) return row;
+  } catch {
+    /* 404 o id non valido per get */
+  }
+  const list = await base44.entities.Revenue.filter({ id: revenueId });
+  return list?.[0] ?? null;
+}
+
 Deno.serve(withAuth(async (req) => {
   const base44 = createClientFromRequest(req);
   const user = await requireUser(base44);
@@ -28,29 +40,38 @@ Deno.serve(withAuth(async (req) => {
       return Response.json({ error: 'revenue_id required' }, { status: 400 });
     }
 
-    const revenues = await base44.entities.Revenue.filter({ id: revenueId });
-    const revenue = revenues[0];
+    const revenue = await loadRevenueById(base44, revenueId);
     if (!revenue) {
       return Response.json({ error: 'Revenue not found' }, { status: 404 });
     }
     assertOwned(revenue, user.id);
 
-    await base44.asServiceRole.entities.Revenue.delete(revenue.id);
+    const rowId = revenue.id ?? revenue._id;
+    if (!rowId) {
+      return Response.json({ error: 'Revenue record has no id' }, { status: 500 });
+    }
 
-    if (revenue.installment_id) {
-      const installments = await base44.asServiceRole.entities.Installment.filter({ id: revenue.installment_id });
+    await base44.asServiceRole.entities.Revenue.delete(rowId);
+
+    const linkedInstallmentId = revenue.installment_id ?? revenue.installmentId;
+    if (linkedInstallmentId) {
+      const installments = await base44.asServiceRole.entities.Installment.filter({ id: linkedInstallmentId });
       const installment = installments[0];
       if (installment) {
         assertOwned(installment, user.id);
-        await base44.asServiceRole.entities.Installment.update(installment.id, {
-          status: 'pending',
-          paid_date: '',
-        });
+        const instRowId = installment.id ?? installment._id;
+        if (instRowId) {
+          await base44.asServiceRole.entities.Installment.update(instRowId, {
+            status: 'pending',
+            paid_date: '',
+          });
+        }
       }
     }
 
-    if (revenue.fee_id) {
-      await recomputeFeePaymentStatus(base44, revenue.fee_id);
+    const linkedFeeId = revenue.fee_id ?? revenue.feeId;
+    if (linkedFeeId) {
+      await recomputeFeePaymentStatus(base44, linkedFeeId);
     }
 
     return Response.json({ success: true, message: 'Revenue deleted and installment reconciled' });
@@ -66,14 +87,14 @@ Deno.serve(withAuth(async (req) => {
 
   let revenue = null as any;
   if (revenueId) {
-    const revenues = await base44.entities.Revenue.filter({ id: revenueId });
-    revenue = revenues[0];
+    revenue = await loadRevenueById(base44, revenueId);
     if (!revenue) return Response.json({ error: 'Revenue not found' }, { status: 404 });
     assertOwned(revenue, user.id);
   }
 
   let installment = null as any;
-  const resolvedInstallmentId = installmentId || revenue?.installment_id;
+  const resolvedInstallmentId =
+    installmentId || revenue?.installment_id || revenue?.installmentId;
   if (!resolvedInstallmentId) {
     return Response.json({ error: 'installment_id required (or linked revenue with installment_id)' }, { status: 400 });
   }
