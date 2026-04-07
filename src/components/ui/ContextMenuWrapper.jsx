@@ -14,11 +14,11 @@ export default function ContextMenuWrapper({ children, onEdit, onDelete }) {
         {children}
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onClick={onEdit}>
+        <ContextMenuItem onSelect={onEdit}>
           <Pencil className="h-4 w-4 mr-2" />
           Modifica
         </ContextMenuItem>
-        <ContextMenuItem onClick={onDelete} className="text-red-600">
+        <ContextMenuItem onSelect={onDelete} className="text-red-600">
           <Trash2 className="h-4 w-4 mr-2" />
           Elimina
         </ContextMenuItem>

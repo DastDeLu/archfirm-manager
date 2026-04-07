@@ -42,6 +42,24 @@ import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
 
+/** Base44 functions.invoke usa axios senza unwrap: la risposta è { data, status, ... }. */
+async function assertFunctionResponse(fnPromise) {
+  const res = await fnPromise;
+  const status = res?.status ?? 0;
+  const body = res?.data;
+  if (status >= 400) {
+    const msg =
+      (typeof body?.error === 'string' && body.error) ||
+      (typeof body?.message === 'string' && body.message) ||
+      `Errore server (${status})`;
+    throw new Error(msg);
+  }
+  if (body && typeof body === 'object' && body.error != null && body.error !== '') {
+    const msg = typeof body.error === 'string' ? body.error : JSON.stringify(body.error);
+    throw new Error(msg);
+  }
+}
+
 export default function Revenues() {
   const currentYear = new Date().getFullYear();
   const previousYear = currentYear - 1;
@@ -67,7 +85,14 @@ export default function Revenues() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const getMutationErrorMessage = (error, fallbackMessage) => {
-    return error?.response?.data?.error || error?.message || fallbackMessage;
+    return (
+      (typeof error?.data?.error === 'string' && error.data.error) ||
+      (typeof error?.data?.message === 'string' && error.data.message) ||
+      error?.response?.data?.error ||
+      error?.response?.data?.message ||
+      error?.message ||
+      fallbackMessage
+    );
   };
 
   const { data: revenues = [], isLoading } = useQuery({
@@ -96,12 +121,16 @@ export default function Revenues() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }) => {
-      if (editingRevenue?.installment_id) {
-        await base44.functions.invoke('syncInstallmentRevenuePair', {
-          origin: 'revenue',
-          revenue_id: id,
-          revenue_patch: data,
-        });
+      const linkedInstallment =
+        editingRevenue?.installment_id ?? editingRevenue?.installmentId;
+      if (linkedInstallment) {
+        await assertFunctionResponse(
+          base44.functions.invoke('syncInstallmentRevenuePair', {
+            origin: 'revenue',
+            revenue_id: id,
+            revenue_patch: data,
+          }),
+        );
         return { id, ...data };
       }
 
@@ -120,21 +149,26 @@ export default function Revenues() {
 
   const deleteMutation = useMutation({
     mutationFn: async (revenue) => {
-      if (revenue.installment_id || revenue.fee_id) {
-        await base44.functions.invoke('syncInstallmentRevenuePair', {
+      const revenueId = revenue?.id ?? revenue?._id;
+      if (!revenueId) {
+        throw new Error('Ricavo senza identificativo');
+      }
+      // Sempre tramite cloud function: la riga in lista può non avere fee_id/installment_id
+      // (camelCase, campi parziali) ma il backend legge il record completo e riconcilia rate/compensi.
+      await assertFunctionResponse(
+        base44.functions.invoke('syncInstallmentRevenuePair', {
           action: 'delete_revenue',
           origin: 'revenue',
-          revenue_id: revenue.id,
-        });
-        return;
-      }
-      await base44.entities.Revenue.delete(revenue.id);
+          revenue_id: revenueId,
+        }),
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
       queryClient.invalidateQueries({ queryKey: ['installments'] });
       queryClient.invalidateQueries({ queryKey: ['fees'] });
+      queryClient.invalidateQueries({ queryKey: ['revenues-by-fee'] });
     },
     onError: (error) => {
       toast.error(getMutationErrorMessage(error, "Errore durante l'eliminazione del ricavo"));
@@ -177,7 +211,9 @@ export default function Revenues() {
     const revenueId = searchParams.get('revenueId');
     if (!revenueId || revenues.length === 0) return;
 
-    const target = revenues.find((revenue) => revenue.id === revenueId);
+    const target = revenues.find(
+      (revenue) => revenue.id === revenueId || revenue._id === revenueId,
+    );
     if (!target) return;
 
     openDialog(target);
@@ -204,7 +240,8 @@ export default function Revenues() {
       amount: parseFloat(formData.amount)
     };
     if (editingRevenue) {
-      updateMutation.mutate({ id: editingRevenue.id, data });
+      const editId = editingRevenue.id ?? editingRevenue._id;
+      updateMutation.mutate({ id: editId, data });
     } else {
       createMutation.mutate(data);
     }
