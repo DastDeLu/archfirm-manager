@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 import { base44 } from '@/api/base44Client';
@@ -50,6 +50,7 @@ export default function GlobalSearch({ open, onOpenChange }) {
   const [results, setResults] = useState({});
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const requestIdRef = useRef(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -61,13 +62,18 @@ export default function GlobalSearch({ open, onOpenChange }) {
   }, [open]);
 
   useEffect(() => {
+    const requestId = ++requestIdRef.current;
+
     const searchData = async () => {
       if (query.length < 2) {
         setResults({});
+        setSelectedIndex(0);
+        setLoading(false);
         return;
       }
 
       setLoading(true);
+      setResults({});
       try {
         const [clients, projects, fees, revenues, expenses] = await Promise.all([
           base44.entities.Client.list(),
@@ -76,6 +82,8 @@ export default function GlobalSearch({ open, onOpenChange }) {
           base44.entities.Revenue.list(),
           base44.entities.Expense.list(),
         ]);
+
+        if (requestId !== requestIdRef.current) return;
 
         const lowerQuery = query.toLowerCase();
         const filtered = {
@@ -89,9 +97,12 @@ export default function GlobalSearch({ open, onOpenChange }) {
         setResults(filtered);
         setSelectedIndex(0);
       } catch (e) {
+        if (requestId !== requestIdRef.current) return;
         console.error('Search error:', e);
       } finally {
-        setLoading(false);
+        if (requestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     };
 
