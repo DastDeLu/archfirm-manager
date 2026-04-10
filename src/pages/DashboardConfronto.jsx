@@ -1,290 +1,448 @@
-import React, { useState, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import PageHeader from '../components/ui/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { ArrowUpCircle, ArrowDownCircle, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  Line,
+} from 'recharts';
+import {
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Calendar,
+  Filter,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCurrentUserId } from '../hooks/useCurrentUserId';
 
 const MONTHS = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
+const euroFmt = new Intl.NumberFormat('it-IT', {
+  style: 'currency',
+  currency: 'EUR',
+  maximumFractionDigits: 0,
+});
+
+const pctFmt = (value) => `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+const signedEuro = (value) => `${value >= 0 ? '+' : ''}${euroFmt.format(value)}`;
+const asNumber = (value) => Number(value) || 0;
+
+function deltaPercent(current, previous) {
+  if (!previous) return 0;
+  return ((current - previous) / Math.abs(previous)) * 100;
+}
+
 export default function DashboardConfronto() {
-  const currentYear = new Date().getFullYear();
-  const previousYear = currentYear - 1;
+  const now = new Date();
+  const currentCalendarYear = now.getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentCalendarYear);
+  const [selectedMonth, setSelectedMonth] = useState('all');
+  const [selectedTag, setSelectedTag] = useState('all');
+  const [selectedEntity, setSelectedEntity] = useState('all');
+  const uid = useCurrentUserId();
+  const previousYear = selectedYear - 1;
 
-  const { data: currentRevenues = [] } = useQuery({
-    queryKey: ['revenues', currentYear],
-    queryFn: () => base44.entities.Revenue.filter({ year: currentYear }),
+  const { data: revenues = [] } = useQuery({
+    queryKey: ['revenues', uid],
+    queryFn: () => base44.entities.Revenue.list('-date'),
   });
 
-  const { data: previousRevenues = [] } = useQuery({
-    queryKey: ['revenues', previousYear],
-    queryFn: () => base44.entities.Revenue.filter({ year: previousYear }),
-  });
-
-  const { data: currentExpenses = [] } = useQuery({
-    queryKey: ['expenses', currentYear],
-    queryFn: () => base44.entities.Expense.filter({ year: currentYear }),
-  });
-
-  const { data: previousExpenses = [] } = useQuery({
-    queryKey: ['expenses', previousYear],
-    queryFn: () => base44.entities.Expense.filter({ year: previousYear }),
+  const { data: expenses = [] } = useQuery({
+    queryKey: ['expenses', uid],
+    queryFn: () => base44.entities.Expense.list('-date'),
   });
 
   const { data: currentForecasts = [] } = useQuery({
-    queryKey: ['forecasts', currentYear],
-    queryFn: () => base44.entities.Forecast.filter({ year: currentYear }),
+    queryKey: ['forecasts', uid, selectedYear],
+    queryFn: () => base44.entities.Forecast.filter({ year: selectedYear }),
   });
 
   const { data: previousForecasts = [] } = useQuery({
-    queryKey: ['forecasts', previousYear],
+    queryKey: ['forecasts', uid, previousYear],
     queryFn: () => base44.entities.Forecast.filter({ year: previousYear }),
   });
 
+  const visibleMonthIndexes = useMemo(() => {
+    if (selectedMonth === 'all') {
+      return Array.from({ length: 12 }, (_, index) => index + 1);
+    }
+    return [Number(selectedMonth)];
+  }, [selectedMonth]);
+
+  const tagOptions = useMemo(() => {
+    const tags = [...revenues, ...expenses]
+      .map((entry) => entry.tag)
+      .filter((tag) => typeof tag === 'string' && tag.trim().length > 0);
+    return Array.from(new Set(tags)).sort((a, b) => a.localeCompare(b, 'it'));
+  }, [revenues, expenses]);
+
+  const entityOptions = useMemo(() => {
+    const values = [];
+    [...revenues, ...expenses].forEach((entry) => {
+      if (entry.project_name) {
+        values.push({ value: `project:${entry.project_name}`, label: `Progetto: ${entry.project_name}` });
+      }
+      if (entry.client_name) {
+        values.push({ value: `client:${entry.client_name}`, label: `Cliente: ${entry.client_name}` });
+      }
+    });
+
+    const unique = new Map();
+    values.forEach((item) => {
+      if (!unique.has(item.value)) unique.set(item.value, item);
+    });
+    return Array.from(unique.values()).sort((a, b) => a.label.localeCompare(b.label, 'it'));
+  }, [revenues, expenses]);
+
+  const matchesFilters = (entry) => {
+    const matchesTag = selectedTag === 'all' || entry.tag === selectedTag;
+    if (!matchesTag) return false;
+    if (selectedEntity === 'all') return true;
+
+    const [kind, rawValue] = selectedEntity.split(':');
+    if (kind === 'project') return entry.project_name === rawValue;
+    if (kind === 'client') return entry.client_name === rawValue;
+    return true;
+  };
+
+  const filteredRevenues = useMemo(
+    () => revenues.filter((entry) => matchesFilters(entry)),
+    [revenues, selectedTag, selectedEntity],
+  );
+
+  const filteredExpenses = useMemo(
+    () => expenses.filter((entry) => matchesFilters(entry)),
+    [expenses, selectedTag, selectedEntity],
+  );
+
   const comparisonData = useMemo(() => {
-    return MONTHS.map((month, idx) => {
-      const monthNum = idx + 1;
-      const monthKey = String(monthNum).padStart(2, '0');
+    return visibleMonthIndexes.map((monthNum) => {
+      const month = MONTHS[monthNum - 1];
+      const currentPrefix = `${selectedYear}-${String(monthNum).padStart(2, '0')}`;
+      const previousPrefix = `${previousYear}-${String(monthNum).padStart(2, '0')}`;
 
-      // Current year
-      const currentRevenue = currentRevenues
-        .filter(r => r.date?.includes(`-${monthKey}-`))
-        .reduce((sum, r) => sum + (r.amount || 0), 0);
-      
-      const currentExpense = currentExpenses
-        .filter(e => e.date?.includes(`-${monthKey}-`))
-        .reduce((sum, e) => sum + (e.amount || 0), 0);
+      const currentRevenue = filteredRevenues
+        .filter((revenue) => revenue.date?.startsWith(currentPrefix))
+        .reduce((sum, revenue) => sum + asNumber(revenue.amount), 0);
 
-      const currentForecast = currentForecasts.find(f => f.month === monthNum);
+      const previousRevenue = filteredRevenues
+        .filter((revenue) => revenue.date?.startsWith(previousPrefix))
+        .reduce((sum, revenue) => sum + asNumber(revenue.amount), 0);
 
-      // Previous year
-      const previousRevenue = previousRevenues
-        .filter(r => r.date?.includes(`-${monthKey}-`))
-        .reduce((sum, r) => sum + (r.amount || 0), 0);
-      
-      const previousExpense = previousExpenses
-        .filter(e => e.date?.includes(`-${monthKey}-`))
-        .reduce((sum, e) => sum + (e.amount || 0), 0);
+      const currentExpense = filteredExpenses
+        .filter((expense) => expense.date?.startsWith(currentPrefix))
+        .reduce((sum, expense) => sum + asNumber(expense.amount), 0);
 
-      const previousForecast = previousForecasts.find(f => f.month === monthNum);
+      const previousExpense = filteredExpenses
+        .filter((expense) => expense.date?.startsWith(previousPrefix))
+        .reduce((sum, expense) => sum + asNumber(expense.amount), 0);
 
-      // Deltas
-      const revenueDelta = currentRevenue - previousRevenue;
-      const expenseDelta = currentExpense - previousExpense;
-      const saldoCurrentYear = currentRevenue - currentExpense;
-      const saldoPreviousYear = previousRevenue - previousExpense;
-      const saldoDelta = saldoCurrentYear - saldoPreviousYear;
+      const currentForecast = currentForecasts.find((forecast) => Number(forecast.month) === monthNum);
+      const previousForecast = previousForecasts.find((forecast) => Number(forecast.month) === monthNum);
+
+      const currentForecastNet = asNumber(currentForecast?.revenue_amount) - asNumber(currentForecast?.expense_amount);
+      const previousForecastNet = asNumber(previousForecast?.revenue_amount) - asNumber(previousForecast?.expense_amount);
+
+      const saldoCurrent = currentRevenue - currentExpense;
+      const saldoPrevious = previousRevenue - previousExpense;
 
       return {
         month,
+        monthNum,
         currentRevenue,
         previousRevenue,
-        revenueDelta,
-        revenueDeltaPercent: previousRevenue > 0 ? ((revenueDelta / previousRevenue) * 100).toFixed(1) : 0,
+        revenueDelta: currentRevenue - previousRevenue,
         currentExpense,
         previousExpense,
-        expenseDelta,
-        expenseDeltaPercent: previousExpense > 0 ? ((expenseDelta / previousExpense) * 100).toFixed(1) : 0,
-        saldoCurrentYear,
-        saldoPreviousYear,
-        saldoDelta,
-        saldoDeltaPercent: saldoPreviousYear !== 0 ? ((saldoDelta / Math.abs(saldoPreviousYear)) * 100).toFixed(1) : 0,
+        expenseDelta: currentExpense - previousExpense,
+        currentExpenseStack: -currentExpense,
+        previousExpenseStack: -previousExpense,
+        saldoCurrent,
+        saldoPrevious,
+        saldoDelta: saldoCurrent - saldoPrevious,
+        currentForecastNet,
+        previousForecastNet,
+        forecastGap: saldoCurrent - currentForecastNet,
       };
     });
-  }, [currentRevenues, previousRevenues, currentExpenses, previousExpenses, currentForecasts, previousForecasts]);
+  }, [filteredExpenses, previousForecasts, previousYear, filteredRevenues, selectedYear, visibleMonthIndexes, currentForecasts]);
 
   const totals = useMemo(() => {
-    return comparisonData.reduce((acc, item) => ({
-      currentRevenue: acc.currentRevenue + item.currentRevenue,
-      previousRevenue: acc.previousRevenue + item.previousRevenue,
-      currentExpense: acc.currentExpense + item.currentExpense,
-      previousExpense: acc.previousExpense + item.previousExpense,
-      saldoCurrentYear: acc.saldoCurrentYear + item.saldoCurrentYear,
-      saldoPreviousYear: acc.saldoPreviousYear + item.saldoPreviousYear,
-    }), { currentRevenue: 0, previousRevenue: 0, currentExpense: 0, previousExpense: 0, saldoCurrentYear: 0, saldoPreviousYear: 0 });
+    return comparisonData.reduce(
+      (acc, item) => ({
+        currentRevenue: acc.currentRevenue + item.currentRevenue,
+        previousRevenue: acc.previousRevenue + item.previousRevenue,
+        currentExpense: acc.currentExpense + item.currentExpense,
+        previousExpense: acc.previousExpense + item.previousExpense,
+        saldoCurrent: acc.saldoCurrent + item.saldoCurrent,
+        saldoPrevious: acc.saldoPrevious + item.saldoPrevious,
+        currentForecastNet: acc.currentForecastNet + item.currentForecastNet,
+      }),
+      {
+        currentRevenue: 0,
+        previousRevenue: 0,
+        currentExpense: 0,
+        previousExpense: 0,
+        saldoCurrent: 0,
+        saldoPrevious: 0,
+        currentForecastNet: 0,
+      },
+    );
   }, [comparisonData]);
 
-  const totalRevenueDelta = totals.currentRevenue - totals.previousRevenue;
-  const totalRevenueDeltaPercent = totals.previousRevenue > 0 ? ((totalRevenueDelta / totals.previousRevenue) * 100).toFixed(1) : 0;
-  
-  const totalExpenseDelta = totals.currentExpense - totals.previousExpense;
-  const totalExpenseDeltaPercent = totals.previousExpense > 0 ? ((totalExpenseDelta / totals.previousExpense) * 100).toFixed(1) : 0;
-  
-  const totalSaldoDelta = totals.saldoCurrentYear - totals.saldoPreviousYear;
-  const totalSaldoDeltaPercent = totals.saldoPreviousYear !== 0 ? ((totalSaldoDelta / Math.abs(totals.saldoPreviousYear)) * 100).toFixed(1) : 0;
+  const revenueDelta = totals.currentRevenue - totals.previousRevenue;
+  const expenseDelta = totals.currentExpense - totals.previousExpense;
+  const saldoDelta = totals.saldoCurrent - totals.saldoPrevious;
+  const forecastGap = totals.saldoCurrent - totals.currentForecastNet;
+
+  const yearOptions = useMemo(
+    () => Array.from({ length: 6 }, (_, index) => currentCalendarYear - 3 + index),
+    [currentCalendarYear],
+  );
 
   return (
-    <div>
-      <PageHeader 
-        title="Dashboard Confronto" 
-        description={`Confronto Anno su Anno: ${currentYear} vs ${previousYear}`}
+    <div className="space-y-6">
+      <PageHeader
+        title="Dashboard Confronto"
+        description={`Confronto ${selectedYear} vs ${previousYear} con singola sorgente dati`}
       />
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className={totalRevenueDelta >= 0 ? "border-emerald-200 bg-emerald-50/30" : "border-red-200 bg-red-50/30"}>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
-              <TrendingUp className="h-4 w-4" />
-              Incassi YoY
+      <Card className="border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-sm">
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.2em] text-slate-300">Control room</p>
+              <h2 className="mt-1 text-2xl font-semibold">Confronto finanziario anno su anno</h2>
+              <p className="mt-2 text-sm text-slate-300">
+                Tutte le metriche derivano da Ricavi/Spese via `date`, evitando inconsistenze tra pagine.
+              </p>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <p className="text-sm text-slate-600">{currentYear}</p>
-                <p className="text-xl font-bold text-slate-900">
-                  €{totals.currentRevenue.toLocaleString('it-IT')}
+                <p className="mb-1 flex items-center gap-1 text-xs text-slate-300">
+                  <Calendar className="h-3.5 w-3.5" />
+                  Anno di analisi
                 </p>
+                <Select value={String(selectedYear)} onValueChange={(value) => setSelectedYear(Number(value))}>
+                  <SelectTrigger className="w-[180px] border-slate-600 bg-slate-900 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {yearOptions.map((year) => (
+                      <SelectItem key={year} value={String(year)}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="text-right">
-                <div className="flex items-center gap-1">
-                  {totalRevenueDelta >= 0 ? (
-                    <ArrowUpCircle className="h-4 w-4 text-emerald-600" />
-                  ) : (
-                    <ArrowDownCircle className="h-4 w-4 text-red-600" />
-                  )}
-                  <span className={cn("text-lg font-semibold", totalRevenueDelta >= 0 ? "text-emerald-600" : "text-red-600")}>
-                    {totalRevenueDelta >= 0 ? '+' : ''}€{totalRevenueDelta.toLocaleString('it-IT')}
-                  </span>
-                </div>
-                <p className={cn("text-xs", totalRevenueDelta >= 0 ? "text-emerald-600" : "text-red-600")}>
-                  {totalRevenueDelta >= 0 ? '+' : ''}{totalRevenueDeltaPercent}%
+              <div>
+                <p className="mb-1 flex items-center gap-1 text-xs text-slate-300">
+                  <Filter className="h-3.5 w-3.5" />
+                  Mese
                 </p>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="w-[180px] border-slate-600 bg-slate-900 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tutti i mesi</SelectItem>
+                    {MONTHS.map((month, index) => (
+                      <SelectItem key={month} value={String(index + 1)}>
+                        {month}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              <div>
+                <p className="mb-1 flex items-center gap-1 text-xs text-slate-300">
+                  <Filter className="h-3.5 w-3.5" />
+                  Tag
+                </p>
+                <Select value={selectedTag} onValueChange={setSelectedTag}>
+                  <SelectTrigger className="w-[180px] border-slate-600 bg-slate-900 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tutti i tag</SelectItem>
+                    {tagOptions.map((tag) => (
+                      <SelectItem key={tag} value={tag}>
+                        {tag}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <p className="mb-1 flex items-center gap-1 text-xs text-slate-300">
+                  <Filter className="h-3.5 w-3.5" />
+                  Progetto/Cliente
+                </p>
+                <Select value={selectedEntity} onValueChange={setSelectedEntity}>
+                  <SelectTrigger className="w-[180px] border-slate-600 bg-slate-900 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tutti</SelectItem>
+                    {entityOptions.map((entity) => (
+                      <SelectItem key={entity.value} value={entity.value}>
+                        {entity.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card className={cn('border', revenueDelta >= 0 ? 'border-emerald-200' : 'border-red-200')}>
+          <CardContent className="pt-5">
+            <p className="text-xs uppercase tracking-wider text-slate-500">Ricavi</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{euroFmt.format(totals.currentRevenue)}</p>
+            <div className="mt-2 flex items-center gap-2 text-sm">
+              {revenueDelta >= 0 ? (
+                <ArrowUpCircle className="h-4 w-4 text-emerald-600" />
+              ) : (
+                <ArrowDownCircle className="h-4 w-4 text-red-600" />
+              )}
+              <span className={cn(revenueDelta >= 0 ? 'text-emerald-600' : 'text-red-600')}>
+                {signedEuro(revenueDelta)} ({pctFmt(deltaPercent(totals.currentRevenue, totals.previousRevenue))})
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className={totalExpenseDelta <= 0 ? "border-emerald-200 bg-emerald-50/30" : "border-red-200 bg-red-50/30"}>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
-              <TrendingDown className="h-4 w-4" />
-              Spese YoY
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">{currentYear}</p>
-                <p className="text-xl font-bold text-slate-900">
-                  €{totals.currentExpense.toLocaleString('it-IT')}
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="flex items-center gap-1">
-                  {totalExpenseDelta <= 0 ? (
-                    <ArrowDownCircle className="h-4 w-4 text-emerald-600" />
-                  ) : (
-                    <ArrowUpCircle className="h-4 w-4 text-red-600" />
-                  )}
-                  <span className={cn("text-lg font-semibold", totalExpenseDelta <= 0 ? "text-emerald-600" : "text-red-600")}>
-                    {totalExpenseDelta >= 0 ? '+' : ''}€{totalExpenseDelta.toLocaleString('it-IT')}
-                  </span>
-                </div>
-                <p className={cn("text-xs", totalExpenseDelta <= 0 ? "text-emerald-600" : "text-red-600")}>
-                  {totalExpenseDelta >= 0 ? '+' : ''}{totalExpenseDeltaPercent}%
-                </p>
-              </div>
+        <Card className={cn('border', expenseDelta <= 0 ? 'border-emerald-200' : 'border-red-200')}>
+          <CardContent className="pt-5">
+            <p className="text-xs uppercase tracking-wider text-slate-500">Spese</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{euroFmt.format(totals.currentExpense)}</p>
+            <div className="mt-2 flex items-center gap-2 text-sm">
+              {expenseDelta <= 0 ? (
+                <ArrowDownCircle className="h-4 w-4 text-emerald-600" />
+              ) : (
+                <ArrowUpCircle className="h-4 w-4 text-red-600" />
+              )}
+              <span className={cn(expenseDelta <= 0 ? 'text-emerald-600' : 'text-red-600')}>
+                {signedEuro(expenseDelta)} ({pctFmt(deltaPercent(totals.currentExpense, totals.previousExpense))})
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className={totalSaldoDelta >= 0 ? "border-emerald-200 bg-emerald-50/30" : "border-red-200 bg-red-50/30"}>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
-              <Calendar className="h-4 w-4" />
-              Saldo YoY
+        <Card className={cn('border', saldoDelta >= 0 ? 'border-emerald-200' : 'border-red-200')}>
+          <CardContent className="pt-5">
+            <p className="text-xs uppercase tracking-wider text-slate-500">Saldo netto</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{euroFmt.format(totals.saldoCurrent)}</p>
+            <div className="mt-2 flex items-center gap-2 text-sm">
+              {saldoDelta >= 0 ? (
+                <TrendingUp className="h-4 w-4 text-emerald-600" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-600" />
+              )}
+              <span className={cn(saldoDelta >= 0 ? 'text-emerald-600' : 'text-red-600')}>
+                {signedEuro(saldoDelta)} ({pctFmt(deltaPercent(totals.saldoCurrent, totals.saldoPrevious))})
+              </span>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">{currentYear}</p>
-                <p className="text-xl font-bold text-slate-900">
-                  €{totals.saldoCurrentYear.toLocaleString('it-IT')}
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="flex items-center gap-1">
-                  {totalSaldoDelta >= 0 ? (
-                    <ArrowUpCircle className="h-4 w-4 text-emerald-600" />
-                  ) : (
-                    <ArrowDownCircle className="h-4 w-4 text-red-600" />
-                  )}
-                  <span className={cn("text-lg font-semibold", totalSaldoDelta >= 0 ? "text-emerald-600" : "text-red-600")}>
-                    {totalSaldoDelta >= 0 ? '+' : ''}€{totalSaldoDelta.toLocaleString('it-IT')}
-                  </span>
-                </div>
-                <p className={cn("text-xs", totalSaldoDelta >= 0 ? "text-emerald-600" : "text-red-600")}>
-                  {totalSaldoDelta >= 0 ? '+' : ''}{totalSaldoDeltaPercent}%
-                </p>
-              </div>
+          </CardContent>
+        </Card>
+
+        <Card className={cn('border', forecastGap >= 0 ? 'border-emerald-200' : 'border-amber-200')}>
+          <CardContent className="pt-5">
+            <p className="text-xs uppercase tracking-wider text-slate-500">Scostamento da forecast</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{signedEuro(forecastGap)}</p>
+            <div className="mt-2 flex items-center gap-2 text-sm text-slate-600">
+              <Badge variant="secondary" className="font-medium">
+                Forecast netto: {euroFmt.format(totals.currentForecastNet)}
+              </Badge>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Chart */}
-      <Card className="mb-6">
+      <Card>
         <CardHeader>
-          <CardTitle>Confronto Mensile</CardTitle>
+          <CardTitle>Trend mensile stacked: ricavi/spese e saldo delta</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[400px]">
+          <div className="h-[420px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={comparisonData}>
+              <BarChart data={comparisonData} margin={{ top: 12, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v/1000}k`} />
-                <Tooltip 
-                  formatter={(value) => `€${value.toLocaleString('it-IT')}`}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                <YAxis stroke="#64748b" fontSize={12} tickFormatter={(value) => euroFmt.format(value)} />
+                <Tooltip
+                  formatter={(value) => euroFmt.format(asNumber(value))}
+                  contentStyle={{ borderRadius: 10, border: '1px solid #cbd5e1' }}
                 />
                 <Legend />
-                <Bar dataKey="currentRevenue" name={`Ricavi ${currentYear}`} fill="#10b981" />
-                <Bar dataKey="previousRevenue" name={`Ricavi ${previousYear}`} fill="#10b981" opacity={0.4} />
-                <Bar dataKey="currentExpense" name={`Spese ${currentYear}`} fill="#ef4444" />
-                <Bar dataKey="previousExpense" name={`Spese ${previousYear}`} fill="#ef4444" opacity={0.4} />
+                <Bar dataKey="currentRevenue" stackId="current" name={`Ricavi ${selectedYear}`} fill="#0f766e" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="currentExpenseStack" stackId="current" name={`Spese ${selectedYear}`} fill="#dc2626" radius={[0, 0, 6, 6]} />
+                <Bar dataKey="previousRevenue" stackId="previous" name={`Ricavi ${previousYear}`} fill="#2dd4bf" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="previousExpenseStack" stackId="previous" name={`Spese ${previousYear}`} fill="#f87171" radius={[0, 0, 6, 6]} />
+                <Line type="monotone" dataKey="saldoDelta" name="Saldo delta" stroke="#0f172a" strokeWidth={2} dot={{ r: 3 }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
 
-      {/* Detailed Monthly Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Dettaglio Mensile</CardTitle>
+          <CardTitle>Dettaglio confronto mensile</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[980px]">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="pb-3 text-sm font-semibold text-slate-600">Mese</th>
-                  <th className="pb-3 text-sm font-semibold text-slate-600">Incassi {currentYear}</th>
-                  <th className="pb-3 text-sm font-semibold text-slate-600">Incassi {previousYear}</th>
-                  <th className="pb-3 text-sm font-semibold text-slate-600">Delta</th>
-                  <th className="pb-3 text-sm font-semibold text-slate-600">Spese {currentYear}</th>
-                  <th className="pb-3 text-sm font-semibold text-slate-600">Spese {previousYear}</th>
-                  <th className="pb-3 text-sm font-semibold text-slate-600">Delta</th>
-                  <th className="pb-3 text-sm font-semibold text-slate-600">Saldo Delta</th>
+                  <th className="pb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Mese</th>
+                  <th className="pb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Ricavi {selectedYear}</th>
+                  <th className="pb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Ricavi {previousYear}</th>
+                  <th className="pb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Spese {selectedYear}</th>
+                  <th className="pb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Spese {previousYear}</th>
+                  <th className="pb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Saldo Delta</th>
+                  <th className="pb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Forecast Gap</th>
                 </tr>
               </thead>
               <tbody>
-                {comparisonData.map((item, idx) => (
-                  <tr key={idx} className="border-b">
+                {comparisonData.map((item) => (
+                  <tr key={item.monthNum} className="border-b">
                     <td className="py-3 text-sm font-medium text-slate-900">{item.month}</td>
-                    <td className="py-3 text-sm text-emerald-600">€{item.currentRevenue.toLocaleString('it-IT')}</td>
-                    <td className="py-3 text-sm text-slate-500">€{item.previousRevenue.toLocaleString('it-IT')}</td>
-                    <td className={cn("py-3 text-sm font-medium", item.revenueDelta >= 0 ? "text-emerald-600" : "text-red-600")}>
-                      {item.revenueDelta >= 0 ? '+' : ''}€{item.revenueDelta.toLocaleString('it-IT')} ({item.revenueDeltaPercent}%)
+                    <td className="py-3 text-sm text-emerald-700">{euroFmt.format(item.currentRevenue)}</td>
+                    <td className="py-3 text-sm text-slate-600">{euroFmt.format(item.previousRevenue)}</td>
+                    <td className="py-3 text-sm text-red-700">{euroFmt.format(item.currentExpense)}</td>
+                    <td className="py-3 text-sm text-slate-600">{euroFmt.format(item.previousExpense)}</td>
+                    <td
+                      className={cn(
+                        'py-3 text-sm font-semibold',
+                        item.saldoDelta >= 0 ? 'text-emerald-700' : 'text-red-700',
+                      )}
+                    >
+                      {signedEuro(item.saldoDelta)}
                     </td>
-                    <td className="py-3 text-sm text-red-600">€{item.currentExpense.toLocaleString('it-IT')}</td>
-                    <td className="py-3 text-sm text-slate-500">€{item.previousExpense.toLocaleString('it-IT')}</td>
-                    <td className={cn("py-3 text-sm font-medium", item.expenseDelta <= 0 ? "text-emerald-600" : "text-red-600")}>
-                      {item.expenseDelta >= 0 ? '+' : ''}€{item.expenseDelta.toLocaleString('it-IT')} ({item.expenseDeltaPercent}%)
-                    </td>
-                    <td className={cn("py-3 text-sm font-semibold", item.saldoDelta >= 0 ? "text-emerald-600" : "text-red-600")}>
-                      {item.saldoDelta >= 0 ? '+' : ''}€{item.saldoDelta.toLocaleString('it-IT')}
+                    <td
+                      className={cn(
+                        'py-3 text-sm font-semibold',
+                        item.forecastGap >= 0 ? 'text-emerald-700' : 'text-amber-700',
+                      )}
+                    >
+                      {signedEuro(item.forecastGap)}
                     </td>
                   </tr>
                 ))}
