@@ -70,12 +70,12 @@ async function requireUser(base44) {
   return user;
 }
 
-function assertOwned(record, userId) {
+function assertOwned(record, userId, userEmail) {
   if (!record) return;
   const owner = record.owner_id || record.ownerId || record.created_by;
-  if (owner && owner !== userId && owner !== String(userId)) {
-    throw new Error('Forbidden: not the owner of this record');
-  }
+  if (!owner) return;
+  if (owner === userId || owner === String(userId) || owner === userEmail) return;
+  throw new Error('Forbidden: not the owner of this record');
 }
 
 function stampOwnerExtra(userId) {
@@ -93,6 +93,7 @@ Deno.serve(async (req) => {
     const action = body?.action || 'sync';
     const revenueId = body?.revenue_id;
     const installmentId = body?.installment_id;
+    const userEmail = user.email;
 
     // ── DELETE REVENUE ──────────────────────────────────────────────────────
     if (action === 'delete_revenue') {
@@ -111,7 +112,7 @@ Deno.serve(async (req) => {
       if (!revenue) {
         return Response.json({ error: 'Revenue not found' }, { status: 404 });
       }
-      assertOwned(revenue, user.id);
+      assertOwned(revenue, user.id, userEmail);
 
       const rowId = revenue.id ?? revenue._id;
       if (!rowId) {
@@ -164,7 +165,7 @@ Deno.serve(async (req) => {
         revenue = list?.[0] ?? null;
       }
       if (!revenue) return Response.json({ error: 'Revenue not found' }, { status: 404 });
-      assertOwned(revenue, user.id);
+      assertOwned(revenue, user.id, userEmail);
     }
 
     const resolvedInstallmentId =
@@ -179,12 +180,12 @@ Deno.serve(async (req) => {
     if (!installment) {
       return Response.json({ error: 'Installment not found' }, { status: 404 });
     }
-    assertOwned(installment, user.id);
+    assertOwned(installment, user.id, userEmail);
 
     if (!revenue) {
       const linkedRevenues = await base44.asServiceRole.entities.Revenue.filter({ installment_id: installment.id });
       revenue = linkedRevenues[0] || null;
-      if (revenue) assertOwned(revenue, user.id);
+      if (revenue) assertOwned(revenue, user.id, userEmail);
     }
 
     const fees = await base44.asServiceRole.entities.Fee.filter({ id: installment.fee_id });
@@ -192,7 +193,7 @@ Deno.serve(async (req) => {
     if (!fee) {
       return Response.json({ error: 'Associated fee not found' }, { status: 404 });
     }
-    assertOwned(fee, user.id);
+    assertOwned(fee, user.id, userEmail);
 
     const defaultTag = await resolveDefaultRevenueTag(base44);
 
