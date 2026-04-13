@@ -206,6 +206,7 @@ export default function Fees() {
   };
 
   const feesForSelectedYear = useMemo(() => {
+    if (selectedYear === 0) return fees;
     return fees.filter((fee) => fee.date?.startsWith(String(selectedYear)));
   }, [fees, selectedYear]);
 
@@ -277,7 +278,7 @@ export default function Fees() {
   return (
     <div>
       <PageHeader title="Previsionale Incassi" description="Gestisci compensi clienti e traccia incassi">
-        <YearSelect value={selectedYear} onValueChange={setSelectedYear} className="w-36" />
+        <YearSelect value={selectedYear} onValueChange={setSelectedYear} className="w-44" includeAll allLabel="Tutti gli anni" allValue={0} />
         <Button onClick={() => openDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
           Aggiungi Compenso
