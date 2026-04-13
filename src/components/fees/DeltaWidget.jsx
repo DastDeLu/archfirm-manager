@@ -18,7 +18,7 @@ export default function DeltaWidget({
     <Card>
       <CardContent className="pt-4">
         <p className="text-sm text-slate-500 mb-1">
-          Delta {previousYear} -> {currentYear}
+          Delta {previousYear} {'→'} {currentYear}
         </p>
         <div className="flex items-center gap-2">
           {isPositive ? (
