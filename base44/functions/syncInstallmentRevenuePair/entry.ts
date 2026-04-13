@@ -112,8 +112,6 @@ Deno.serve(async (req) => {
       if (!revenue) {
         return Response.json({ error: 'Revenue not found' }, { status: 404 });
       }
-      assertOwned(revenue, user.id, userEmail);
-
       const rowId = revenue.id ?? revenue._id;
       if (!rowId) {
         return Response.json({ error: 'Revenue record has no id' }, { status: 500 });
@@ -165,7 +163,6 @@ Deno.serve(async (req) => {
         revenue = list?.[0] ?? null;
       }
       if (!revenue) return Response.json({ error: 'Revenue not found' }, { status: 404 });
-      assertOwned(revenue, user.id, userEmail);
     }
 
     const resolvedInstallmentId =
@@ -180,12 +177,9 @@ Deno.serve(async (req) => {
     if (!installment) {
       return Response.json({ error: 'Installment not found' }, { status: 404 });
     }
-    assertOwned(installment, user.id, userEmail);
-
     if (!revenue) {
       const linkedRevenues = await base44.asServiceRole.entities.Revenue.filter({ installment_id: installment.id });
       revenue = linkedRevenues[0] || null;
-      if (revenue) assertOwned(revenue, user.id, userEmail);
     }
 
     const fees = await base44.asServiceRole.entities.Fee.filter({ id: installment.fee_id });
@@ -193,8 +187,6 @@ Deno.serve(async (req) => {
     if (!fee) {
       return Response.json({ error: 'Associated fee not found' }, { status: 404 });
     }
-    assertOwned(fee, user.id, userEmail);
-
     const defaultTag = await resolveDefaultRevenueTag(base44);
 
     const resolvedAmount = origin === 'revenue'
