@@ -63,18 +63,7 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
     queryFn: () => base44.entities.Installment.filter({ fee_id: fee.id }),
   });
 
-  // Calcola totale incassato includendo sia i ricavi sia le rate pagate
-  // che non hanno un ricavo corrispondente (per evitare doppi conteggi)
-  const revenueTotal = revenues.reduce((sum, r) => sum + (r.amount || 0), 0);
-  
-  // Rate pagate senza un revenue collegato (revenue con fee_id potrebbe non coprire tutte le rate pagate)
-  const revenueInstallmentIds = new Set(revenues.map(r => r.installment_id).filter(Boolean));
-  const paidInstallmentsWithoutRevenue = installments.filter(
-    inst => inst.status === 'paid' && !revenueInstallmentIds.has(inst.id)
-  );
-  const paidInstallmentsExtra = paidInstallmentsWithoutRevenue.reduce((sum, inst) => sum + (inst.amount || 0), 0);
-  
-  const totalIncassato = revenueTotal + paidInstallmentsExtra;
+  const totalIncassato = revenues.reduce((sum, r) => sum + (r.amount || 0), 0);
   const remaining = (fee.amount || 0) - totalIncassato;
   const isFullyCollected = fee.payment_status === 'Incassati';
 
@@ -121,45 +110,27 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
             )}
           </div>
 
-          {/* Revenue list + rate pagate senza revenue */}
+          {/* Revenue list */}
           <div className="divide-y divide-slate-100">
-            {revenues.length === 0 && paidInstallmentsWithoutRevenue.length === 0 ? (
+            {revenues.length === 0 ? (
               <p className="text-xs text-slate-400 px-3 py-3 text-center">Nessun incasso registrato</p>
             ) : (
-              <>
-                {revenues.map(rev => (
-                  <div key={rev.id} className="flex items-center justify-between px-3 py-2">
-                    <div>
-                      <p className="text-xs text-slate-500">{rev.date}</p>
-                      {rev.description && (
-                        <p className="text-xs text-slate-400 truncate max-w-[160px]">{rev.description}</p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-emerald-700">{formatCurrency(rev.amount || 0)}</p>
-                      <Badge variant="outline" className="text-[10px] px-1 py-0">
-                        {rev.payment_method === 'bank_transfer' ? 'Banca' : 'Contanti'}
-                      </Badge>
-                    </div>
+              revenues.map(rev => (
+                <div key={rev.id} className="flex items-center justify-between px-3 py-2">
+                  <div>
+                    <p className="text-xs text-slate-500">{rev.date}</p>
+                    {rev.description && (
+                      <p className="text-xs text-slate-400 truncate max-w-[160px]">{rev.description}</p>
+                    )}
                   </div>
-                ))}
-                {paidInstallmentsWithoutRevenue.map(inst => (
-                  <div key={`inst-paid-${inst.id}`} className="flex items-center justify-between px-3 py-2 bg-emerald-50/50">
-                    <div>
-                      <p className="text-xs text-slate-500">{inst.paid_date || inst.due_date || '—'}</p>
-                      <p className="text-xs text-slate-400">
-                        {inst.kind === 'acconto' ? 'Acconto' : inst.kind === 'saldo' ? 'Saldo' : 'Rata'} pagata
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-emerald-700">{formatCurrency(inst.amount || 0)}</p>
-                      <Badge variant="outline" className="text-[10px] px-1 py-0 border-emerald-300 text-emerald-600">
-                        Da rata
-                      </Badge>
-                    </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-emerald-700">{formatCurrency(rev.amount || 0)}</p>
+                    <Badge variant="outline" className="text-[10px] px-1 py-0">
+                      {rev.payment_method === 'bank_transfer' ? 'Banca' : 'Contanti'}
+                    </Badge>
                   </div>
-                ))}
-              </>
+                </div>
+              ))
             )}
           </div>
 
