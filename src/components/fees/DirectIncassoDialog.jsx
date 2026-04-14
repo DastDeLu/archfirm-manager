@@ -62,6 +62,7 @@ export default function DirectIncassoDialog({ open, onOpenChange, fee }) {
       toast.success('Incasso registrato con successo');
       queryClient.invalidateQueries({ queryKey: ['fees'] });
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
+      queryClient.invalidateQueries({ queryKey: ['all-revenues-for-fees'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
       queryClient.invalidateQueries({ queryKey: ['installments'] });
       if (fee?.id) {

@@ -98,6 +98,7 @@ export default function RegisterIncassoDialog({ open, onOpenChange, installment,
       queryClient.invalidateQueries({ queryKey: ['installments'] });
       queryClient.invalidateQueries({ queryKey: ['fees'] });
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
+      queryClient.invalidateQueries({ queryKey: ['all-revenues-for-fees'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
       if (fee?.id) {
         queryClient.invalidateQueries({ queryKey: ['installments-by-fee', fee.id] });
