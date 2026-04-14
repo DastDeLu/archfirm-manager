@@ -1,17 +1,63 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
-import { requireUser, assertOwned, stampOwnerExtra, withAuth } from '../_lib/authz.ts';
-import {
-  buildRevenueDescription,
-  normalizeAmount,
-  recomputeFeePaymentStatus,
-  resolveDefaultRevenueTag,
-  toRevenuePaymentMethod,
-  todayIsoDate,
-} from '../_lib/revenueInstallmentSync.ts';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-Deno.serve(withAuth(async (req) => {
+function todayIsoDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function normalizeAmount(override, fallback) {
+  const v = override != null ? Number(override) : Number(fallback);
+  return isNaN(v) ? 0 : v;
+}
+
+function toRevenuePaymentMethod(instMethod) {
+  const map = { bank: 'bank_transfer', cash: 'cash', other: 'bank_transfer' };
+  return map[instMethod] || 'bank_transfer';
+}
+
+function buildRevenueDescription(installment, fee) {
+  const kindLabel = installment.kind === 'acconto' ? 'Acconto' : installment.kind === 'saldo' ? 'Saldo' : 'Rata';
+  let desc = `${kindLabel} - Incasso compenso`;
+  if (fee.client_name) desc += ` - ${fee.client_name}`;
+  if (fee.project_name) desc += ` - ${fee.project_name}`;
+  return desc;
+}
+
+function resolveDefaultRevenueTag(fee) {
+  const categoryTagMap = {
+    'Progettazione': 'Progettazione',
+    'Direzione Lavori': 'Direzione Lavori',
+    'Pratiche Burocratiche': 'Burocrazia',
+    'Provvigioni': 'Provvigione',
+  };
+  return categoryTagMap[fee.category] || 'Incasso Clienti';
+}
+
+async function recomputeFeePaymentStatus(base44, feeId) {
+  const installments = await base44.asServiceRole.entities.Installment.filter({ fee_id: feeId });
+  if (installments.length === 0) return;
+
+  const allPaid = installments.every(i => i.status === 'paid');
+  const newStatus = allPaid ? 'Incassati' : 'Da incassare';
+
+  const fees = await base44.asServiceRole.entities.Fee.filter({ id: feeId });
+  const fee = fees[0];
+  if (fee && fee.payment_status !== newStatus) {
+    await base44.asServiceRole.entities.Fee.update(feeId, { payment_status: newStatus });
+  }
+}
+
+Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
-  const user = await requireUser(base44);
+
+  let user;
+  try {
+    user = await base44.auth.me();
+  } catch {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!user) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   const body = await req.json();
   const {
@@ -27,18 +73,12 @@ Deno.serve(withAuth(async (req) => {
     return Response.json({ error: 'installment_id required' }, { status: 400 });
   }
 
-  // Load installment through the user-scoped client. If the platform's entity
-  // permissions are configured, this already filters to the caller's own data.
   const installments = await base44.entities.Installment.filter({ id: installment_id });
   const installment = installments[0];
 
   if (!installment) {
     return Response.json({ error: 'Installment not found' }, { status: 404 });
   }
-
-  // Explicit ownership gate: enforced once owner_user_id is set on the record
-  // (post-migration). Returns 404 to avoid leaking resource existence.
-  assertOwned(installment, user.id);
 
   const fees = await base44.entities.Fee.filter({ id: installment.fee_id });
   const fee = fees[0];
@@ -47,21 +87,19 @@ Deno.serve(withAuth(async (req) => {
     return Response.json({ error: 'Associated fee not found' }, { status: 404 });
   }
 
-  assertOwned(fee, user.id);
-
   const resolvedDate = payment_date || todayIsoDate();
   const resolvedAmount = normalizeAmount(amount_override, installment.amount || 0);
   const resolvedDescription = revenue_description || buildRevenueDescription(installment, fee);
   const resolvedPaymentMethod = payment_method || toRevenuePaymentMethod(installment.payment_method);
-  const resolvedTag = revenue_tag || await resolveDefaultRevenueTag(base44);
+  const resolvedTag = revenue_tag || resolveDefaultRevenueTag(fee);
 
+  // Mark installment as paid
   await base44.asServiceRole.entities.Installment.update(installment_id, {
     status: 'paid',
     paid_date: resolvedDate,
   });
 
-  const existingLinkedRevenues = await base44.asServiceRole.entities.Revenue.filter({ installment_id });
-  const linkedRevenue = existingLinkedRevenues[0];
+  // Create or update linked revenue
   const revenuePayload = {
     amount: resolvedAmount,
     date: resolvedDate,
@@ -71,39 +109,31 @@ Deno.serve(withAuth(async (req) => {
     project_id: fee.project_id || null,
     project_name: fee.project_name || null,
     fee_id: fee.id,
-    installment_id,
-    ...stampOwnerExtra(user.id),
   };
 
-  if (linkedRevenue) {
-    await base44.asServiceRole.entities.Revenue.update(linkedRevenue.id, revenuePayload);
-  } else {
-    await base44.asServiceRole.entities.Revenue.create(revenuePayload);
-  }
+  await base44.asServiceRole.entities.Revenue.create(revenuePayload);
 
+  // Create cash transaction
   const isCash = resolvedPaymentMethod === 'cash';
-  if (!linkedRevenue) {
-    if (isCash) {
-      await base44.asServiceRole.entities.PettyCash.create({
-        amount: resolvedAmount,
-        date: resolvedDate,
-        description: resolvedDescription,
-        category: 'Incasso Cliente',
-        type: 'in',
-        ...stampOwnerExtra(user.id),
-      });
-    } else {
-      await base44.asServiceRole.entities.BankCash.create({
-        amount: resolvedAmount,
-        date: resolvedDate,
-        description: resolvedDescription,
-        category: 'Incasso Cliente',
-        type: 'deposit',
-        ...stampOwnerExtra(user.id),
-      });
-    }
+  if (isCash) {
+    await base44.asServiceRole.entities.PettyCash.create({
+      amount: resolvedAmount,
+      date: resolvedDate,
+      description: resolvedDescription,
+      category: 'Incasso Cliente',
+      type: 'in',
+    });
+  } else {
+    await base44.asServiceRole.entities.BankCash.create({
+      amount: resolvedAmount,
+      date: resolvedDate,
+      description: resolvedDescription,
+      category: 'Incasso Cliente',
+      type: 'deposit',
+    });
   }
 
+  // Sync calendar if applicable
   if (installment.google_event_id) {
     try {
       await base44.functions.invoke('syncInstallmentCalendarEvent', {
@@ -115,7 +145,8 @@ Deno.serve(withAuth(async (req) => {
     }
   }
 
+  // Recompute fee payment status
   await recomputeFeePaymentStatus(base44, installment.fee_id);
 
   return Response.json({ success: true, message: 'Pagamento elaborato con successo' });
-}));
+});
