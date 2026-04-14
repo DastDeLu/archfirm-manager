@@ -83,6 +83,11 @@ export default function Fees() {
     queryFn: () => base44.entities.Fee.list('-created_date'),
   });
 
+  const { data: allRevenues = [] } = useQuery({
+    queryKey: ['all-revenues-for-fees'],
+    queryFn: () => base44.entities.Revenue.list('-created_date', 500),
+  });
+
   const { data: clients = [] } = useQuery({
     queryKey: ['clients', uid],
     queryFn: () => base44.entities.Client.list(),
@@ -258,6 +263,17 @@ export default function Fees() {
     return { byCategory, byStatus, byMethod };
   }, [feesForSelectedYear, categoryFilter, monthFilter]);
 
+  // Map revenue totals by fee_id
+  const revenueByFeeId = useMemo(() => {
+    const map = {};
+    allRevenues.forEach(rev => {
+      if (rev.fee_id) {
+        map[rev.fee_id] = (map[rev.fee_id] || 0) + (rev.amount || 0);
+      }
+    });
+    return map;
+  }, [allRevenues]);
+
   // Group fees by client
   const feesByClient = useMemo(() => {
     const grouped = {};
@@ -420,9 +436,9 @@ export default function Fees() {
             if (filteredFees.length === 0) return null;
 
             const clientTotal = filteredFees.reduce((sum, f) => sum + (f.amount || 0), 0);
-            const clientCollected = filteredFees
-              .filter(f => f.payment_status === 'Incassati')
-              .reduce((sum, f) => sum + (f.amount || 0), 0);
+            const clientCollected = filteredFees.reduce(
+              (sum, f) => sum + (revenueByFeeId[f.id] || 0), 0
+            );
 
             return (
               <Collapsible
