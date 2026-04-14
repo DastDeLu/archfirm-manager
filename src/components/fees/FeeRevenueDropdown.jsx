@@ -47,6 +47,10 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
       toast.success('Rata eliminata');
       setDeleteConfirmId(null);
     },
+    onError: (err) => {
+      toast.error('Errore durante l\'eliminazione della rata: ' + (err?.message || 'Errore sconosciuto'));
+      setDeleteConfirmId(null);
+    },
   });
 
   const { data: revenues = [] } = useQuery({
@@ -69,6 +73,7 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
       <CollapsibleTrigger asChild>
         <div className="flex flex-col items-end gap-1 cursor-pointer">
           <button
+            type="button"
             className={cn(
               "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors border",
               isFullyCollected
@@ -252,9 +257,17 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Annulla</AlertDialogCancel>
-          <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => deleteMutation.mutate(deleteConfirmId)}>
-            Elimina
+          <AlertDialogCancel disabled={deleteMutation.isPending}>Annulla</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-red-600 hover:bg-red-700"
+            disabled={deleteMutation.isPending || !deleteConfirmId}
+            onClick={() => {
+              if (deleteConfirmId && !deleteMutation.isPending) {
+                deleteMutation.mutate(deleteConfirmId);
+              }
+            }}
+          >
+            {deleteMutation.isPending ? 'Eliminando...' : 'Elimina'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

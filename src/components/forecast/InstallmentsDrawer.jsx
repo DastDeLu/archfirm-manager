@@ -75,6 +75,10 @@ export default function InstallmentsDrawer({ open, onOpenChange, installments, f
       toast.success('Rata eliminata');
       setDeleteConfirmId(null);
     },
+    onError: (err) => {
+      toast.error('Errore durante l\'eliminazione della rata: ' + (err?.message || 'Errore sconosciuto'));
+      setDeleteConfirmId(null);
+    },
   });
 
   const handleEdit = (inst) => {
@@ -305,12 +309,17 @@ export default function InstallmentsDrawer({ open, onOpenChange, installments, f
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Annulla</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
-              onClick={() => deleteMutation.mutate(deleteConfirmId)}
+              disabled={deleteMutation.isPending || !deleteConfirmId}
+              onClick={() => {
+                if (deleteConfirmId && !deleteMutation.isPending) {
+                  deleteMutation.mutate(deleteConfirmId);
+                }
+              }}
             >
-              Elimina
+              {deleteMutation.isPending ? 'Eliminando...' : 'Elimina'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
