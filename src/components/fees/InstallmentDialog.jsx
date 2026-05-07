@@ -74,10 +74,33 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
   }, [installment, fee, open]);
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Installment.create(withOwner(data, uid)),
+    mutationFn: async (data) => {
+      if (data.status === 'paid') {
+        // Use syncInstallmentRevenuePair to atomically create installment + revenue
+        // First create the installment, then sync
+        const newInst = await base44.entities.Installment.create(withOwner(data, uid));
+        await base44.functions.invoke('syncInstallmentRevenuePair', {
+          origin: 'installment',
+          installment_id: newInst.id,
+          installment_patch: {
+            status: 'paid',
+            paid_date: data.paid_date,
+            payment_method: data.payment_method,
+            amount: data.amount,
+          },
+        });
+        return newInst;
+      }
+      return base44.entities.Installment.create(withOwner(data, uid));
+    },
     onSuccess: async (newInst) => {
       queryClient.invalidateQueries({ queryKey: ['installments'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
+      queryClient.invalidateQueries({ queryKey: ['revenues'] });
+      if (fee?.id) {
+        queryClient.invalidateQueries({ queryKey: ['revenues-by-fee', fee.id] });
+        queryClient.invalidateQueries({ queryKey: ['installments-by-fee', fee.id] });
+      }
       // Sync to Calendar if enabled
       if (form.calendar_sync_enabled && calendarConnected) {
         await syncCalendar(newInst.id, 'create');
@@ -106,6 +129,7 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
       if (fee?.id) {
         queryClient.invalidateQueries({ queryKey: ['revenues-by-fee', fee.id] });
+        queryClient.invalidateQueries({ queryKey: ['installments-by-fee', fee.id] });
       }
       // Sync to Calendar if enabled (update existing event)
       if (calendarConnected) {

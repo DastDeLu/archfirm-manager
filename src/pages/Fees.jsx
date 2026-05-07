@@ -132,10 +132,18 @@ export default function Fees() {
   });
 
   const createFeeMutation = useMutation({
-    mutationFn: (data) => base44.entities.Fee.create(withOwner(data, uid)),
+    mutationFn: async (data) => {
+      if (data.payment_status === 'Incassati') {
+        // Crea Fee + Revenue + cash atomicamente
+        await base44.functions.invoke('createPaidFee', { fee_data: withOwner(data, uid) });
+      } else {
+        await base44.entities.Fee.create(withOwner(data, uid));
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fees'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
+      queryClient.invalidateQueries({ queryKey: ['revenues'] });
       closeDialog();
     },
   });
