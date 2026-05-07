@@ -15,34 +15,145 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Pencil, Trash2, Plus, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrentUserId } from '@/hooks/useCurrentUserId';
 import { withOwner } from '@/lib/withOwner';
 
+// Colori a selezione rapida (palette attuale)
 const COLOR_PALETTE = [
   '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
   '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1',
   '#14b8a6', '#a855f7',
 ];
 
-function TagColorPicker({ value, onChange }) {
+// Palette estesa organizzata per tonalità (scala Tailwind 100→900)
+const EXTENDED_PALETTE = [
+  // Rosso
+  { label: 'Rosso', shades: ['#fecaca','#f87171','#ef4444','#dc2626','#991b1b'] },
+  // Arancio
+  { label: 'Arancio', shades: ['#fed7aa','#fb923c','#f97316','#ea580c','#9a3412'] },
+  // Ambra
+  { label: 'Ambra', shades: ['#fde68a','#fbbf24','#f59e0b','#d97706','#92400e'] },
+  // Verde lime
+  { label: 'Lime', shades: ['#d9f99d','#a3e635','#84cc16','#65a30d','#3f6212'] },
+  // Verde
+  { label: 'Verde', shades: ['#a7f3d0','#34d399','#10b981','#059669','#065f46'] },
+  // Teal
+  { label: 'Teal', shades: ['#99f6e4','#2dd4bf','#14b8a6','#0d9488','#134e4a'] },
+  // Ciano
+  { label: 'Ciano', shades: ['#a5f3fc','#22d3ee','#06b6d4','#0891b2','#164e63'] },
+  // Blu
+  { label: 'Blu', shades: ['#bfdbfe','#60a5fa','#3b82f6','#2563eb','#1e3a8a'] },
+  // Indaco
+  { label: 'Indaco', shades: ['#c7d2fe','#818cf8','#6366f1','#4f46e5','#312e81'] },
+  // Viola
+  { label: 'Viola', shades: ['#ddd6fe','#a78bfa','#8b5cf6','#7c3aed','#4c1d95'] },
+  // Fuchsia
+  { label: 'Fuchsia', shades: ['#f5d0fe','#e879f9','#d946ef','#c026d3','#701a75'] },
+  // Rosa
+  { label: 'Rosa', shades: ['#fbcfe8','#f472b6','#ec4899','#db2777','#831843'] },
+  // Slate
+  { label: 'Neutri', shades: ['#e2e8f0','#94a3b8','#64748b','#475569','#1e293b'] },
+];
+
+// Icona color-swatch (SVG inline)
+function ColorSwatchIcon({ className }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 12l10-10 10 10-10 10z" />
+      <path d="M12 2v20" />
+      <path d="M2 12h20" />
+      <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none" opacity="0.3" />
+    </svg>
+  );
+}
+
+function TagColorPicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+
+  // Determina se il valore corrente è fuori dalla palette rapida
+  const isCustomColor = value && !COLOR_PALETTE.includes(value);
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {/* Colori a selezione rapida */}
       {COLOR_PALETTE.map(color => (
         <button
           key={color}
           type="button"
+          aria-label={`Colore ${color}`}
           onClick={() => onChange(color)}
-          className="w-7 h-7 rounded-full border-2 transition-all flex items-center justify-center"
+          className="w-7 h-7 rounded-full border-2 transition-all flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
           style={{
             backgroundColor: color,
             borderColor: value === color ? '#1e293b' : 'transparent',
+            boxShadow: value === color ? '0 0 0 1px #1e293b' : undefined,
           }}
         >
-          {value === color && <Check className="h-3 w-3 text-white" />}
+          {value === color && <Check className="h-3 w-3 text-white drop-shadow" />}
         </button>
       ))}
+
+      {/* Separatore */}
+      <div className="w-px h-5 bg-slate-200 mx-1" />
+
+      {/* Trigger "Altri colori" */}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            aria-label="Mostra altri colori"
+            className="w-7 h-7 rounded-full border-2 transition-all flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 bg-white hover:bg-slate-50"
+            style={{
+              borderColor: isCustomColor ? '#1e293b' : '#cbd5e1',
+              backgroundColor: isCustomColor ? value : undefined,
+              boxShadow: isCustomColor ? '0 0 0 1px #1e293b' : undefined,
+            }}
+          >
+            {isCustomColor
+              ? <Check className="h-3 w-3 text-white drop-shadow" />
+              : (
+                <svg viewBox="0 0 16 16" className="w-4 h-4 text-slate-500" fill="currentColor">
+                  <rect x="1" y="1" width="6" height="6" rx="1.5" fill="#f87171"/>
+                  <rect x="9" y="1" width="6" height="6" rx="1.5" fill="#60a5fa"/>
+                  <rect x="1" y="9" width="6" height="6" rx="1.5" fill="#34d399"/>
+                  <rect x="9" y="9" width="6" height="6" rx="1.5" fill="#a78bfa"/>
+                </svg>
+              )
+            }
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-3" align="start" side="bottom">
+          <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Tonalità estese</p>
+          <div className="space-y-1.5">
+            {EXTENDED_PALETTE.map(group => (
+              <div key={group.label} className="flex items-center gap-1">
+                <span className="text-[10px] text-slate-400 w-10 shrink-0">{group.label}</span>
+                <div className="flex gap-1">
+                  {group.shades.map(shade => (
+                    <button
+                      key={shade}
+                      type="button"
+                      aria-label={`Colore ${shade}`}
+                      onClick={() => { onChange(shade); setOpen(false); }}
+                      className="w-5 h-5 rounded-sm transition-transform hover:scale-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 flex items-center justify-center"
+                      style={{
+                        backgroundColor: shade,
+                        outline: value === shade ? '2px solid #1e293b' : undefined,
+                        outlineOffset: value === shade ? '1px' : undefined,
+                      }}
+                    >
+                      {value === shade && <Check className="h-2.5 w-2.5 text-white drop-shadow" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
