@@ -1,0 +1,33 @@
+{
+  "name": "UserPreferences",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email utente"
+    },
+    "sidebar_order": {
+      "type": "string",
+      "description": "Ordine voci menu (JSON array)"
+    },
+    "hidden_widgets": {
+      "type": "string",
+      "description": "Widget nascosti (JSON array)"
+    },
+    "dashboard_layout": {
+      "type": "string",
+      "description": "Layout dashboard personalizzato"
+    },
+    "fee_color_complete": {
+      "type": "string",
+      "description": "Colore globale barra stato compenso completo (hex)"
+    },
+    "fee_color_incomplete": {
+      "type": "string",
+      "description": "Colore globale barra stato compenso non completo (hex)"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

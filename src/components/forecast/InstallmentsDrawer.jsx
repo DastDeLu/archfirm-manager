@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import FeeCompletionBar from './FeeCompletionBar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,19 @@ export default function InstallmentsDrawer({ open, onOpenChange, installments, f
   const [incassoInstallment, setIncassoInstallment] = useState(null);
   const [incassoFee, setIncassoFee] = useState(null);
   const queryClient = useQueryClient();
+
+  // Leggi colori globali da UserPreferences
+  const { data: userPrefs, refetch: refetchPrefs } = useQuery({
+    queryKey: ['userPrefs-feeColors'],
+    queryFn: async () => {
+      const me = await base44.auth.me();
+      const prefs = await base44.entities.UserPreferences.filter({ user_email: me.email });
+      return prefs?.[0] || null;
+    },
+  });
+
+  const colorComplete = userPrefs?.fee_color_complete || '#22c55e';
+  const colorIncomplete = userPrefs?.fee_color_incomplete || '#FF0000';
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Installment.delete(id),
@@ -200,7 +214,16 @@ export default function InstallmentsDrawer({ open, onOpenChange, installments, f
             </div>
           ) : (
             grouped.map((group, gi) => (
-              <div key={gi} className="border border-slate-200 rounded-xl overflow-hidden">
+              <div key={gi} className="border border-slate-200 rounded-xl overflow-hidden flex">
+                {/* Barra stato completamento */}
+                <FeeCompletionBar
+                  fee={group.fee}
+                  colorComplete={colorComplete}
+                  colorIncomplete={colorIncomplete}
+                  onColorsChange={refetchPrefs}
+                />
+                {/* Contenuto gruppo */}
+                <div className="flex-1 flex flex-col">
                 {/* Header compenso */}
                 <div className="bg-slate-50 px-4 py-3 flex items-center justify-between">
                   <div>
@@ -275,6 +298,7 @@ export default function InstallmentsDrawer({ open, onOpenChange, installments, f
                       </div>
                     );
                   })}
+                </div>
                 </div>
               </div>
             ))

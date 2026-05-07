@@ -71,7 +71,8 @@ export default function Fees() {
     payment_status: 'Da incassare',
     payment_method: 'Banca',
     date: new Date().toISOString().split('T')[0],
-    notes: ''
+    notes: '',
+    info_completion_status: 'incomplete'
   });
 
   const queryClient = useQueryClient();
@@ -137,7 +138,8 @@ export default function Fees() {
         payment_status: fee.payment_status || 'Da incassare',
         payment_method: fee.payment_method || 'Banca',
         date: fee.date || new Date().toISOString().split('T')[0],
-        notes: fee.notes || ''
+        notes: fee.notes || '',
+        info_completion_status: fee.info_completion_status || 'incomplete'
       });
     } else {
       setEditingFee(null);
@@ -151,7 +153,8 @@ export default function Fees() {
         payment_status: 'Da incassare',
         payment_method: 'Banca',
         date: new Date().toISOString().split('T')[0],
-        notes: ''
+        notes: '',
+        info_completion_status: 'incomplete'
       });
     }
     setDialogOpen(true);

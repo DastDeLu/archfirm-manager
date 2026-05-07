@@ -1,0 +1,77 @@
+{
+  "name": "Fee",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "Reference to client"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client name for display"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Reference to project"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "Project name for display"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Compensation amount in EUR"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Progettazione",
+        "Direzione Lavori",
+        "Pratiche Burocratiche",
+        "Provvigioni"
+      ],
+      "description": "Service category"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "Da incassare",
+        "Incassati"
+      ],
+      "default": "Da incassare",
+      "description": "Payment status"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "Banca",
+        "Contanti"
+      ],
+      "description": "Payment method"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of compensation"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "info_completion_status": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "incomplete"
+      ],
+      "default": "incomplete",
+      "description": "Stato manuale completamento compenso"
+    }
+  },
+  "required": [
+    "client_id",
+    "amount",
+    "category",
+    "payment_method"
+  ]
+}
