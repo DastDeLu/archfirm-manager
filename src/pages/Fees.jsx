@@ -37,6 +37,7 @@ import DirectIncassoDialog from '../components/fees/DirectIncassoDialog';
 import FeeRevenueDropdown from '../components/fees/FeeRevenueDropdown';
 import DeltaWidget from '../components/fees/DeltaWidget';
 import YearSelect from '../components/ui/YearSelect';
+import FeeGroupCompletionBar from '../components/forecast/FeeGroupCompletionBar';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
 import { useSearchParams } from 'react-router-dom';
@@ -83,6 +84,17 @@ export default function Fees() {
     queryKey: ['fees', uid],
     queryFn: () => base44.entities.Fee.list('-created_date'),
   });
+
+  const { data: userPrefs, refetch: refetchPrefs } = useQuery({
+    queryKey: ['userPrefs-feeColors'],
+    queryFn: async () => {
+      const me = await base44.auth.me();
+      const prefs = await base44.entities.UserPreferences.filter({ user_email: me.email });
+      return prefs?.[0] || null;
+    },
+  });
+  const colorComplete = userPrefs?.fee_color_complete || '#22c55e';
+  const colorIncomplete = userPrefs?.fee_color_incomplete || '#FF0000';
 
   const { data: allRevenues = [] } = useQuery({
     queryKey: ['all-revenues-for-fees'],
@@ -451,7 +463,14 @@ export default function Fees() {
                   expandedClient === clientGroup.client_id ? null : clientGroup.client_id
                 )}
               >
-                <Card>
+                <Card className="flex overflow-hidden">
+                  <FeeGroupCompletionBar
+                    fees={filteredFees}
+                    colorComplete={colorComplete}
+                    colorIncomplete={colorIncomplete}
+                    onColorsChange={refetchPrefs}
+                  />
+                  <div className="flex-1 min-w-0">
                   <CollapsibleTrigger asChild>
                     <CardHeader className="cursor-pointer hover:bg-slate-50 transition-colors">
                       <div className="flex items-center justify-between">
@@ -544,6 +563,7 @@ export default function Fees() {
                       </div>
                     </CardContent>
                   </CollapsibleContent>
+                  </div>
                 </Card>
               </Collapsible>
             );
