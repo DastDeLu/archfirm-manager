@@ -27,7 +27,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Plus, ChevronDown, Receipt, Pencil, Trash2, CheckCircle, Clock, Banknote, PiggyBank } from 'lucide-react';
+import { Plus, ChevronDown, Receipt, Pencil, Trash2, CheckCircle, Clock, Banknote, PiggyBank, Search, X } from 'lucide-react';
 import { formatCurrency } from '../components/lib/formatters';
 import { cn } from '@/lib/utils';
 import QuickAddClient from '../components/forms/QuickAddClient';
@@ -41,6 +41,24 @@ import FeeGroupCompletionBar from '../components/forecast/FeeGroupCompletionBar'
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
 import { useSearchParams } from 'react-router-dom';
+import { useEffect } from 'react';
+
+// Helper: normalizza stringa per ricerca (lowercase, no accenti)
+function normalizeSearch(str) {
+  return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+
+function matchesTerm(fee, term) {
+  if (!term) return true;
+  const n = normalizeSearch(term);
+  return (
+    normalizeSearch(fee.client_name).includes(n) ||
+    normalizeSearch(fee.project_name).includes(n) ||
+    normalizeSearch(fee.notes).includes(n) ||
+    normalizeSearch(fee.category).includes(n) ||
+    String(fee.amount || '').includes(n)
+  );
+}
 
 const categoryColors = {
   'Progettazione': 'bg-blue-100 text-blue-700',
@@ -62,6 +80,8 @@ export default function Fees() {
   const [expandedClient, setExpandedClient] = useState(null);
   const [incassoDialogOpen, setIncassoDialogOpen] = useState(false);
   const [selectedFeeForIncasso, setSelectedFeeForIncasso] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [targetInstallmentId, setTargetInstallmentId] = useState(null);
   const [formData, setFormData] = useState({
     client_id: '',
     client_name: '',
@@ -172,21 +192,35 @@ export default function Fees() {
     setDialogOpen(true);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    if (fees.length === 0) return;
+    const installmentId = searchParams.get('installmentId');
     const feeId = searchParams.get('feeId');
-    if (!feeId || fees.length === 0) return;
 
-    const targetFee = fees.find((fee) => fee.id === feeId);
-    if (!targetFee) return;
+    if (installmentId) {
+      // Priorità: deep-link rata
+      // Troviamo il fee contenitore (se fornito) oppure espandiamo solo il client
+      const parentFee = feeId ? fees.find(f => f.id === feeId) : null;
+      const clientId = parentFee?.client_id || null;
+      if (clientId) setExpandedClient(clientId);
+      setTargetInstallmentId(installmentId);
 
-    setExpandedClient(targetFee.client_id || 'unknown');
-    openDialog(targetFee);
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('installmentId');
+      nextParams.delete('feeId');
+      setSearchParams(nextParams, { replace: true });
+    } else if (feeId) {
+      // Fallback: deep-link compenso
+      const targetFee = fees.find(f => f.id === feeId);
+      if (!targetFee) return;
+      setExpandedClient(targetFee.client_id || 'unknown');
+      openDialog(targetFee);
 
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.delete('feeId');
-    nextParams.delete('installmentId');
-    setSearchParams(nextParams, { replace: true });
-  }, [fees, searchParams, setSearchParams, openDialog]);
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('feeId');
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [fees, searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const closeDialog = () => {
     setDialogOpen(false);
@@ -395,6 +429,27 @@ export default function Fees() {
         </CardContent>
       </Card>
 
+      {/* Search */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          placeholder="Cerca per cliente, progetto, categoria, importo, note..."
+          className="w-full pl-9 pr-9 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 bg-white"
+        />
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={() => setSearchTerm('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
         <Select value={monthFilter} onValueChange={setMonthFilter}>
@@ -437,15 +492,38 @@ export default function Fees() {
       ) : feesByClient.length === 0 ? (
         <div className="text-center py-12">
           <Receipt className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-          <p className="text-slate-500">Nessun compenso trovato</p>
+          {searchTerm ? (
+            <>
+              <p className="text-slate-500">Nessun compenso corrisponde a "<strong>{searchTerm}</strong>"</p>
+              <button type="button" onClick={() => setSearchTerm('')} className="mt-2 text-sm text-blue-600 hover:underline">
+                Azzera ricerca
+              </button>
+            </>
+          ) : (
+            <p className="text-slate-500">Nessun compenso trovato</p>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
+          {(() => {
+            // Contatore compensi visibili (dopo tutti i filtri)
+            const visibleCount = feesByClient.reduce((acc, cg) => {
+              return acc + cg.fees.filter(f => {
+                const catMatch = categoryFilter === 'all' || f.category === categoryFilter;
+                const monthMatch = monthFilter === 'all' || (f.date && f.date.slice(5, 7) === monthFilter);
+                return catMatch && monthMatch && matchesTerm(f, searchTerm);
+              }).length;
+            }, 0);
+            if (searchTerm && visibleCount > 0) {
+              return <p className="text-xs text-slate-500 mb-2">{visibleCount} compenso/i trovato/i</p>;
+            }
+            return null;
+          })()}
           {feesByClient.map(clientGroup => {
             const filteredFees = clientGroup.fees.filter(f => {
               const catMatch = categoryFilter === 'all' || f.category === categoryFilter;
               const monthMatch = monthFilter === 'all' || (f.date && f.date.slice(5, 7) === monthFilter);
-              return catMatch && monthMatch;
+              return catMatch && monthMatch && matchesTerm(f, searchTerm);
             });
             
             if (filteredFees.length === 0) return null;
@@ -541,6 +619,8 @@ export default function Fees() {
                                   setSelectedFeeForIncasso(f);
                                   setIncassoDialogOpen(true);
                                 }}
+                                targetInstallmentId={targetInstallmentId}
+                                onTargetInstallmentHandled={() => setTargetInstallmentId(null)}
                               />
                               <Button
                                 variant="ghost"

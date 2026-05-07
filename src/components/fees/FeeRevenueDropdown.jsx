@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -29,14 +29,33 @@ import RegisterIncassoDialog from './RegisterIncassoDialog';
  * Dropdown per un singolo compenso (Fee) che mostra i ricavi collegati
  * e permette di aggiungere un nuovo incasso.
  */
-export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
+export default function FeeRevenueDropdown({ fee, onAddIncasso, targetInstallmentId, onTargetInstallmentHandled }) {
   const [open, setOpen] = useState(false);
   const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false);
   const [editingInstallment, setEditingInstallment] = useState(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [incassoInstallment, setIncassoInstallment] = useState(null);
+  const deepLinkConsumed = React.useRef(false);
 
   const queryClient = useQueryClient();
+
+  // Deep-link: apri automaticamente la rata target quando installments sono caricati
+  const { data: installments = [], isSuccess: installmentsLoaded } = useQuery({
+    queryKey: ['installments-by-fee', fee.id],
+    queryFn: () => base44.entities.Installment.filter({ fee_id: fee.id }),
+  });
+
+  useEffect(() => {
+    if (!targetInstallmentId || deepLinkConsumed.current || !installmentsLoaded) return;
+    const target = installments.find(i => i.id === targetInstallmentId);
+    if (target) {
+      deepLinkConsumed.current = true;
+      setOpen(true);
+      setEditingInstallment(target);
+      setInstallmentDialogOpen(true);
+      onTargetInstallmentHandled?.();
+    }
+  }, [targetInstallmentId, installmentsLoaded, installments, onTargetInstallmentHandled]);
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Installment.delete(id),
@@ -56,11 +75,6 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso }) {
   const { data: revenues = [] } = useQuery({
     queryKey: ['revenues-by-fee', fee.id],
     queryFn: () => base44.entities.Revenue.filter({ fee_id: fee.id }),
-  });
-
-  const { data: installments = [] } = useQuery({
-    queryKey: ['installments-by-fee', fee.id],
-    queryFn: () => base44.entities.Installment.filter({ fee_id: fee.id }),
   });
 
   const totalIncassato = revenues.reduce((sum, r) => sum + (r.amount || 0), 0);
