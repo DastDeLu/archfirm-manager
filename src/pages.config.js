@@ -59,7 +59,6 @@ import Earnings from './pages/Earnings';
 import Expenses from './pages/Expenses';
 import Fees from './pages/Fees';
 import Forecast from './pages/Forecast';
-import KpiTargets from './pages/KpiTargets';
 import Marketing from './pages/Marketing';
 import Objectives from './pages/Objectives';
 import Projects from './pages/Projects';
@@ -85,7 +84,6 @@ export const PAGES = {
     "Expenses": Expenses,
     "Fees": Fees,
     "Forecast": Forecast,
-    "KpiTargets": KpiTargets,
     "Marketing": Marketing,
     "Objectives": Objectives,
     "Projects": Projects,

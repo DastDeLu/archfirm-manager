@@ -168,11 +168,11 @@ export default function NotificationCenter() {
                   key={kpi.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => navigateAndClose(createPageUrl('KpiTargets'))}
+                  onClick={() => navigateAndClose(createPageUrl('Objectives'))}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      navigateAndClose(createPageUrl('KpiTargets'));
+                      navigateAndClose(createPageUrl('Objectives'));
                     }
                   }}
                   className="p-3 hover:bg-slate-50 transition-colors cursor-pointer"
