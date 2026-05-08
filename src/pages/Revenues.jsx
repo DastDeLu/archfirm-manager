@@ -39,7 +39,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MoreHorizontal, Pencil, Trash2, TrendingUp, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, TrendingUp, ArrowUpCircle, ArrowDownCircle, Clock } from 'lucide-react';
 import { formatCurrency } from '../components/lib/formatters';
 import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
@@ -47,6 +47,7 @@ import QuickAddProject from '../components/forms/QuickAddProject';
 import SearchableSelect from '../components/ui/searchable-select';
 import SuggestTextInput from '../components/ui/suggest-text-input';
 import { toast } from 'sonner';
+import RevenueInstallmentsDropdown from '../components/revenues/RevenueInstallmentsDropdown';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
@@ -98,7 +99,11 @@ export default function Revenues() {
     queryFn: () => base44.entities.Revenue.list('-date'),
   });
 
-
+  // Carica Fee e Installment per costruire righe sintetiche UI-only
+  const { data: fees = [] } = useQuery({
+    queryKey: ['fees-for-revenues'],
+    queryFn: () => base44.entities.Fee.list(),
+  });
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', uid],
@@ -288,10 +293,53 @@ export default function Revenues() {
 
   const totalAmount = filteredRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
 
+  // Mappa: fee_id → totale incassato da revenues reali (tutti gli anni, non filtrati)
+  const totalIncassatoByFeeId = useMemo(() => {
+    const map = {};
+    revenues.forEach(r => {
+      if (r.fee_id) map[r.fee_id] = (map[r.fee_id] || 0) + (r.amount || 0);
+    });
+    return map;
+  }, [revenues]);
+
+  // Righe sintetiche UI-only: compensi con fee_id che hanno revenues nel periodo filtrato
+  // ma il totale incassato è inferiore all'importo del compenso → mostra riga "residuo da incassare"
+  const syntheticRows = useMemo(() => {
+    // Raccogli fee_id univoci presenti nel periodo filtrato
+    const feeIdsInPeriod = new Set(filteredRevenues.filter(r => r.fee_id).map(r => r.fee_id));
+    const rows = [];
+    feeIdsInPeriod.forEach(feeId => {
+      const fee = fees.find(f => f.id === feeId);
+      if (!fee) return;
+      const incassato = totalIncassatoByFeeId[feeId] || 0;
+      const residuo = (fee.amount || 0) - incassato;
+      if (residuo > 0.01) {
+        rows.push({
+          _synthetic: true,
+          id: `synthetic-${feeId}`,
+          fee_id: feeId,
+          fee_amount: fee.amount,
+          total_incassato: incassato,
+          residuo,
+          description: `Residuo da incassare — ${fee.client_name || ''}${fee.project_name ? ' · ' + fee.project_name : ''}`,
+          tag: fee.category || '—',
+          payment_method: fee.payment_method === 'Banca' ? 'bank_transfer' : 'cash',
+          date: null,
+        });
+      }
+    });
+    return rows;
+  }, [filteredRevenues, fees, totalIncassatoByFeeId]);
+
   const columns = [
     {
       header: 'Data',
-      cell: (row) => (
+      cell: (row) => row._synthetic ? (
+        <span className="flex items-center gap-1.5 text-amber-600 text-xs font-medium">
+          <Clock className="h-3.5 w-3.5" />
+          Da incassare
+        </span>
+      ) : (
         <span className="text-slate-600">
           {row.date ? format(new Date(row.date), 'MMM d, yyyy') : '-'}
         </span>
@@ -301,9 +349,20 @@ export default function Revenues() {
       header: 'Descrizione',
       cell: (row) => (
         <div>
-          <p className="font-medium text-slate-900">{row.description || 'Nessuna descrizione'}</p>
-          {row.project_name && (
+          <p className={row._synthetic ? "font-medium text-amber-700 italic" : "font-medium text-slate-900"}>
+            {row.description || 'Nessuna descrizione'}
+          </p>
+          {!row._synthetic && row.project_name && (
             <p className="text-xs text-slate-500">{row.project_name}</p>
+          )}
+          {row.fee_id && (
+            <div className="mt-1">
+              <RevenueInstallmentsDropdown
+                feeId={row.fee_id}
+                feeAmount={row._synthetic ? row.fee_amount : (fees.find(f => f.id === row.fee_id)?.amount || 0)}
+                totalIncassato={totalIncassatoByFeeId[row.fee_id] || 0}
+              />
+            </div>
           )}
         </div>
       ),
@@ -324,7 +383,11 @@ export default function Revenues() {
     },
     {
       header: 'Importo',
-      cell: (row) => (
+      cell: (row) => row._synthetic ? (
+        <span className="font-semibold text-amber-600">
+          ⏳ {formatCurrency(row.residuo || 0)}
+        </span>
+      ) : (
         <span className="font-semibold text-emerald-600">
           +{formatCurrency(row.amount || 0)}
         </span>
@@ -333,7 +396,11 @@ export default function Revenues() {
     {
       header: '',
       headerClassName: 'w-12',
-      cell: (row) => (
+      cell: (row) => row._synthetic ? (
+        <span className="text-[10px] text-amber-500 font-medium px-2 py-1 bg-amber-50 rounded-full border border-amber-200">
+          Sintetico
+        </span>
+      ) : (
         <ContextMenuWrapper
           onEdit={() => openDialog(row)}
           onDelete={() => scheduleDelete(row)}
@@ -458,7 +525,7 @@ export default function Revenues() {
 
       <DataTable
         columns={columns}
-        data={filteredRevenues}
+        data={[...filteredRevenues, ...syntheticRows]}
         loading={isLoading}
         emptyMessage="Nessun ricavo registrato. Clicca 'Aggiungi Ricavo' per iniziare."
       />
