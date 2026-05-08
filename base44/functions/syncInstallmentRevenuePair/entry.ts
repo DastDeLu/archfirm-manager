@@ -119,6 +119,7 @@ Deno.serve(async (req) => {
 
       await base44.asServiceRole.entities.Revenue.delete(rowId);
 
+      // Delete linked installment via explicit installment_id link only (no heuristic)
       const linkedInstallmentId = revenue.installment_id ?? revenue.installmentId;
       if (linkedInstallmentId) {
         const installments = await base44.asServiceRole.entities.Installment.filter({ id: linkedInstallmentId });
@@ -126,10 +127,7 @@ Deno.serve(async (req) => {
         if (installment) {
           const instRowId = installment.id ?? installment._id;
           if (instRowId) {
-            await base44.asServiceRole.entities.Installment.update(instRowId, {
-              status: 'pending',
-              paid_date: '',
-            });
+            await base44.asServiceRole.entities.Installment.delete(instRowId);
           }
         }
       }
@@ -139,7 +137,47 @@ Deno.serve(async (req) => {
         await recomputeFeePaymentStatus(base44, linkedFeeId);
       }
 
-      return Response.json({ success: true, message: 'Revenue deleted and installment reconciled' });
+      return Response.json({ success: true, message: 'Revenue and linked installment deleted' });
+    }
+
+    // ── DELETE INSTALLMENT ──────────────────────────────────────────────────
+    if (action === 'delete_installment') {
+      if (!installmentId) {
+        return Response.json({ error: 'installment_id required' }, { status: 400 });
+      }
+
+      let installment = null;
+      try {
+        const list = await base44.asServiceRole.entities.Installment.filter({ id: installmentId });
+        installment = list?.[0] ?? null;
+      } catch (fetchErr) {
+        console.error('[delete_installment] fetch error:', fetchErr.message);
+      }
+      if (!installment) {
+        return Response.json({ error: 'Installment not found' }, { status: 404 });
+      }
+      const instRowId = installment.id ?? installment._id;
+      if (!instRowId) {
+        return Response.json({ error: 'Installment record has no id' }, { status: 500 });
+      }
+
+      // Delete linked revenue via explicit installment_id link only (no heuristic)
+      const linkedRevenues = await base44.asServiceRole.entities.Revenue.filter({ installment_id: instRowId });
+      for (const rev of linkedRevenues) {
+        const rId = rev.id ?? rev._id;
+        if (rId) {
+          await base44.asServiceRole.entities.Revenue.delete(rId);
+        }
+      }
+
+      await base44.asServiceRole.entities.Installment.delete(instRowId);
+
+      const linkedFeeId = installment.fee_id ?? installment.feeId;
+      if (linkedFeeId) {
+        await recomputeFeePaymentStatus(base44, linkedFeeId);
+      }
+
+      return Response.json({ success: true, message: 'Installment and linked revenue deleted' });
     }
 
     // ── SYNC ────────────────────────────────────────────────────────────────

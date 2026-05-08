@@ -58,12 +58,24 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso, targetInstallmen
   }, [targetInstallmentId, installmentsLoaded, installments, onTargetInstallmentHandled]);
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Installment.delete(id),
+    mutationFn: async (id) => {
+      const res = await base44.functions.invoke('syncInstallmentRevenuePair', {
+        action: 'delete_installment',
+        installment_id: id,
+      });
+      const body = res?.data ?? res;
+      if (body?.error) throw new Error(typeof body.error === 'string' ? body.error : JSON.stringify(body.error));
+      return body;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['installments'] });
       queryClient.invalidateQueries({ queryKey: ['installments-by-fee', fee.id] });
+      queryClient.invalidateQueries({ queryKey: ['revenues'] });
+      queryClient.invalidateQueries({ queryKey: ['revenues-by-fee', fee.id] });
+      queryClient.invalidateQueries({ queryKey: ['all-revenues-for-fees'] });
+      queryClient.invalidateQueries({ queryKey: ['fees'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
-      toast.success('Rata eliminata');
+      toast.success('Rata e ricavo collegato eliminati');
       setDeleteConfirmId(null);
     },
     onError: (err) => {
