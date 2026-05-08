@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import GlobalSearch from './components/search/GlobalSearch';
+import UndoButton from './components/undo/UndoButton';
 import ControlDashboardSidebarWidget from './components/dashboard/ControlDashboardSidebarWidget';
 import NotificationCenter from './components/notifications/NotificationCenter';
 import { BudgetProvider } from './components/budget/BudgetContext';
@@ -342,6 +343,7 @@ export default function Layout({ children, currentPageName }) {
             <h2 className="text-lg font-semibold text-slate-900">{currentPageName}</h2>
           </div>
           <div className="flex items-center gap-2">
+            <UndoButton />
             <NotificationCenter />
             <Button
               variant="outline"
