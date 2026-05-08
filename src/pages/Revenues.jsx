@@ -3,7 +3,6 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import PageHeader from '../components/ui/PageHeader';
-import DataTable from '../components/ui/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,7 +38,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MoreHorizontal, Pencil, Trash2, TrendingUp, ArrowUpCircle, ArrowDownCircle, Clock } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, TrendingUp, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { formatCurrency } from '../components/lib/formatters';
 import { format } from 'date-fns';
 import ContextMenuWrapper from '../components/ui/ContextMenuWrapper';
@@ -47,7 +46,8 @@ import QuickAddProject from '../components/forms/QuickAddProject';
 import SearchableSelect from '../components/ui/searchable-select';
 import SuggestTextInput from '../components/ui/suggest-text-input';
 import { toast } from 'sonner';
-import RevenueInstallmentsDropdown from '../components/revenues/RevenueInstallmentsDropdown';
+import FeeGroupRow from '../components/revenues/FeeGroupRow';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
@@ -302,130 +302,48 @@ export default function Revenues() {
     return map;
   }, [revenues]);
 
-  // Righe sintetiche UI-only: compensi con fee_id che hanno revenues nel periodo filtrato
-  // ma il totale incassato è inferiore all'importo del compenso → mostra riga "residuo da incassare"
-  const syntheticRows = useMemo(() => {
-    // Raccogli fee_id univoci presenti nel periodo filtrato
-    const feeIdsInPeriod = new Set(filteredRevenues.filter(r => r.fee_id).map(r => r.fee_id));
-    const rows = [];
-    feeIdsInPeriod.forEach(feeId => {
-      const fee = fees.find(f => f.id === feeId);
-      if (!fee) return;
-      const incassato = totalIncassatoByFeeId[feeId] || 0;
-      const residuo = (fee.amount || 0) - incassato;
-      if (residuo > 0.01) {
-        rows.push({
-          _synthetic: true,
-          id: `synthetic-${feeId}`,
-          fee_id: feeId,
-          fee_amount: fee.amount,
-          total_incassato: incassato,
-          residuo,
-          description: `Residuo da incassare — ${fee.client_name || ''}${fee.project_name ? ' · ' + fee.project_name : ''}`,
-          tag: fee.category || '—',
-          payment_method: fee.payment_method === 'Banca' ? 'bank_transfer' : 'cash',
-          date: null,
-        });
+  // Raggruppa i revenue filtrati: per ogni fee_id un gruppo, le righe senza fee_id restano singole
+  const { feeGroups, singleRows } = useMemo(() => {
+    const groupsMap = new Map();
+    const singles = [];
+    filteredRevenues.forEach(r => {
+      if (r.fee_id) {
+        if (!groupsMap.has(r.fee_id)) groupsMap.set(r.fee_id, []);
+        groupsMap.get(r.fee_id).push(r);
+      } else {
+        singles.push(r);
       }
     });
-    return rows;
-  }, [filteredRevenues, fees, totalIncassatoByFeeId]);
 
-  const columns = [
-    {
-      header: 'Data',
-      cell: (row) => row._synthetic ? (
-        <span className="flex items-center gap-1.5 text-amber-600 text-xs font-medium">
-          <Clock className="h-3.5 w-3.5" />
-          Da incassare
-        </span>
-      ) : (
-        <span className="text-slate-600">
-          {row.date ? format(new Date(row.date), 'MMM d, yyyy') : '-'}
-        </span>
-      ),
-    },
-    {
-      header: 'Descrizione',
-      cell: (row) => (
-        <div>
-          <p className={row._synthetic ? "font-medium text-amber-700 italic" : "font-medium text-slate-900"}>
-            {row.description || 'Nessuna descrizione'}
-          </p>
-          {!row._synthetic && row.project_name && (
-            <p className="text-xs text-slate-500">{row.project_name}</p>
-          )}
-          {row.fee_id && (
-            <div className="mt-1">
-              <RevenueInstallmentsDropdown
-                feeId={row.fee_id}
-                feeAmount={row._synthetic ? row.fee_amount : (fees.find(f => f.id === row.fee_id)?.amount || 0)}
-                totalIncassato={totalIncassatoByFeeId[row.fee_id] || 0}
-              />
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      header: 'Tag',
-      cell: (row) => {
-        const color = tagColorMap[row.tag];
-        return (
-          <span
-            className="text-xs font-medium px-2 py-0.5 rounded-full border"
-            style={color ? getTagStyle(color) : {}}
-          >
-            {row.tag || 'Altro'}
-          </span>
-        );
-      },
-    },
-    {
-      header: 'Importo',
-      cell: (row) => row._synthetic ? (
-        <span className="font-semibold text-amber-600">
-          ⏳ {formatCurrency(row.residuo || 0)}
-        </span>
-      ) : (
-        <span className="font-semibold text-emerald-600">
-          +{formatCurrency(row.amount || 0)}
-        </span>
-      ),
-    },
-    {
-      header: '',
-      headerClassName: 'w-12',
-      cell: (row) => row._synthetic ? (
-        <span className="text-[10px] text-amber-500 font-medium px-2 py-1 bg-amber-50 rounded-full border border-amber-200">
-          Sintetico
-        </span>
-      ) : (
-        <ContextMenuWrapper
-          onEdit={() => openDialog(row)}
-          onDelete={() => scheduleDelete(row)}
-        >
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => openDialog(row)}>
-                <Pencil className="h-4 w-4 mr-2" />
-                Modifica
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => scheduleDelete(row)} className="text-red-600">
-                <Trash2 className="h-4 w-4 mr-2" />
-                Elimina
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </ContextMenuWrapper>
-      ),
-    },
-  ];
+    const groups = [];
+    groupsMap.forEach((groupRevenues, feeId) => {
+      const fee = fees.find(f => f.id === feeId);
+      const incassatoFiltrato = groupRevenues.reduce((s, r) => s + (r.amount || 0), 0);
+      const incassatoTotale = totalIncassatoByFeeId[feeId] || 0;
+      const residuo = (fee?.amount || 0) - incassatoTotale;
+      const lastDate = groupRevenues
+        .map(r => r.date)
+        .filter(Boolean)
+        .sort()
+        .slice(-1)[0] || '';
+      groups.push({
+        feeId,
+        fee,
+        revenues: groupRevenues,
+        incassatoFiltrato,
+        incassatoTotale,
+        residuo: residuo > 0 ? residuo : 0,
+        sortDate: lastDate,
+      });
+    });
+
+    // Compensi pieni del periodo che NON hanno revenue nel filtro: aggiungi gruppi "vuoti" con residuo
+    // (mantengo il comportamento precedente delle synthetic rows quando ci sono pagamenti del fee)
+    return {
+      feeGroups: groups.sort((a, b) => (b.sortDate || '').localeCompare(a.sortDate || '')),
+      singleRows: singles,
+    };
+  }, [filteredRevenues, fees, totalIncassatoByFeeId]);
 
   return (
     <div>
@@ -523,12 +441,100 @@ export default function Revenues() {
         </TabsList>
       </Tabs>
 
-      <DataTable
-        columns={columns}
-        data={[...filteredRevenues, ...syntheticRows]}
-        loading={isLoading}
-        emptyMessage="Nessun ricavo registrato. Clicca 'Aggiungi Ricavo' per iniziare."
-      />
+      {isLoading ? (
+        <div className="rounded-xl border border-slate-200 bg-white p-6">
+          <Skeleton className="h-6 w-full mb-3" />
+          <Skeleton className="h-6 w-full mb-3" />
+          <Skeleton className="h-6 w-full" />
+        </div>
+      ) : (feeGroups.length === 0 && singleRows.length === 0) ? (
+        <div className="rounded-xl border border-slate-200 bg-white p-12 text-center">
+          <p className="text-slate-500">Nessun ricavo registrato. Clicca &apos;Aggiungi Ricavo&apos; per iniziare.</p>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-slate-50/50 border-b border-slate-200">
+                <th className="font-semibold text-slate-700 text-left text-sm py-3 px-4">Data</th>
+                <th className="font-semibold text-slate-700 text-left text-sm py-3 px-4">Descrizione</th>
+                <th className="font-semibold text-slate-700 text-left text-sm py-3 px-4">Tag</th>
+                <th className="font-semibold text-slate-700 text-right text-sm py-3 px-4">Importo</th>
+                <th className="w-12 py-3 px-4"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {feeGroups.map(group => (
+                <FeeGroupRow
+                  key={`group-${group.feeId}`}
+                  fee={group.fee}
+                  revenues={group.revenues}
+                  totalIncassato={group.incassatoTotale}
+                  residuo={group.residuo}
+                  tagColor={tagColorMap[group.fee?.category]}
+                  onEditRevenue={openDialog}
+                  onDeleteRevenue={scheduleDelete}
+                />
+              ))}
+              {singleRows.map(row => {
+                const color = tagColorMap[row.tag];
+                return (
+                  <tr key={row.id} className="hover:bg-slate-50/50 border-b border-slate-100">
+                    <td className="py-3 px-4">
+                      <span className="text-slate-600 text-sm">
+                        {row.date ? format(new Date(row.date), 'MMM d, yyyy') : '-'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <p className="font-medium text-slate-900">{row.description || 'Nessuna descrizione'}</p>
+                      {row.project_name && (
+                        <p className="text-xs text-slate-500">{row.project_name}</p>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className="text-xs font-medium px-2 py-0.5 rounded-full border"
+                        style={color ? getTagStyle(color) : {}}
+                      >
+                        {row.tag || 'Altro'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <span className="font-semibold text-emerald-600">
+                        +{formatCurrency(row.amount || 0)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 w-12">
+                      <ContextMenuWrapper
+                        onEdit={() => openDialog(row)}
+                        onDelete={() => scheduleDelete(row)}
+                      >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openDialog(row)}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Modifica
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => scheduleDelete(row)} className="text-red-600">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Elimina
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </ContextMenuWrapper>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
