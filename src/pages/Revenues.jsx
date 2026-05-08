@@ -293,14 +293,19 @@ export default function Revenues() {
 
   const totalAmount = filteredRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
 
-  // Mappa: fee_id → totale incassato da revenues reali (tutti gli anni, non filtrati)
+  // Mappa: fee_id → totale incassato da revenues reali nel periodo (anno + mese) selezionato
   const totalIncassatoByFeeId = useMemo(() => {
     const map = {};
     revenues.forEach(r => {
-      if (r.fee_id) map[r.fee_id] = (map[r.fee_id] || 0) + (r.amount || 0);
+      if (!r.fee_id) return;
+      const yearMatch = !selectedYear || r.date?.startsWith(String(selectedYear));
+      const monthMatch = !selectedMonth || r.date?.substring(5, 7) === String(selectedMonth).padStart(2, '0');
+      if (yearMatch && monthMatch) {
+        map[r.fee_id] = (map[r.fee_id] || 0) + (r.amount || 0);
+      }
     });
     return map;
-  }, [revenues]);
+  }, [revenues, selectedYear, selectedMonth]);
 
   // Raggruppa i revenue filtrati: per ogni fee_id un gruppo, le righe senza fee_id restano singole
   const { feeGroups, singleRows } = useMemo(() => {
