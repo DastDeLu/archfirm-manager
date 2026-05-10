@@ -47,6 +47,8 @@ import SearchableSelect from '../components/ui/searchable-select';
 import SuggestTextInput from '../components/ui/suggest-text-input';
 import { toast } from 'sonner';
 import FeeGroupRow from '../components/revenues/FeeGroupRow';
+import MobileRevenueCard from '../components/revenues/MobileRevenueCard';
+import MobileFeeGroupCard from '../components/revenues/MobileFeeGroupCard';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
@@ -352,36 +354,72 @@ export default function Revenues() {
 
   return (
     <div>
-      <PageHeader title="Ricavi" description="Traccia tutte le entrate e i flussi di ricavo">
-        <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {[currentYear - 1, currentYear, currentYear + 1].map(year => (
-              <SelectItem key={year} value={String(year)}>{year}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="Tutti i mesi" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="0">Tutti i mesi</SelectItem>
-            {['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'].map((m, i) => (
-              <SelectItem key={i+1} value={String(i+1)}>{m}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button onClick={() => openDialog()} className="gap-2">
+      {/* Mobile header (sm:hidden) */}
+      <div className="sm:hidden mb-4">
+        <h1 className="text-2xl font-bold text-slate-900">Ricavi</h1>
+        <p className="text-sm text-slate-500 mt-1">Traccia tutte le entrate e i flussi di ricavo</p>
+        <div className="grid grid-cols-2 gap-2 mt-4">
+          <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[currentYear - 1, currentYear, currentYear + 1].map(year => (
+                <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
+            <SelectTrigger>
+              <SelectValue placeholder="Tutti i mesi" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">Tutti i mesi</SelectItem>
+              {['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'].map((m, i) => (
+                <SelectItem key={i+1} value={String(i+1)}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button onClick={() => openDialog()} className="w-full mt-2 gap-2 h-11 rounded-xl">
           <Plus className="h-4 w-4" />
           Aggiungi Ricavo
         </Button>
-      </PageHeader>
+      </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Desktop header (hidden sm:flex) */}
+      <div className="hidden sm:block">
+        <PageHeader title="Ricavi" description="Traccia tutte le entrate e i flussi di ricavo">
+          <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[currentYear - 1, currentYear, currentYear + 1].map(year => (
+                <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Tutti i mesi" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">Tutti i mesi</SelectItem>
+              {['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'].map((m, i) => (
+                <SelectItem key={i+1} value={String(i+1)}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={() => openDialog()} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Aggiungi Ricavo
+          </Button>
+        </PageHeader>
+      </div>
+
+      {/* Summary Cards - scrollabili orizzontalmente su mobile */}
+      <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible snap-x snap-mandatory sm:snap-none [&>*]:min-w-[70%] [&>*]:snap-start sm:[&>*]:min-w-0">
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
@@ -436,14 +474,16 @@ export default function Revenues() {
         </Card>
       </div>
 
-      {/* Filter Tabs */}
+      {/* Filter Tabs - scrollabili su mobile */}
       <Tabs value={activeTag} onValueChange={setActiveTag} className="mb-4">
-        <TabsList>
-          <TabsTrigger value="all">Tutti</TabsTrigger>
-          {revenueTags.map(tag => (
-            <TabsTrigger key={tag.id} value={tag.name}>{tag.name}</TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="w-max">
+            <TabsTrigger value="all">Tutti</TabsTrigger>
+            {revenueTags.map(tag => (
+              <TabsTrigger key={tag.id} value={tag.name}>{tag.name}</TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
       </Tabs>
 
       {isLoading ? (
@@ -457,7 +497,34 @@ export default function Revenues() {
           <p className="text-slate-500">Nessun ricavo registrato. Clicca &apos;Aggiungi Ricavo&apos; per iniziare.</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+        <>
+        {/* Mobile list - card stacked */}
+        <div className="sm:hidden space-y-3">
+          {feeGroups.map(group => (
+            <MobileFeeGroupCard
+              key={`m-group-${group.feeId}`}
+              fee={group.fee}
+              revenues={group.revenues}
+              totalIncassato={group.incassatoTotale}
+              residuo={group.residuo}
+              tagColor={tagColorMap[group.fee?.category]}
+              onEditRevenue={openDialog}
+              onDeleteRevenue={scheduleDelete}
+            />
+          ))}
+          {singleRows.map(row => (
+            <MobileRevenueCard
+              key={`m-${row.id}`}
+              revenue={row}
+              tagColor={tagColorMap[row.tag]}
+              onEdit={openDialog}
+              onDelete={scheduleDelete}
+            />
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden sm:block rounded-xl border border-slate-200 bg-white overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-200">
@@ -539,6 +606,7 @@ export default function Revenues() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
