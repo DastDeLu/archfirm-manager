@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from './components/lib/formatters';
+import { getPageTitle } from './lib/pageTitles';
 import {
   LayoutDashboard,
   Building2,
@@ -340,7 +341,7 @@ export default function Layout({ children, currentPageName }) {
       <main className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
         <div className="hidden lg:flex items-center justify-between h-16 px-6 border-b border-slate-200/60 bg-white/80 backdrop-blur-sm sticky top-0 z-20">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-slate-900">{currentPageName}</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{getPageTitle(currentPageName)}</h2>
           </div>
           <div className="flex items-center gap-2">
             <UndoButton />
@@ -352,7 +353,7 @@ export default function Layout({ children, currentPageName }) {
               className="gap-2 text-slate-500"
             >
               <Search className="h-4 w-4" />
-              <span>Search</span>
+              <span>Cerca</span>
               <kbd className="ml-2 pointer-events-none h-5 select-none items-center gap-1 rounded border bg-slate-100 px-1.5 text-[10px] font-medium hidden sm:inline-flex">
                 ⌘K
               </kbd>

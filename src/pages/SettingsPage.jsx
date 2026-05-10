@@ -44,6 +44,7 @@ import {
   UserPlus, Shield, User, Trash2, RefreshCw, FileJson, FileSpreadsheet, FileUp, Loader2, Tags, Calendar
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
 import { toast } from 'sonner';
 import OpeningBalances from '../components/settings/OpeningBalances';
 import ImportDialog from '../components/settings/ImportDialog';
@@ -106,13 +107,13 @@ export default function SettingsPage() {
     e.preventDefault();
     try {
       await base44.users.inviteUser(inviteEmail, inviteRole);
-      toast.success('Invitation sent successfully');
+      toast.success('Invito inviato con successo');
       setInviteDialogOpen(false);
       setInviteEmail('');
       setInviteRole('user');
       queryClient.invalidateQueries({ queryKey: ['users'] });
     } catch (error) {
-      toast.error('Failed to send invitation');
+      toast.error('Errore durante l\'invio dell\'invito');
     }
   };
 
@@ -181,7 +182,7 @@ export default function SettingsPage() {
 
   const userColumns = [
     {
-      header: 'User',
+      header: 'Utente',
       cell: (row) => (
         <div className="flex items-center gap-3">
           <div className="p-2 bg-slate-100 rounded-lg">
@@ -199,7 +200,7 @@ export default function SettingsPage() {
       cell: (row) => (
         <Badge className={row.role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}>
           {row.role === 'admin' && <Shield className="h-3 w-3 mr-1" />}
-          {row.role || 'user'}
+          {row.role === 'admin' ? 'Amministratore' : 'Utente'}
         </Badge>
       ),
     },
@@ -207,7 +208,7 @@ export default function SettingsPage() {
       header: 'Iscritto',
       cell: (row) => (
         <span className="text-slate-600 text-sm">
-          {row.created_date ? format(new Date(row.created_date), 'MMM d, yyyy') : '-'}
+          {row.created_date ? format(new Date(row.created_date), 'd MMM yyyy', { locale: it }) : '-'}
         </span>
       ),
     },
@@ -245,7 +246,7 @@ export default function SettingsPage() {
       ),
     },
     {
-      header: 'User',
+      header: 'Utente',
       cell: (row) => (
         <span className="text-slate-600 text-sm">{row.user_email}</span>
       ),
@@ -254,7 +255,7 @@ export default function SettingsPage() {
       header: 'Data',
       cell: (row) => (
         <span className="text-slate-500 text-sm">
-          {row.created_date ? format(new Date(row.created_date), 'MMM d, HH:mm') : '-'}
+          {row.created_date ? format(new Date(row.created_date), 'd MMM, HH:mm', { locale: it }) : '-'}
         </span>
       ),
     },
@@ -322,7 +323,7 @@ export default function SettingsPage() {
                       <p className="text-sm text-slate-500">{currentUser?.email}</p>
                       <Badge className="mt-1" variant="outline">
                         {currentUser?.role === 'admin' && <Shield className="h-3 w-3 mr-1" />}
-                        {currentUser?.role || 'user'}
+                        {currentUser?.role === 'admin' ? 'Amministratore' : 'Utente'}
                       </Badge>
                     </div>
                   </div>
@@ -347,7 +348,7 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <Label className="text-slate-500">Formato Data</Label>
-                    <p className="font-medium">MMM d, yyyy</p>
+                    <p className="font-medium">d MMM yyyy</p>
                   </div>
                 </div>
               </CardContent>
@@ -534,7 +535,7 @@ export default function SettingsPage() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setInviteDialogOpen(false)}>
-                Cancel
+                Annulla
               </Button>
               <Button type="submit">
                 Invia Invito

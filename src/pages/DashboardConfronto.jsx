@@ -223,7 +223,7 @@ export default function DashboardConfronto() {
         <CardContent className="pt-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-slate-300">Control room</p>
+              <p className="text-sm uppercase tracking-[0.2em] text-slate-300">Sala di controllo</p>
               <h2 className="mt-1 text-2xl font-semibold">Confronto finanziario anno su anno</h2>
               <p className="mt-2 text-sm text-slate-300">
                 Tutte le metriche derivano da Ricavi/Spese via `date`, evitando inconsistenze tra pagine.

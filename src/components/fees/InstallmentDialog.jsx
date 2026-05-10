@@ -286,7 +286,7 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-blue-600" />
                 <div>
-                  <p className="text-sm font-medium text-slate-800">Sync Google Calendar</p>
+                  <p className="text-sm font-medium text-slate-800">Sincronizza con Google Calendar</p>
                   <p className="text-xs text-slate-500">
                     {calendarConnected ? 'Crea evento con promemoria' : 'Collega Calendar in Impostazioni'}
                   </p>

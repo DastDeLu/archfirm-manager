@@ -16,7 +16,7 @@ export default function ControlDashboardSidebarWidget() {
   if (isLoading) {
     return (
       <div className="px-4 py-3 border-b border-slate-200/60">
-        <div className="text-xs text-slate-500">Loading...</div>
+        <div className="text-xs text-slate-500">Caricamento...</div>
       </div>
     );
   }

@@ -98,7 +98,7 @@ export default function GlobalSearch({ open, onOpenChange }) {
         setSelectedIndex(0);
       } catch (e) {
         if (requestId !== requestIdRef.current) return;
-        console.error('Search error:', e);
+        console.error('Errore ricerca:', e);
       } finally {
         if (requestId === requestIdRef.current) {
           setLoading(false);
@@ -172,7 +172,13 @@ export default function GlobalSearch({ open, onOpenChange }) {
                 return (
                   <div key={type}>
                     <div className="px-4 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      {type}s
+                      {{
+                        Client: 'Clienti',
+                        Project: 'Progetti',
+                        Fee: 'Compensi',
+                        Revenue: 'Ricavi',
+                        Expense: 'Spese',
+                      }[type] || type}
                     </div>
                     {items.map((item) => {
                       const globalIdx = flatResults.findIndex(r => r.type === type && r.item.id === item.id);
@@ -191,7 +197,7 @@ export default function GlobalSearch({ open, onOpenChange }) {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-slate-900 truncate">
-                              {item.name || item.project_name || item.description || 'Unnamed'}
+                              {item.name || item.project_name || item.description || 'Senza nome'}
                             </p>
                             {item.client_name && (
                               <p className="text-xs text-slate-500 truncate">{item.client_name}</p>
