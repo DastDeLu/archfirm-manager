@@ -31,7 +31,13 @@ Deno.serve(withAuth(async (req) => {
     assertOwned(fee, user.id);
   }
 
-  const defaultTag = tag || 'Incasso Clienti';
+  const categoryTagMap = {
+    'Progettazione': 'Progettazione',
+    'Direzione Lavori': 'Direzione Lavori',
+    'Pratiche Burocratiche': 'Burocrazia',
+    'Provvigioni': 'Provvigione',
+  };
+  const defaultTag = tag || (fee ? (categoryTagMap[fee.category] || 'Progettazione') : 'Progettazione');
 
   let installmentNumber = 1;
   let createdInstallmentId: string | null = null;

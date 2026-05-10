@@ -30,13 +30,14 @@ function buildRevenueDescription(installment, fee) {
   return parts.join(' - ') || 'Pagamento';
 }
 
-async function resolveDefaultRevenueTag(base44) {
-  try {
-    const tags = await base44.entities.CustomTag.filter({ type: 'revenue' });
-    return tags?.[0]?.name || 'Incasso Clienti';
-  } catch {
-    return 'Incasso Clienti';
-  }
+function resolveDefaultRevenueTag(fee) {
+  const categoryTagMap = {
+    'Progettazione': 'Progettazione',
+    'Direzione Lavori': 'Direzione Lavori',
+    'Pratiche Burocratiche': 'Burocrazia',
+    'Provvigioni': 'Provvigione',
+  };
+  return categoryTagMap[fee?.category] || 'Progettazione';
 }
 
 async function recomputeFeePaymentStatus(base44, feeId) {
@@ -225,7 +226,7 @@ Deno.serve(async (req) => {
     if (!fee) {
       return Response.json({ error: 'Associated fee not found' }, { status: 404 });
     }
-    const defaultTag = await resolveDefaultRevenueTag(base44);
+    const defaultTag = resolveDefaultRevenueTag(fee);
 
     const resolvedAmount = origin === 'revenue'
       ? normalizeAmount(revenuePatch.amount ?? revenue?.amount, installment.amount || 0)
