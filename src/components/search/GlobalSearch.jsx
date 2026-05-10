@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 import { base44 } from '@/api/base44Client';
@@ -50,7 +50,7 @@ export default function GlobalSearch({ open, onOpenChange }) {
   const [results, setResults] = useState({});
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const requestIdRef = useRef(0);
+  const dataRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,55 +58,54 @@ export default function GlobalSearch({ open, onOpenChange }) {
       setQuery('');
       setResults({});
       setSelectedIndex(0);
+      return;
     }
+
+    // Carica i dati una sola volta all'apertura del dialog
+    let cancelled = false;
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [clients, projects, fees, revenues, expenses] = await Promise.all([
+          base44.entities.Client.list('-created_date', 500),
+          base44.entities.Project.list('-created_date', 500),
+          base44.entities.Fee.list('-created_date', 500),
+          base44.entities.Revenue.list('-created_date', 500),
+          base44.entities.Expense.list('-created_date', 500),
+        ]);
+        if (cancelled) return;
+        dataRef.current = { clients, projects, fees, revenues, expenses };
+      } catch (e) {
+        if (!cancelled) console.error('Errore caricamento ricerca:', e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    loadData();
+    return () => { cancelled = true; };
   }, [open]);
 
   useEffect(() => {
-    const requestId = ++requestIdRef.current;
-
-    const searchData = async () => {
-      if (query.length < 2) {
-        setResults({});
-        setSelectedIndex(0);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
+    if (query.length < 2 || !dataRef.current) {
       setResults({});
-      try {
-        const [clients, projects, fees, revenues, expenses] = await Promise.all([
-          base44.entities.Client.list(),
-          base44.entities.Project.list(),
-          base44.entities.Fee.list(),
-          base44.entities.Revenue.list(),
-          base44.entities.Expense.list(),
-        ]);
+      setSelectedIndex(0);
+      return;
+    }
 
-        if (requestId !== requestIdRef.current) return;
+    const debounce = setTimeout(() => {
+      const { clients, projects, fees, revenues, expenses } = dataRef.current;
+      const lowerQuery = query.toLowerCase();
+      const filtered = {
+        Client: clients.filter(c => c.name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
+        Project: projects.filter(p => p.name?.toLowerCase().includes(lowerQuery) || p.client_name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
+        Fee: fees.filter(f => f.project_name?.toLowerCase().includes(lowerQuery) || f.client_name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
+        Revenue: revenues.filter(r => r.description?.toLowerCase().includes(lowerQuery) || r.project_name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
+        Expense: expenses.filter(e => e.description?.toLowerCase().includes(lowerQuery) || e.nature?.toLowerCase().includes(lowerQuery)).slice(0, 5),
+      };
+      setResults(filtered);
+      setSelectedIndex(0);
+    }, 200);
 
-        const lowerQuery = query.toLowerCase();
-        const filtered = {
-          Client: clients.filter(c => c.name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
-          Project: projects.filter(p => p.name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
-          Fee: fees.filter(f => f.project_name?.toLowerCase().includes(lowerQuery) || f.client_name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
-          Revenue: revenues.filter(r => r.description?.toLowerCase().includes(lowerQuery)).slice(0, 5),
-          Expense: expenses.filter(e => e.description?.toLowerCase().includes(lowerQuery)).slice(0, 5),
-        };
-
-        setResults(filtered);
-        setSelectedIndex(0);
-      } catch (e) {
-        if (requestId !== requestIdRef.current) return;
-        console.error('Errore ricerca:', e);
-      } finally {
-        if (requestId === requestIdRef.current) {
-          setLoading(false);
-        }
-      }
-    };
-
-    const debounce = setTimeout(searchData, 300);
     return () => clearTimeout(debounce);
   }, [query]);
 
