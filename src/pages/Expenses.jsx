@@ -44,6 +44,7 @@ import YearSelect from '../components/ui/YearSelect';
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
+import MobileExpenseCard from '../components/expenses/MobileExpenseCard';
 
 export default function Expenses() {
   const currentYear = new Date().getFullYear();
@@ -415,29 +416,61 @@ export default function Expenses() {
 
   return (
     <div>
-      <PageHeader title="Spese" description="Traccia tutte le spese aziendali">
-        <YearSelect
-          value={selectedYear}
-          onValueChange={setSelectedYear}
-          includeAll
-          className="w-40"
-        />
-        <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="Tutti i mesi" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="0">Tutti i mesi</SelectItem>
-            {['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'].map((m, i) => (
-              <SelectItem key={i+1} value={String(i+1)}>{m}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button onClick={() => openDialog()} className="gap-2">
+      {/* Mobile header */}
+      <div className="sm:hidden mb-4">
+        <h1 className="text-2xl font-bold text-slate-900">Spese</h1>
+        <p className="text-sm text-slate-500 mt-1">Traccia tutte le spese aziendali</p>
+        <div className="grid grid-cols-2 gap-2 mt-4">
+          <YearSelect
+            value={selectedYear}
+            onValueChange={setSelectedYear}
+            includeAll
+            className="w-full"
+          />
+          <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
+            <SelectTrigger>
+              <SelectValue placeholder="Tutti i mesi" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">Tutti i mesi</SelectItem>
+              {['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'].map((m, i) => (
+                <SelectItem key={i+1} value={String(i+1)}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button onClick={() => openDialog()} className="w-full mt-2 gap-2 h-11 rounded-xl">
           <Plus className="h-4 w-4" />
           Aggiungi Spesa
         </Button>
-      </PageHeader>
+      </div>
+
+      {/* Desktop header */}
+      <div className="hidden sm:block">
+        <PageHeader title="Spese" description="Traccia tutte le spese aziendali">
+          <YearSelect
+            value={selectedYear}
+            onValueChange={setSelectedYear}
+            includeAll
+            className="w-40"
+          />
+          <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Tutti i mesi" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">Tutti i mesi</SelectItem>
+              {['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'].map((m, i) => (
+                <SelectItem key={i+1} value={String(i+1)}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={() => openDialog()} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Aggiungi Spesa
+          </Button>
+        </PageHeader>
+      </div>
 
       {hasLinkedFilters && (
         <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -450,8 +483,8 @@ export default function Expenses() {
         </div>
       )}
 
-      {/* Summary Cards by Type */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Summary Cards by Type - scroll orizzontale su mobile */}
+      <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible snap-x snap-mandatory sm:snap-none [&>*]:min-w-[70%] [&>*]:snap-start sm:[&>*]:min-w-0">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -514,8 +547,8 @@ export default function Expenses() {
         </Card>
       </div>
 
-      {/* Category Breakdown */}
-      <Card className="mb-6">
+      {/* Category Breakdown - nascosto su mobile per snellire la pagina */}
+      <Card className="mb-6 hidden sm:block">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Filter className="h-5 w-5 text-slate-600" />
@@ -545,8 +578,8 @@ export default function Expenses() {
         </CardContent>
       </Card>
 
-      {/* Filtered Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Filtered Summary Cards - nascoste su mobile, già coperte dal blocco superiore */}
+      <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
@@ -601,21 +634,49 @@ export default function Expenses() {
         </Card>
       </div>
 
-      {/* Filter Tabs */}
+      {/* Filter Tabs - scrollabili su mobile */}
       <Tabs value={activeTag} onValueChange={setActiveTag} className="mb-4">
-        <TabsList>
-          <TabsTrigger value="all">Tutti</TabsTrigger>
-          {expenseTags.map((tag) =>
-          <TabsTrigger key={tag.id} value={tag.name}>{tag.name}</TabsTrigger>
-          )}
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="w-max">
+            <TabsTrigger value="all">Tutti</TabsTrigger>
+            {expenseTags.map((tag) =>
+            <TabsTrigger key={tag.id} value={tag.name}>{tag.name}</TabsTrigger>
+            )}
+          </TabsList>
+        </div>
       </Tabs>
 
-      <DataTable
-        columns={columns}
-        data={filteredExpenses}
-        loading={isLoading}
-        emptyMessage="Nessuna spesa registrata. Clicca 'Aggiungi Spesa' per iniziare." />
+      {/* Mobile list */}
+      <div className="sm:hidden space-y-3">
+        {isLoading ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+            Caricamento...
+          </div>
+        ) : filteredExpenses.length === 0 ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+            Nessuna spesa registrata. Clicca &apos;Aggiungi Spesa&apos; per iniziare.
+          </div>
+        ) : (
+          filteredExpenses.map((exp) => (
+            <MobileExpenseCard
+              key={`m-${exp.id}`}
+              expense={exp}
+              tagColor={tagColorMap[exp.tag]}
+              onEdit={openDialog}
+              onDelete={(e) => deleteMutation.mutate(e.id)}
+            />
+          ))
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block">
+        <DataTable
+          columns={columns}
+          data={filteredExpenses}
+          loading={isLoading}
+          emptyMessage="Nessuna spesa registrata. Clicca 'Aggiungi Spesa' per iniziare." />
+      </div>
 
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
