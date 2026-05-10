@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,6 +12,7 @@ import { format } from 'date-fns';
 import { formatCurrency } from '../lib/formatters';
 import { cn } from '@/lib/utils';
 import { getTagStyle } from '../hooks/useCustomTags';
+import { createPageUrl } from '../../utils';
 
 /**
  * Riga aggregata "Compenso" nella pagina Ricavi: raggruppa tutti i revenue
@@ -26,6 +28,12 @@ export default function FeeGroupRow({
   onDeleteRevenue,
 }) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleEditFee = () => {
+    if (!fee?.id) return;
+    navigate(`${createPageUrl('Fees')}?feeId=${fee.id}`);
+  };
 
   const sortedRevenues = [...revenues].sort((a, b) =>
     (a.date || '').localeCompare(b.date || '')
@@ -91,7 +99,23 @@ export default function FeeGroupRow({
             )}
           </div>
         </td>
-        <td className="py-3 px-4 align-top w-12"></td>
+        <td className="py-3 px-4 align-top w-12">
+          {fee?.id && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleEditFee}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Modifica compenso (nome e tag)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </td>
       </tr>
 
       {open && (
