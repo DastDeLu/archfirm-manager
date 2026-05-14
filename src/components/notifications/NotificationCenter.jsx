@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Bell, AlertCircle, Calendar, TrendingDown } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { Bell, AlertCircle, Calendar, TrendingDown, X } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -25,10 +25,43 @@ const FEE_CATEGORY_ABBREV = {
 const getFeeCategoryAbbreviation = (category) =>
   FEE_CATEGORY_ABBREV[category] || (category || '').substring(0, 2).toUpperCase();
 
+const DISMISSED_STORAGE_KEY = 'notification-dismissed-ids';
+
+const loadDismissed = () => {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(DISMISSED_STORAGE_KEY) || '[]'));
+  } catch {
+    return new Set();
+  }
+};
+
 export default function NotificationCenter() {
   const [open, setOpen] = useState(false);
   const { kpis } = useKpiData();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [dismissedIds, setDismissedIds] = useState(loadDismissed);
+
+  const dismissLocal = (id) => {
+    setDismissedIds(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      try {
+        localStorage.setItem(DISMISSED_STORAGE_KEY, JSON.stringify([...next]));
+      } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  const dismissDbNotification = async (id, e) => {
+    e?.stopPropagation();
+    await base44.entities.Notification.update(id, { is_read: true });
+    queryClient.invalidateQueries({ queryKey: ['user-notifications'] });
+  };
+
+  useEffect(() => {
+    // cleanup: nothing for now
+  }, []);
 
   // Fetch scadenze - sincronizzato con objectives principal
    const { data: objectives = [] } = useQuery({
@@ -65,11 +98,12 @@ export default function NotificationCenter() {
   const next30Days = addDays(today, 30);
 
   // KPI Critici (rossi)
-  const criticalKpis = Object.values(kpis).filter(kpi => kpi.status === 'critical');
+  const criticalKpis = Object.values(kpis).filter(kpi => kpi.status === 'critical' && !dismissedIds.has(`kpi:${kpi.id}`));
 
   // Obiettivi in scadenza (prossimi 7 giorni) e attivi
   const upcomingObjectives = objectives.filter(obj => {
     if (obj.status !== 'active' || !obj.deadline) return false;
+    if (dismissedIds.has(`objective:${obj.id}`)) return false;
     const deadline = new Date(obj.deadline);
     return isAfter(deadline, today) && isBefore(deadline, next7Days);
   });
@@ -77,6 +111,7 @@ export default function NotificationCenter() {
   // Installments in scadenza o scaduti: pending|overdue, escluso paid|cancelled, due_date passata o entro 30gg
   const overdueInstallments = installments.filter(i => {
     if (!['pending', 'overdue'].includes(i.status) || !i.due_date) return false;
+    if (dismissedIds.has(`installment:${i.id}`)) return false;
     const dueDate = new Date(i.due_date);
     return isBefore(dueDate, today) || isBefore(dueDate, next30Days);
   });
@@ -154,9 +189,17 @@ export default function NotificationCenter() {
                       navigateAndClose(notif.action_url || getEntityUrl(notif.related_entity_type, notif.related_entity_id));
                     }
                   }}
-                  className="p-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="relative p-3 hover:bg-slate-50 transition-colors cursor-pointer group"
                 >
-                  <div className="flex items-start gap-3">
+                  <button
+                    type="button"
+                    onClick={(e) => dismissDbNotification(notif.id, e)}
+                    className="absolute top-2 right-2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    aria-label="Elimina notifica"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                  <div className="flex items-start gap-3 pr-5">
                     <div className={cn(
                       'p-2 rounded-lg',
                       notif.type === 'error' && 'bg-red-100',
@@ -198,9 +241,17 @@ export default function NotificationCenter() {
                       navigateAndClose(createPageUrl('Objectives'));
                     }
                   }}
-                  className="p-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="relative p-3 hover:bg-slate-50 transition-colors cursor-pointer group"
                 >
-                  <div className="flex items-start gap-3">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); dismissLocal(`kpi:${kpi.id}`); }}
+                    className="absolute top-2 right-2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    aria-label="Elimina notifica"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                  <div className="flex items-start gap-3 pr-5">
                     <div className="p-2 bg-red-100 rounded-lg">
                       <AlertCircle className="h-4 w-4 text-red-600" />
                     </div>
@@ -233,9 +284,17 @@ export default function NotificationCenter() {
                       navigateAndClose(createPageUrl(`Objectives?objectiveId=${obj.id}`));
                     }
                   }}
-                  className="p-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="relative p-3 hover:bg-slate-50 transition-colors cursor-pointer group"
                 >
-                  <div className="flex items-start gap-3">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); dismissLocal(`objective:${obj.id}`); }}
+                    className="absolute top-2 right-2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    aria-label="Elimina notifica"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                  <div className="flex items-start gap-3 pr-5">
                     <div className="p-2 bg-amber-100 rounded-lg">
                       <TrendingDown className="h-4 w-4 text-amber-600" />
                     </div>
@@ -268,9 +327,17 @@ export default function NotificationCenter() {
                         navigateAndClose(targetUrl);
                       }
                     }}
-                    className="p-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                    className="relative p-3 hover:bg-slate-50 transition-colors cursor-pointer group"
                   >
-                    <div className="flex items-start gap-3">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); dismissLocal(`installment:${inst.id}`); }}
+                      className="absolute top-2 right-2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      aria-label="Elimina notifica"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                    <div className="flex items-start gap-3 pr-5">
                       <div className={cn(
                         'p-2 rounded-lg',
                         isOverdue ? 'bg-red-100' : 'bg-amber-100'
