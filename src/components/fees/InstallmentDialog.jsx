@@ -95,6 +95,7 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
     },
     onSuccess: async (newInst) => {
       queryClient.invalidateQueries({ queryKey: ['installments'] });
+      queryClient.invalidateQueries({ queryKey: ['installments-notifications'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
       if (fee?.id) {
@@ -125,6 +126,7 @@ export default function InstallmentDialog({ open, onOpenChange, fee, installment
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['installments'] });
+      queryClient.invalidateQueries({ queryKey: ['installments-notifications'] });
       queryClient.invalidateQueries({ queryKey: ['cashData'] });
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
       if (fee?.id) {

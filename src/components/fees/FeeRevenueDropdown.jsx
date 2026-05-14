@@ -69,6 +69,7 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso, targetInstallmen
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['installments'] });
+      queryClient.invalidateQueries({ queryKey: ['installments-notifications'] });
       queryClient.invalidateQueries({ queryKey: ['installments-by-fee', fee.id] });
       queryClient.invalidateQueries({ queryKey: ['revenues'] });
       queryClient.invalidateQueries({ queryKey: ['revenues-by-fee', fee.id] });
