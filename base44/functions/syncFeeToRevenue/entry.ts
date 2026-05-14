@@ -1,29 +1,15 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-// Inlined helpers (local imports are not supported in backend functions)
-function requireWebhookSecret(req) {
-  const expected = Deno.env.get('SYNC_WEBHOOK_SECRET');
-  if (!expected) return; // legacy mode: no secret configured
-  const provided = req.headers.get('x-webhook-secret') || new URL(req.url).searchParams.get('secret');
-  if (provided !== expected) {
-    throw new Error('Forbidden: invalid webhook secret');
-  }
-}
-
 function stampOwnerExtra(ownerUserId) {
   return ownerUserId ? { owner_user_id: ownerUserId } : {};
 }
 
-// Internal webhook: Fee status → Revenue. WEBHOOK_SECRET optional until configured (legacy mode).
+// Entity automation handler: Fee update → crea Revenue quando passa a "Incassati".
+// Invocata internamente dalla piattaforma Base44 (entity automation), nessun secret esterno richiesto.
 Deno.serve(async (req) => {
   try {
-    requireWebhookSecret(req);
-  } catch (e) {
-    return Response.json({ error: e.message }, { status: 403 });
-  }
-
   const base44 = createClientFromRequest(req);
-  const { event, data: feeRecord, old_data } = await req.json();
+  const { data: feeRecord, old_data } = await req.json();
 
   if (!feeRecord || !feeRecord.id) {
     return Response.json({ error: 'Fee data required' }, { status: 400 });
@@ -91,5 +77,8 @@ Deno.serve(async (req) => {
     });
   }
 
-  return Response.json({ success: true, message: 'Revenue created and cash flow updated', revenue: revenueData });
+    return Response.json({ success: true, message: 'Revenue created and cash flow updated', revenue: revenueData });
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
 });
