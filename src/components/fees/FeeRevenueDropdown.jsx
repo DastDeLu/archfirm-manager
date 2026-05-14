@@ -45,6 +45,14 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso, targetInstallmen
     queryFn: () => base44.entities.Installment.filter({ fee_id: fee.id }),
   });
 
+  // Reset del flag ad ogni nuovo deep-link, così un secondo click su una notifica
+  // (anche dalla stessa pagina Fees) riapre correttamente il dialog.
+  useEffect(() => {
+    if (targetInstallmentId) {
+      deepLinkConsumed.current = false;
+    }
+  }, [targetInstallmentId]);
+
   useEffect(() => {
     if (!targetInstallmentId || deepLinkConsumed.current || !installmentsLoaded) return;
     const target = installments.find(i => i.id === targetInstallmentId);
