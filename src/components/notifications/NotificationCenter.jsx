@@ -40,7 +40,6 @@ export default function NotificationCenter() {
   const { data: installments = [] } = useQuery({
     queryKey: ['installments-notifications'],
     queryFn: () => base44.entities.Installment.list(),
-    refetchInterval: 10000,
   });
 
   const { data: fees = [] } = useQuery({
