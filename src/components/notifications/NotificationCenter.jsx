@@ -14,6 +14,17 @@ import { it } from 'date-fns/locale';
 import { formatCurrency } from '../lib/formatters';
 import { createPageUrl } from '../../utils';
 
+// Abbreviazioni categorie fee per notifiche
+const FEE_CATEGORY_ABBREV = {
+  'Progettazione': 'PG',
+  'Direzione Lavori': 'DL',
+  'Provvigioni': 'PV',
+  'Pratiche Burocratiche': 'PB',
+};
+
+const getFeeCategoryAbbreviation = (category) =>
+  FEE_CATEGORY_ABBREV[category] || (category || '').substring(0, 2).toUpperCase();
+
 export default function NotificationCenter() {
   const [open, setOpen] = useState(false);
   const { kpis } = useKpiData();
@@ -31,6 +42,13 @@ export default function NotificationCenter() {
     queryFn: () => base44.entities.Installment.list(),
   });
 
+  const { data: fees = [] } = useQuery({
+    queryKey: ['fees-notifications'],
+    queryFn: () => base44.entities.Fee.list(),
+  });
+
+  const feeMap = React.useMemo(() => new Map(fees.map(f => [f.id, f])), [fees]);
+
   const { data: notifications = [] } = useQuery({
     queryKey: ['user-notifications'],
     queryFn: async () => {
@@ -44,6 +62,7 @@ export default function NotificationCenter() {
 
   const today = new Date();
   const next7Days = addDays(today, 7);
+  const next30Days = addDays(today, 30);
 
   // KPI Critici (rossi)
   const criticalKpis = Object.values(kpis).filter(kpi => kpi.status === 'critical');
@@ -55,11 +74,11 @@ export default function NotificationCenter() {
     return isAfter(deadline, today) && isBefore(deadline, next7Days);
   });
 
-  // Installments in scadenza o scaduti
+  // Installments in scadenza o scaduti: pending|overdue, escluso paid|cancelled, due_date passata o entro 30gg
   const overdueInstallments = installments.filter(i => {
-    if (i.status !== 'pending' || !i.due_date) return false;
+    if (!['pending', 'overdue'].includes(i.status) || !i.due_date) return false;
     const dueDate = new Date(i.due_date);
-    return isBefore(dueDate, today) || isBefore(dueDate, next7Days);
+    return isBefore(dueDate, today) || isBefore(dueDate, next30Days);
   });
 
   const totalNotifications = criticalKpis.length + upcomingObjectives.length + overdueInstallments.length + notifications.length;
@@ -79,7 +98,11 @@ export default function NotificationCenter() {
     if (normalizedType === 'revenue') return createPageUrl(`Revenues?revenueId=${entityId}`);
     if (normalizedType === 'expense') return createPageUrl(`Expenses?expenseId=${entityId}`);
     if (normalizedType === 'objective') return createPageUrl(`Objectives?objectiveId=${entityId}`);
-    if (normalizedType === 'installment') return createPageUrl(`Fees?installmentId=${entityId}`);
+    if (normalizedType === 'installment') {
+      const inst = installments.find(i => i.id === entityId);
+      if (inst?.fee_id) return createPageUrl(`Fees?feeId=${inst.fee_id}&installmentId=${entityId}`);
+      return createPageUrl(`Fees?installmentId=${entityId}`);
+    }
     return null;
   };
 
@@ -229,16 +252,20 @@ export default function NotificationCenter() {
               {/* Installments in scadenza */}
               {overdueInstallments.map(inst => {
                 const isOverdue = isBefore(new Date(inst.due_date), today);
+                const fee = feeMap.get(inst.fee_id);
+                const clientName = fee?.client_name || 'Cliente';
+                const categoryAbbrev = fee ? getFeeCategoryAbbreviation(fee.category) : '';
+                const targetUrl = createPageUrl(`Fees?feeId=${inst.fee_id || ''}&installmentId=${inst.id}`);
                 return (
                   <div
                     key={inst.id}
                     role="button"
                     tabIndex={0}
-                    onClick={() => navigateAndClose(createPageUrl(`Fees?feeId=${inst.fee_id || ''}&installmentId=${inst.id}`))}
+                    onClick={() => navigateAndClose(targetUrl)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        navigateAndClose(createPageUrl(`Fees?feeId=${inst.fee_id || ''}&installmentId=${inst.id}`));
+                        navigateAndClose(targetUrl);
                       }
                     }}
                     className="p-3 hover:bg-slate-50 transition-colors cursor-pointer"
@@ -254,14 +281,24 @@ export default function NotificationCenter() {
                         )} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-slate-900">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm text-slate-900 truncate">
+                            {clientName}
+                          </p>
+                          {categoryAbbrev && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 font-semibold">
+                              {categoryAbbrev}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
                           Rata {isOverdue ? 'scaduta' : 'in scadenza'}
                         </p>
                         <p className={cn(
                           'text-xs font-medium mt-1',
                           isOverdue ? 'text-red-600' : 'text-amber-600'
                         )}>
-                          {formatCurrency(inst.amount || 0)} - {format(new Date(inst.due_date), 'dd MMM yyyy', { locale: it })}
+                          {formatCurrency(inst.amount || 0)} · {format(new Date(inst.due_date), 'dd MMM yyyy', { locale: it })}
                         </p>
                       </div>
                     </div>
