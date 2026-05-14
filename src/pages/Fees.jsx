@@ -210,6 +210,19 @@ export default function Fees() {
       // Troviamo il fee contenitore (se fornito) oppure espandiamo solo il client
       const parentFee = feeId ? fees.find(f => f.id === feeId) : null;
       const clientId = parentFee?.client_id || null;
+      // Assicuriamoci che il fee sia visibile: se ha un anno diverso da quello selezionato,
+      // passiamo a "Tutti gli anni" così il FeeRevenueDropdown viene renderizzato.
+      if (parentFee?.date) {
+        const feeYear = parseInt(parentFee.date.slice(0, 4), 10);
+        if (feeYear && feeYear !== selectedYear) setSelectedYear(0);
+      } else if (!parentFee) {
+        // Senza feeId non sappiamo a quale fee appartiene: mostriamo tutti gli anni
+        setSelectedYear(0);
+      }
+      // Resettiamo eventuali filtri che potrebbero nasconderlo
+      setCategoryFilter('all');
+      setMonthFilter('all');
+      setSearchTerm('');
       if (clientId) setExpandedClient(clientId);
       setTargetInstallmentId(installmentId);
 
