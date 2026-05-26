@@ -256,10 +256,20 @@ export default function Revenues() {
     }
   };
 
+  // Confronto tag tollerante a varianti singolare/plurale (es. "Provvigione" vs "Provvigioni"
+  // che convivono nei dati storici per la stessa categoria)
+  const tagEquals = (rTag, active) => {
+    if (active === 'all') return true;
+    if (!rTag) return false;
+    if (rTag === active) return true;
+    const norm = (s) => s.toLowerCase().replace(/i$/, '').replace(/e$/, '');
+    return norm(rTag) === norm(active);
+  };
+
   // Filtra per tag, anno e mese selezionati
   const filteredRevenues = useMemo(() => {
     return revenues.filter(r => {
-      const tagMatch = activeTag === 'all' || r.tag === activeTag;
+      const tagMatch = tagEquals(r.tag, activeTag);
       const yearMatch = !selectedYear || r.date?.startsWith(String(selectedYear));
       const monthMatch = !selectedMonth || r.date?.substring(5, 7) === String(selectedMonth).padStart(2, '0');
       return tagMatch && yearMatch && monthMatch;
@@ -274,7 +284,7 @@ export default function Revenues() {
       return dateStr?.substring(5, 7) === String(month).padStart(2, '0');
     };
 
-    const tagMatch = (r) => activeTag === 'all' || r.tag === activeTag;
+    const tagMatch = (r) => tagEquals(r.tag, activeTag);
 
     const currentYearRevenues = revenues.filter(r =>
       r.date?.startsWith(String(currentYear)) && matchMonth(r.date, selectedMonth) && tagMatch(r)
