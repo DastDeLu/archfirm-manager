@@ -1,13 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-// Internal webhook: Revenue create -> aggiorna BankCash/PettyCash.
-// Verifica del secret opzionale (legacy mode) se SYNC_WEBHOOK_SECRET non è configurato.
-function verifyWebhookSecret(req) {
-  const expected = Deno.env.get('SYNC_WEBHOOK_SECRET');
-  if (!expected) return true; // legacy mode: nessun secret configurato
-  const header = req.headers.get('x-webhook-secret') || req.headers.get('X-Webhook-Secret');
-  return header === expected;
-}
+// Internal automation: Revenue create -> aggiorna BankCash/PettyCash.
+// Invocato dalla Base44 entity automation (auth interna).
 
 function stampOwnerExtra(ownerUserId) {
   return ownerUserId ? { owner_user_id: ownerUserId } : {};
@@ -15,10 +9,6 @@ function stampOwnerExtra(ownerUserId) {
 
 Deno.serve(async (req) => {
   try {
-    if (!verifyWebhookSecret(req)) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const base44 = createClientFromRequest(req);
     const body = await req.json();
     const event = body?.event || {};
