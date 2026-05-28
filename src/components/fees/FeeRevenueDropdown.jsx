@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Plus, ArrowDownCircle, CheckCircle, Clock, Calendar, Layers, Pencil, Trash2, Banknote } from 'lucide-react';
+import { ChevronDown, Plus, CheckCircle, Clock, Calendar, Layers, Pencil, Trash2, Banknote } from 'lucide-react';
 import { formatCurrency } from '../lib/formatters';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -26,8 +26,8 @@ import InstallmentDialog from './InstallmentDialog';
 import RegisterIncassoDialog from './RegisterIncassoDialog';
 
 /**
- * Dropdown per un singolo compenso (Fee) che mostra i ricavi collegati
- * e permette di aggiungere un nuovo incasso.
+ * Dropdown per un singolo compenso (Fee) che gestisce le rate/acconti
+ * e permette di aggiungere/registrare incassi.
  */
 export default function FeeRevenueDropdown({ fee, onAddIncasso, targetInstallmentId, onTargetInstallmentHandled }) {
   const [open, setOpen] = useState(false);
@@ -135,98 +135,63 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso, targetInstallmen
 
       <CollapsibleContent>
         <div className="mt-2 border border-slate-200 rounded-lg bg-white shadow-sm overflow-hidden min-w-[280px]">
-          {/* Header */}
-          <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Incassi registrati</span>
-            {!isFullyCollected && (
-              <span className="text-xs text-amber-600 font-medium">
-                Rimanente: {formatCurrency(remaining)}
-              </span>
-            )}
+          {/* Rate / Acconti section — sempre visibile */}
+          <div className="px-3 py-2 bg-blue-50 border-b border-slate-200 flex items-center gap-1">
+            <Layers className="h-3 w-3 text-blue-600" />
+            <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Rate / Acconti</span>
           </div>
-
-          {/* Revenue list */}
-          <div className="divide-y divide-slate-100">
-            {revenues.length === 0 ? (
-              <p className="text-xs text-slate-400 px-3 py-3 text-center">Nessun incasso registrato</p>
-            ) : (
-              revenues.map(rev => (
-                <div key={rev.id} className="flex items-center justify-between px-3 py-2">
+          {installments.length === 0 ? (
+            <p className="text-xs text-slate-400 px-3 py-3 text-center">Nessuna rata</p>
+          ) : (
+            installments
+              .sort((a, b) => {
+                if (a.kind === 'acconto' && b.kind !== 'acconto') return -1;
+                if (b.kind === 'acconto' && a.kind !== 'acconto') return 1;
+                return (a.due_date || '').localeCompare(b.due_date || '');
+              })
+              .map(inst => (
+                <div key={inst.id} className="flex items-center justify-between px-3 py-2 border-b border-slate-100 last:border-0">
                   <div>
-                    <p className="text-xs text-slate-500">{rev.date}</p>
-                    {rev.description && (
-                      <p className="text-xs text-slate-400 truncate max-w-[160px]">{rev.description}</p>
-                    )}
+                    <div className="flex items-center gap-1">
+                      <span className={cn(
+                        "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
+                        inst.kind === 'acconto' ? 'bg-blue-100 text-blue-700' :
+                        inst.kind === 'saldo' ? 'bg-purple-100 text-purple-700' :
+                        'bg-slate-100 text-slate-600'
+                      )}>
+                        {inst.kind === 'acconto' ? 'Acconto' : inst.kind === 'saldo' ? 'Saldo' : 'Rata'}
+                      </span>
+                      {inst.google_event_id && (
+                        <Calendar className="h-3 w-3 text-blue-400" title="Sync Calendar attivo" />
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">{inst.due_date || '—'}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-emerald-700">{formatCurrency(rev.amount || 0)}</p>
-                    <Badge variant="outline" className="text-[10px] px-1 py-0">
-                      {rev.payment_method === 'bank_transfer' ? 'Banca' : 'Contanti'}
-                    </Badge>
+                  <div className="flex items-center gap-1.5">
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-slate-800">{formatCurrency(inst.amount || 0)}</p>
+                      <span className={cn(
+                        "text-[10px] font-medium",
+                        inst.status === 'paid' ? 'text-emerald-600' :
+                        inst.status === 'overdue' ? 'text-red-600' : 'text-amber-600'
+                      )}>
+                        {inst.status === 'paid' ? 'Pagata' : inst.status === 'overdue' ? 'Scaduta' : 'Da pagare'}
+                      </span>
+                    </div>
+                    {inst.status !== 'paid' && (
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-emerald-500 hover:text-emerald-700" onClick={(e) => { e.stopPropagation(); setIncassoInstallment(inst); }} title="Segna Pagato">
+                        <Banknote className="h-3 w-3" />
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setEditingInstallment(inst); setInstallmentDialogOpen(true); }}>
+                      <Pencil className="h-3 w-3 text-slate-400" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-red-400 hover:text-red-600" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(inst.id); }}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
               ))
-            )}
-          </div>
-
-          {/* Rate / Acconti section */}
-          {installments.length > 0 && (
-            <>
-              <div className="px-3 py-2 bg-blue-50 border-t border-b border-slate-200 flex items-center gap-1">
-                <Layers className="h-3 w-3 text-blue-600" />
-                <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Rate / Acconti</span>
-              </div>
-              {installments
-                .sort((a, b) => {
-                  if (a.kind === 'acconto' && b.kind !== 'acconto') return -1;
-                  if (b.kind === 'acconto' && a.kind !== 'acconto') return 1;
-                  return (a.due_date || '').localeCompare(b.due_date || '');
-                })
-                .map(inst => (
-                  <div key={inst.id} className="flex items-center justify-between px-3 py-2">
-                    <div>
-                      <div className="flex items-center gap-1">
-                        <span className={cn(
-                          "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
-                          inst.kind === 'acconto' ? 'bg-blue-100 text-blue-700' :
-                          inst.kind === 'saldo' ? 'bg-purple-100 text-purple-700' :
-                          'bg-slate-100 text-slate-600'
-                        )}>
-                          {inst.kind === 'acconto' ? 'Acconto' : inst.kind === 'saldo' ? 'Saldo' : 'Rata'}
-                        </span>
-                        {inst.google_event_id && (
-                          <Calendar className="h-3 w-3 text-blue-400" title="Sync Calendar attivo" />
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 mt-0.5">{inst.due_date || '—'}</p>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-slate-800">{formatCurrency(inst.amount || 0)}</p>
-                        <span className={cn(
-                          "text-[10px] font-medium",
-                          inst.status === 'paid' ? 'text-emerald-600' :
-                          inst.status === 'overdue' ? 'text-red-600' : 'text-amber-600'
-                        )}>
-                          {inst.status === 'paid' ? 'Pagata' : inst.status === 'overdue' ? 'Scaduta' : 'Da pagare'}
-                        </span>
-                      </div>
-                      {inst.status !== 'paid' && (
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-emerald-500 hover:text-emerald-700" onClick={(e) => { e.stopPropagation(); setIncassoInstallment(inst); }} title="Segna Pagato">
-                          <Banknote className="h-3 w-3" />
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setEditingInstallment(inst); setInstallmentDialogOpen(true); }}>
-                        <Pencil className="h-3 w-3 text-slate-400" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-red-400 hover:text-red-600" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(inst.id); }}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              }
-            </>
           )}
 
           {/* Action buttons */}
