@@ -21,6 +21,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   GripVertical,
   DollarSign,
   Plus,
@@ -29,13 +35,13 @@ import {
   Save,
   Layers,
   Loader2,
+  ChevronDown,
 } from 'lucide-react';
 import { formatCurrency } from '../lib/formatters';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { withOwner } from '@/lib/withOwner';
 
-// Ciclo stati: pending -> paid -> overdue -> pending
 const STATUS_CYCLE = ['pending', 'paid', 'overdue'];
 const STATUS_CONFIG = {
   pending: { label: 'Da pagare', color: 'text-amber-500', bg: 'bg-amber-50' },
@@ -43,29 +49,45 @@ const STATUS_CONFIG = {
   overdue: { label: 'Scaduta',   color: 'text-red-500', bg: 'bg-red-50' },
 };
 
-function nextStatus(current) {
-  const idx = STATUS_CYCLE.indexOf(current);
-  return STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
-}
-
-function StatusIcon({ status, onClick, disabled }) {
+function StatusDropdown({ status, onSelect, disabled }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      title={cfg.label}
-      className={cn(
-        'rounded-full p-1 transition-colors',
-        cfg.bg,
-        cfg.color,
-        !disabled && 'hover:opacity-75 cursor-pointer',
-        disabled && 'cursor-default opacity-60'
-      )}
-    >
-      <DollarSign className="h-3.5 w-3.5" />
-    </button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild disabled={disabled}>
+        <button
+          type="button"
+          title={cfg.label}
+          className={cn(
+            'flex items-center gap-0.5 rounded-full px-1.5 py-1 transition-colors',
+            cfg.bg,
+            cfg.color,
+            !disabled && 'hover:opacity-75 cursor-pointer',
+            disabled && 'cursor-default opacity-60'
+          )}
+        >
+          <DollarSign className="h-3.5 w-3.5" />
+          <ChevronDown className="h-2.5 w-2.5" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="min-w-[150px]">
+        {STATUS_CYCLE.map(s => {
+          const c = STATUS_CONFIG[s];
+          return (
+            <DropdownMenuItem
+              key={s}
+              onClick={() => onSelect(s)}
+              className={cn('gap-2 cursor-pointer', s === status && 'font-semibold')}
+            >
+              <span className={cn('flex items-center justify-center rounded-full p-1', c.bg, c.color)}>
+                <DollarSign className="h-3 w-3" />
+              </span>
+              <span className="text-xs">{c.label}</span>
+              {s === status && <span className="ml-auto text-[10px] text-slate-400">✓</span>}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -239,8 +261,8 @@ export default function InstallmentsTableDialog({ open, onOpenChange, fee, targe
     });
   };
 
-  const handleStatusClick = (inst) => {
-    const newStatus = nextStatus(inst.status || 'pending');
+  const handleStatusSelect = (inst, newStatus) => {
+    if (newStatus === inst.status) return;
     if (newStatus === 'paid') {
       if (!inst.notes || !inst.notes.trim()) {
         toast.error('Aggiungi una descrizione alla rata prima di segnarla come pagata');
@@ -337,11 +359,11 @@ export default function InstallmentsTableDialog({ open, onOpenChange, fee, targe
                                     <GripVertical className="h-4 w-4" />
                                   </div>
 
-                                  {/* Status icon */}
+                                  {/* Status dropdown */}
                                   <div>
-                                    <StatusIcon
+                                    <StatusDropdown
                                       status={inst.status || 'pending'}
-                                      onClick={() => handleStatusClick(inst)}
+                                      onSelect={(s) => handleStatusSelect(inst, s)}
                                       disabled={isStatusChanging || statusMutation.isPending}
                                     />
                                   </div>
