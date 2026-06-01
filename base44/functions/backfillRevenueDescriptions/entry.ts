@@ -1,10 +1,28 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+// Estrae il numero rata dalle note se presente all'inizio (es. "5 rata direzione lavori" -> 5)
+function extractNumberFromNotes(notes) {
+  const m = norm(notes).match(/^(\d+)\s*[°ªa]?\s*rata\b/i);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+// Rimuove il prefisso numerico "N rata" dalle note per evitare duplicazioni con "Rata N"
+function stripLeadingRataNumber(notes) {
+  return norm(notes).replace(/^\d+\s*[°ªa]?\s*rata\b\s*/i, '').trim();
+}
+
 // Costruisce la descrizione nuovo formato: "Rata N · Descrizione Rata · Nome Cliente"
 function buildRevenueDescription(installment, fee) {
   const parts = [];
-  if (installment?.installment_number) parts.push(`Rata ${installment.installment_number}`);
-  if (installment?.notes) parts.push(installment.notes);
+  const numFromNotes = extractNumberFromNotes(installment?.notes);
+  const rataNumber = installment?.installment_number || numFromNotes;
+  if (rataNumber) parts.push(`Rata ${rataNumber}`);
+
+  // Se il numero proviene dalle note, lo rimuovo dal testo per non duplicarlo
+  let notesText = installment?.notes || '';
+  if (numFromNotes) notesText = stripLeadingRataNumber(notesText);
+  if (notesText) parts.push(notesText);
+
   if (fee?.client_name) parts.push(fee.client_name);
   return parts.join(' · ') || 'Pagamento';
 }
@@ -41,6 +59,10 @@ function matchInstallment(revenue, installments) {
     return amtOk && dateOk;
   });
   if (exact.length === 1) return exact[0];
+
+  // Fallback: match per importo (1 sola rata con quell'importo)
+  const byAmount = installments.filter((i) => (Number(i.amount) || 0) === revAmount);
+  if (byAmount.length === 1) return byAmount[0];
 
   return null;
 }
