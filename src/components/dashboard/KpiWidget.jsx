@@ -1,9 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useObjectives } from '../../hooks/entities';
 import { Button } from '@/components/ui/button';
 import { Target, ArrowRight, TrendingUp, AlertTriangle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -12,11 +11,7 @@ import { KPI_CATEGORIES } from '../lib/kpiDashboard';
 import { useKpiData } from '../hooks/useKpiData';
 
 export default function KpiWidget() {
-  const { data: objectives = [], isLoading } = useQuery({
-    queryKey: ['objectives-widget'],
-    queryFn: () => base44.entities.Objective.list('-created_date', 100),
-  });
-
+  const { data: objectives = [], isLoading } = useObjectives();
   const { kpis } = useKpiData();
 
   // Filtra solo gli obiettivi che sono collegati ai 5 KPI

@@ -38,10 +38,26 @@ const loadDismissed = () => {
 
 export default function NotificationCenter() {
   const [open, setOpen] = useState(false);
-  const { kpis } = useKpiData();
+  const [dismissedIds, setDismissedIds] = useState(loadDismissed);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [dismissedIds, setDismissedIds] = useState(loadDismissed);
+  const { kpis } = useKpiData();
+
+  // Tutti gli hook di dati devono stare qui sopra, prima di qualsiasi useEffect
+  const { data: objectives = [] }   = useObjectives();
+  const { data: installments = [] } = useInstallments();
+  const { data: fees = [] }         = useFees();
+
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['user-notifications'],
+    queryFn: async () => {
+      const user = await base44.auth.me();
+      return base44.entities.Notification.filter({ 
+        recipient_email: user.email,
+        is_read: false 
+      });
+    },
+  });
 
   const dismissLocal = (id) => {
     setDismissedIds(prev => {
@@ -60,28 +76,7 @@ export default function NotificationCenter() {
     queryClient.invalidateQueries({ queryKey: ['user-notifications'] });
   };
 
-  useEffect(() => {
-    // cleanup: nothing for now
-  }, []);
-
-  // Fetch scadenze - sincronizzato con objectives principal
-  // Riusa la cache condivisa (zero fetch duplicati)
-  const { data: objectives = [] }   = useObjectives();
-  const { data: installments = [] } = useInstallments();
-  const { data: fees = [] }         = useFees();
-
   const feeMap = React.useMemo(() => new Map(fees.map(f => [f.id, f])), [fees]);
-
-  const { data: notifications = [] } = useQuery({
-    queryKey: ['user-notifications'],
-    queryFn: async () => {
-      const user = await base44.auth.me();
-      return base44.entities.Notification.filter({ 
-        recipient_email: user.email,
-        is_read: false 
-      });
-    },
-  });
 
   const today = new Date();
   const next7Days = addDays(today, 7);
