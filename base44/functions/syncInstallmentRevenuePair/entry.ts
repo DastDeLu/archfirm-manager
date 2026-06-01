@@ -38,14 +38,14 @@ function formatDateIt(isoDate) {
 }
 
 function buildRevenueDescription(installment, fee, amount, paymentDate) {
-  // Formato: Descrizione rata · Progetto/Categoria · Importo · Data
+  // Formato: Rata N · Descrizione Rata · Nome Compenso (categoria)
   const parts = [];
+  if (installment?.installment_number) parts.push(`Rata ${installment.installment_number}`);
   if (installment?.notes) parts.push(installment.notes);
-  const projectOrCategory = fee?.project_name || fee?.category;
-  if (projectOrCategory) parts.push(projectOrCategory);
-  parts.push(formatEuro(amount));
-  const dateStr = formatDateIt(paymentDate);
-  if (dateStr) parts.push(dateStr);
+  const feeLabel = fee?.project_name
+    ? `${fee.category || ''} - ${fee.project_name}`.replace(/^- /, '')
+    : fee?.category;
+  if (feeLabel) parts.push(feeLabel);
   return parts.join(' · ') || 'Pagamento';
 }
 
@@ -277,13 +277,16 @@ Deno.serve(async (req) => {
     if (isDifferent(installment.status, resolvedInstallmentStatus)) installmentUpdatePayload.status = resolvedInstallmentStatus;
     if (isDifferent(installment.paid_date || '', resolvedInstallmentPaidDate || '')) installmentUpdatePayload.paid_date = resolvedInstallmentPaidDate;
 
+    // Save notes before potential reassignment from update
+    const installmentNotes = installment.notes;
+
     if (Object.keys(installmentUpdatePayload).length > 0) {
       installment = await base44.asServiceRole.entities.Installment.update(installment.id, installmentUpdatePayload);
     }
 
     if (resolvedInstallmentStatus === 'paid') {
       const resolvedDescription =
-        buildRevenueDescription(installment, fee, resolvedAmount, resolvedRevenueDate);
+        buildRevenueDescription({ ...installment, notes: installmentNotes }, fee, resolvedAmount, resolvedRevenueDate);
       const resolvedTag = revenuePatch.tag || revenue?.tag || defaultTag;
 
       const revenuePayload = {
