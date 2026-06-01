@@ -3,68 +3,30 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { 
   KPI_DEFINITIONS, 
-  getKpiStatus, 
   formatKpiValue, 
   getKpiTarget,
   calculateKPIStatus,
-  mockKpiData
 } from '../lib/kpiDashboard';
 import { calculateCashForecast } from '../utils/cashForecast';
 import { useCurrentUserId } from '../../hooks/useCurrentUserId';
+import { useRevenues, useExpenses, useInstallments, useOpeningBals, useQuotes } from '../../hooks/entities';
 
 /**
- * Custom hook per calcolare i KPI in tempo reale dai dati dell'app
+ * Hook per calcolare i KPI in tempo reale dai dati dell'app.
+ * Riusa le query condivise da hooks/entities.js → zero fetch duplicati.
  */
 export function useKpiData() {
-  const uid = useCurrentUserId();
-  // Fetch dati necessari per il calcolo dei KPI
-  const { data: revenues = [] } = useQuery({
-    queryKey: ['revenues', uid],
-    queryFn: () => base44.entities.Revenue.list(),
-  });
-
-  const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses', uid],
-    queryFn: () => base44.entities.Expense.list(),
-  });
-
-  const { data: installments = [] } = useQuery({
-    queryKey: ['installments', uid],
-    queryFn: () => base44.entities.Installment.list(),
-  });
-
-  const { data: openingBalances = [] } = useQuery({
-    queryKey: ['openingBalances', uid],
-    queryFn: () => base44.entities.OpeningBalance.list(),
-  });
-
-  const { data: quotes = [] } = useQuery({
-     queryKey: ['quotes', uid],
-     queryFn: () => base44.entities.Quote.list(),
-   });
-
-   // Dipendenza da cashData per invalidare quando i dati finanziari cambiano
-   const { data: cashData } = useQuery({
-     queryKey: ['cashData', uid],
-     queryFn: async () => {
-       const [revs, exps, forecasts, openingBals, installs] = await Promise.all([
-         base44.entities.Revenue.list(),
-         base44.entities.Expense.list(),
-         base44.entities.Forecast.list(),
-         base44.entities.OpeningBalance.list(),
-         base44.entities.Installment.list()
-       ]);
-       return { revs, exps, forecasts, openingBals, installs };
-     },
-     staleTime: 30000,
-   });
+  const { data: revenues = [] }       = useRevenues();
+  const { data: expenses = [] }       = useExpenses();
+  const { data: installments = [] }   = useInstallments();
+  const { data: openingBalances = [] } = useOpeningBals();
+  const { data: quotes = [] }         = useQuotes();
 
   const kpiData = useMemo(() => {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
     const previousYear = currentYear - 1;
 
-    // Calcolo Cassa Attuale
     const bankOpening = openingBalances.find(ob => ob.type === 'bank' && ob.year === currentYear)?.amount || 0;
     const pettyOpening = openingBalances.find(ob => ob.type === 'petty' && ob.year === currentYear)?.amount || 0;
     
@@ -86,7 +48,6 @@ export function useKpiData() {
     
     const cassaAttuale = (bankOpening + bankRevenues - bankExpenses) + (pettyOpening + pettyRevenues - pettyExpenses);
 
-    // Calcolo Cassa Fine Anno Prevista usando cashForecast
     const ytdRevenues = revenues.filter(r => r.date?.startsWith(String(currentYear)));
     const ytdExpenses = expenses.filter(e => e.date?.startsWith(String(currentYear)));
     const cfIncassiYTD = ytdRevenues.reduce((sum, r) => sum + (r.amount || 0), 0);
@@ -108,39 +69,34 @@ export function useKpiData() {
       speseAnnuePreviste: 117000,
       cfIncassiYTD,
       cfSpeseYTD,
-      meseCorrente: currentMonth
+      meseCorrente: currentMonth,
     });
 
     const cassaFineAnno = cashForecast.cassaFinaleAnnoPrevista;
 
-    // Calcolo Indice Incassi
     const totalRevenues = revenues.reduce((sum, r) => sum + (r.amount || 0), 0);
     const feesDue = installments
       .filter(i => i.status === 'pending' || i.status === 'paid')
       .reduce((sum, i) => sum + (i.amount || 0), 0);
     const indiceIncassi = feesDue > 0 ? (totalRevenues / feesDue) * 100 : 100;
 
-    // Calcolo Indice Spese
     const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-    const speseAttese = 117000 * (currentMonth / 12); // Budget annuale proporzionato
+    const speseAttese = 117000 * (currentMonth / 12);
     const indiceSpese = speseAttese > 0 ? totalExpenses / speseAttese : 1;
 
-    // Calcolo Backlog (in mesi)
     const wonQuotes = quotes.filter(q => q.status === 'won');
     const backlogAmount = wonQuotes.reduce((sum, q) => sum + (q.amount || 0), 0);
     const mediaRicaviMensili = totalRevenues / Math.max(currentMonth, 1);
     const backlogMesi = mediaRicaviMensili > 0 ? backlogAmount / mediaRicaviMensili : 0;
 
-    // Calcola gli stati usando la funzione centralizzata
     const kpiResults = calculateKPIStatus({
       Cassa_Attuale: cassaAttuale,
       Cassa_Fine_Anno_Prevista: cassaFineAnno,
-      Indice_Incassi: indiceIncassi / 100, // Normalizza a 0-1
+      Indice_Incassi: indiceIncassi / 100,
       Indice_Spese: indiceSpese,
       Backlog_Mesi: backlogMesi,
     });
 
-    // Trasforma in formato compatibile con l'UI esistente
     const result = {};
     kpiResults.forEach(kpi => {
       const definition = KPI_DEFINITIONS[kpi.id];
@@ -161,7 +117,7 @@ export function useKpiData() {
     });
 
     return result;
-    }, [revenues, expenses, installments, openingBalances, quotes, cashData]);
+  }, [revenues, expenses, installments, openingBalances, quotes]);
 
   return {
     kpis: kpiData,
@@ -171,7 +127,7 @@ export function useKpiData() {
 }
 
 /**
- * Hook to fetch historical KPI snapshots
+ * Hook per lo storico dei KPI (snapshot)
  */
 export function useKpiHistory(kpiId, months = 6) {
   return useQuery({

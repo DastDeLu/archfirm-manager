@@ -1,0 +1,124 @@
+{
+  "name": "AutomationRule",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome della regola di automazione"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descrizione della regola"
+    },
+    "trigger_entity": {
+      "type": "string",
+      "enum": [
+        "Project",
+        "Installment",
+        "Expense",
+        "Objective",
+        "Fee",
+        "Revenue"
+      ],
+      "description": "Entit\u00e0 che triggera la regola"
+    },
+    "trigger_event": {
+      "type": "string",
+      "enum": [
+        "create",
+        "update",
+        "delete"
+      ],
+      "default": "update",
+      "description": "Evento che triggera la regola"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              "equals",
+              "not_equals",
+              "greater_than",
+              "less_than",
+              "greater_or_equal",
+              "less_or_equal",
+              "contains",
+              "not_contains"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Condizioni da verificare"
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "send_email",
+              "send_notification",
+              "update_entity",
+              "create_objective"
+            ]
+          },
+          "config": {
+            "type": "object"
+          }
+        }
+      },
+      "description": "Azioni da eseguire quando le condizioni sono soddisfatte"
+    },
+    "notification_type": {
+      "type": "string",
+      "enum": [
+        "email",
+        "in_app",
+        "both"
+      ],
+      "default": "both",
+      "description": "Tipo di notifica"
+    },
+    "recipients": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Email dei destinatari o ruoli (admin, user)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se la regola \u00e8 attiva"
+    },
+    "last_triggered": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Ultima volta che la regola \u00e8 stata triggerata"
+    },
+    "trigger_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Numero di volte che la regola \u00e8 stata triggerata"
+    }
+  },
+  "required": [
+    "name",
+    "trigger_entity",
+    "trigger_event",
+    "conditions",
+    "actions"
+  ]
+}

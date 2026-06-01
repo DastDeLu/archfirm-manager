@@ -1,0 +1,38 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User who performed the action"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "create",
+        "update",
+        "delete",
+        "export",
+        "import"
+      ],
+      "description": "Action type"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Entity type affected"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "Entity ID affected"
+    },
+    "details": {
+      "type": "string",
+      "description": "Action details in JSON format"
+    }
+  },
+  "required": [
+    "user_email",
+    "action",
+    "entity_type"
+  ]
+}

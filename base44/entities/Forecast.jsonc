@@ -1,0 +1,41 @@
+{
+  "name": "Forecast",
+  "type": "object",
+  "properties": {
+    "month": {
+      "type": "number",
+      "description": "Month (1-12)"
+    },
+    "year": {
+      "type": "number",
+      "description": "Year"
+    },
+    "revenue_amount": {
+      "type": "number",
+      "description": "Forecasted revenue in EUR"
+    },
+    "expense_amount": {
+      "type": "number",
+      "description": "Forecasted expenses in EUR"
+    },
+    "prestazioni": {
+      "type": "string",
+      "enum": [
+        "Progettazione",
+        "Direzione Lavori",
+        "Burocrazia",
+        "Provvigione"
+      ],
+      "description": "Tipo di prestazione"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Forecast notes"
+    }
+  },
+  "required": [
+    "month",
+    "year",
+    "prestazioni"
+  ]
+}

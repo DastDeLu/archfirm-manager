@@ -1,0 +1,21 @@
+{
+  "name": "CategoriaSpesa",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome della categoria (es. Costi produttivi)"
+    },
+    "descrizione": {
+      "type": "string",
+      "description": "Descrizione opzionale della categoria"
+    },
+    "ordine": {
+      "type": "number",
+      "description": "Ordine di visualizzazione"
+    }
+  },
+  "required": [
+    "nome"
+  ]
+}

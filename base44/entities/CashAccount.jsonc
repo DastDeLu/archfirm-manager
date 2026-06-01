@@ -1,0 +1,34 @@
+{
+  "name": "CashAccount",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome del conto"
+    },
+    "balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Saldo corrente in EUR"
+    },
+    "currency": {
+      "type": "string",
+      "default": "EUR",
+      "description": "Valuta del conto"
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "bank",
+        "cash",
+        "credit_card",
+        "other"
+      ],
+      "default": "bank",
+      "description": "Tipologia di conto"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

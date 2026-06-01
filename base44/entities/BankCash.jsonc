@@ -1,0 +1,39 @@
+{
+  "name": "BankCash",
+  "type": "object",
+  "properties": {
+    "amount": {
+      "type": "number",
+      "description": "Transaction amount in EUR"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Transaction date"
+    },
+    "description": {
+      "type": "string",
+      "description": "Transaction description"
+    },
+    "category": {
+      "type": "string",
+      "description": "Transaction category"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "deposit",
+        "withdrawal"
+      ],
+      "default": "deposit"
+    },
+    "reference": {
+      "type": "string",
+      "description": "Bank reference number"
+    }
+  },
+  "required": [
+    "amount",
+    "date"
+  ]
+}

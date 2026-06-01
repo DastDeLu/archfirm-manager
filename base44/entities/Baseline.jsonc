@@ -1,0 +1,40 @@
+{
+  "name": "Baseline",
+  "type": "object",
+  "properties": {
+    "year": {
+      "type": "number",
+      "description": "Target year"
+    },
+    "entity_type": {
+      "type": "string",
+      "enum": [
+        "revenue",
+        "expense",
+        "chapter"
+      ],
+      "description": "Type of baseline"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "Reference ID (for chapter baselines)"
+    },
+    "entity_name": {
+      "type": "string",
+      "description": "Entity name for display"
+    },
+    "baseline_amount": {
+      "type": "number",
+      "description": "Target/baseline amount in EUR"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "year",
+    "entity_type",
+    "baseline_amount"
+  ]
+}

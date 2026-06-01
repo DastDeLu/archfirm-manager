@@ -1,0 +1,35 @@
+{
+  "name": "UserCalendarToken",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who connected Calendar"
+    },
+    "access_token": {
+      "type": "string",
+      "description": "Google OAuth access token (short-lived)"
+    },
+    "refresh_token": {
+      "type": "string",
+      "description": "Google OAuth refresh token (long-lived)"
+    },
+    "token_expiry": {
+      "type": "string",
+      "description": "ISO datetime of access token expiry"
+    },
+    "calendar_id": {
+      "type": "string",
+      "default": "primary",
+      "description": "Google Calendar ID to use (default: primary)"
+    },
+    "connected_at": {
+      "type": "string",
+      "description": "ISO datetime of when user connected"
+    }
+  },
+  "required": [
+    "user_email",
+    "refresh_token"
+  ]
+}

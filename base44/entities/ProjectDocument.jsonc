@@ -1,0 +1,35 @@
+{
+  "name": "ProjectDocument",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Reference to project"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Original file name"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL to the uploaded file"
+    },
+    "mime_type": {
+      "type": "string",
+      "description": "File MIME type"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "File size in bytes"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "Email of user who uploaded"
+    }
+  },
+  "required": [
+    "project_id",
+    "file_name",
+    "file_url"
+  ]
+}

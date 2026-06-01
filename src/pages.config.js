@@ -1,75 +1,33 @@
 /**
  * pages.config.js - Page routing configuration
  * 
- * This file is AUTO-GENERATED. Do not add imports or modify PAGES manually.
- * Pages are auto-registered when you create files in the ./pages/ folder.
- * 
- * THE ONLY EDITABLE VALUE: mainPage
- * This controls which page is the landing page (shown when users visit the app).
- * 
- * Example file structure:
- * 
- *   import HomePage from './pages/HomePage';
- *   import Dashboard from './pages/Dashboard';
- *   import Settings from './pages/Settings';
- *   
- *   export const PAGES = {
- *       "HomePage": HomePage,
- *       "Dashboard": Dashboard,
- *       "Settings": Settings,
- *   }
- *   
- *   export const pagesConfig = {
- *       mainPage: "HomePage",
- *       Pages: PAGES,
- *   };
- * 
- * Example with Layout (wraps all pages):
- *
- *   import Home from './pages/Home';
- *   import Settings from './pages/Settings';
- *   import __Layout from './Layout.jsx';
- *
- *   export const PAGES = {
- *       "Home": Home,
- *       "Settings": Settings,
- *   }
- *
- *   export const pagesConfig = {
- *       mainPage: "Home",
- *       Pages: PAGES,
- *       Layout: __Layout,
- *   };
- *
- * To change the main page from HomePage to Dashboard, use find_replace:
- *   Old: mainPage: "HomePage",
- *   New: mainPage: "Dashboard",
- *
- * The mainPage value must match a key in the PAGES object exactly.
+ * Usa React.lazy per il code-splitting: ogni pagina viene caricata solo
+ * quando viene visitata, riducendo drasticamente il bundle iniziale.
  */
-import Automations from './pages/Automations';
-import Baselines from './pages/Baselines';
-import CapitoliSpesa from './pages/CapitoliSpesa';
-import Chapters from './pages/Chapters';
-import Clients from './pages/Clients';
-import ControlDashboard from './pages/ControlDashboard';
-import Dashboard from './pages/Dashboard';
-import DashboardConfronto from './pages/DashboardConfronto';
-import Earnings from './pages/Earnings';
-import Expenses from './pages/Expenses';
-import Fees from './pages/Fees';
-import Forecast from './pages/Forecast';
-import Marketing from './pages/Marketing';
-import Objectives from './pages/Objectives';
-import Projects from './pages/Projects';
-import Quotes from './pages/Quotes';
-import Revenues from './pages/Revenues';
-import SettingsPage from './pages/SettingsPage';
-import Treasury from './pages/Treasury';
-import WBS from './pages/WBS';
-import WBSProjects from './pages/WBSProjects';
+import { lazy } from 'react';
 import __Layout from './Layout.jsx';
 
+const Automations     = lazy(() => import('./pages/Automations'));
+const Baselines       = lazy(() => import('./pages/Baselines'));
+const CapitoliSpesa   = lazy(() => import('./pages/CapitoliSpesa'));
+const Chapters        = lazy(() => import('./pages/Chapters'));
+const Clients         = lazy(() => import('./pages/Clients'));
+const ControlDashboard = lazy(() => import('./pages/ControlDashboard'));
+const Dashboard       = lazy(() => import('./pages/Dashboard'));
+const DashboardConfronto = lazy(() => import('./pages/DashboardConfronto'));
+const Earnings        = lazy(() => import('./pages/Earnings'));
+const Expenses        = lazy(() => import('./pages/Expenses'));
+const Fees            = lazy(() => import('./pages/Fees'));
+const Forecast        = lazy(() => import('./pages/Forecast'));
+const Marketing       = lazy(() => import('./pages/Marketing'));
+const Objectives      = lazy(() => import('./pages/Objectives'));
+const Projects        = lazy(() => import('./pages/Projects'));
+const Quotes          = lazy(() => import('./pages/Quotes'));
+const Revenues        = lazy(() => import('./pages/Revenues'));
+const SettingsPage    = lazy(() => import('./pages/SettingsPage'));
+const Treasury        = lazy(() => import('./pages/Treasury'));
+const WBS             = lazy(() => import('./pages/WBS'));
+const WBSProjects     = lazy(() => import('./pages/WBSProjects'));
 
 export const PAGES = {
     "Automations": Automations,

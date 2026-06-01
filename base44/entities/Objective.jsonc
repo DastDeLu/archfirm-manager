@@ -1,0 +1,68 @@
+{
+  "name": "Objective",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome dell'obiettivo (es. Fatturato Annuo, Nuovi Clienti)"
+    },
+    "unit_type": {
+      "type": "string",
+      "enum": [
+        "currency",
+        "percentage",
+        "number"
+      ],
+      "default": "number",
+      "description": "Tipologia di unit\u00e0 di misura"
+    },
+    "target_value": {
+      "type": "number",
+      "description": "Valore target da raggiungere"
+    },
+    "current_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Valore attuale raggiunto"
+    },
+    "success_logic": {
+      "type": "string",
+      "enum": [
+        "higher_better",
+        "lower_better"
+      ],
+      "default": "higher_better",
+      "description": "Logica di successo: maggiore \u00e8 meglio o minore \u00e8 meglio"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Data di scadenza dell'obiettivo"
+    },
+    "category": {
+      "type": "string",
+      "description": "Categoria dell'obiettivo (es. Finanziario, Operativo, Marketing)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descrizione dettagliata dell'obiettivo"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "cancelled"
+      ],
+      "default": "active",
+      "description": "Stato dell'obiettivo"
+    }
+  },
+  "required": [
+    "name",
+    "unit_type",
+    "target_value",
+    "deadline",
+    "success_logic"
+  ]
+}

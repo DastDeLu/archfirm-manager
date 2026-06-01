@@ -1,0 +1,46 @@
+{
+  "name": "KpiSnapshot",
+  "type": "object",
+  "properties": {
+    "kpi_id": {
+      "type": "string",
+      "description": "KPI identifier"
+    },
+    "year": {
+      "type": "number",
+      "description": "Snapshot year"
+    },
+    "month": {
+      "type": "number",
+      "description": "Snapshot month (1-12)"
+    },
+    "value": {
+      "type": "number",
+      "description": "KPI value"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "attention",
+        "critical"
+      ],
+      "description": "KPI status"
+    },
+    "target_ok": {
+      "type": "number",
+      "description": "OK threshold at snapshot time"
+    },
+    "target_attention": {
+      "type": "number",
+      "description": "Attention threshold at snapshot time"
+    }
+  },
+  "required": [
+    "kpi_id",
+    "year",
+    "month",
+    "value",
+    "status"
+  ]
+}

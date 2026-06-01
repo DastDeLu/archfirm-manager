@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
@@ -24,51 +22,19 @@ import { formatCurrency, tickCurrency } from '../components/lib/formatters';
 import { it } from 'date-fns/locale';
 import { useCustomTags } from '../components/hooks/useCustomTags';
 import { useChartTagFilter } from '../components/hooks/useChartTagFilter';
-import { useCurrentUserId } from '../hooks/useCurrentUserId';
+import { useRevenues, useExpenses, useFees, useInstallments, useProjects, useClients, useQuotes, useMarketingBudgets } from '../hooks/entities';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 export default function Dashboard() {
-  const uid = useCurrentUserId();
-  const { data: revenues = [], isLoading: loadingRevenues } = useQuery({
-    queryKey: ['revenues', uid],
-    queryFn: () => base44.entities.Revenue.list(),
-  });
-
-  const { data: expenses = [], isLoading: loadingExpenses } = useQuery({
-    queryKey: ['expenses', uid],
-    queryFn: () => base44.entities.Expense.list(),
-  });
-
-  const { data: fees = [], isLoading: loadingFees } = useQuery({
-    queryKey: ['fees', uid],
-    queryFn: () => base44.entities.Fee.list(),
-  });
-
-  const { data: installments = [], isLoading: loadingInstallments } = useQuery({
-    queryKey: ['installments', uid],
-    queryFn: () => base44.entities.Installment.list(),
-  });
-
-  const { data: projects = [], isLoading: loadingProjects } = useQuery({
-    queryKey: ['projects', uid],
-    queryFn: () => base44.entities.Project.list(),
-  });
-
-  const { data: clients = [], isLoading: loadingClients } = useQuery({
-    queryKey: ['clients', uid],
-    queryFn: () => base44.entities.Client.list(),
-  });
-
-  const { data: quotes = [] } = useQuery({
-    queryKey: ['quotes', uid],
-    queryFn: () => base44.entities.Quote.list(),
-  });
-
-  const { data: marketingBudgets = [] } = useQuery({
-    queryKey: ['marketing', uid],
-    queryFn: () => base44.entities.MarketingBudget.list(),
-  });
+  const { data: revenues = [], isLoading: loadingRevenues }       = useRevenues();
+  const { data: expenses = [], isLoading: loadingExpenses }       = useExpenses();
+  const { data: fees = [], isLoading: loadingFees }               = useFees();
+  const { data: installments = [], isLoading: loadingInstallments } = useInstallments();
+  const { data: projects = [], isLoading: loadingProjects }       = useProjects();
+  const { data: clients = [] }                                    = useClients();
+  const { data: quotes = [] }                                     = useQuotes();
+  const { data: marketingBudgets = [] }                           = useMarketingBudgets();
 
   const { tagColorMap } = useCustomTags();
   // Filtro tag per i grafici (configurabile in Impostazioni › Generale)

@@ -1,0 +1,46 @@
+{
+  "name": "VoceSpesa",
+  "type": "object",
+  "properties": {
+    "id_categoria": {
+      "type": "string",
+      "description": "ID della categoria di appartenenza"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome della voce (es. Internet studio)"
+    },
+    "budget_totale": {
+      "type": "number",
+      "description": "Budget totale previsto (cap)"
+    },
+    "speso_reale": {
+      "type": "number",
+      "default": 0,
+      "description": "Importo totale gi\u00e0 speso"
+    },
+    "residuo": {
+      "type": "number",
+      "description": "Budget residuo disponibile"
+    },
+    "stato": {
+      "type": "string",
+      "enum": [
+        "attivo",
+        "chiuso"
+      ],
+      "default": "attivo",
+      "description": "Stato della voce di spesa"
+    },
+    "data_aggiornamento": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data ultimo aggiornamento budget"
+    }
+  },
+  "required": [
+    "id_categoria",
+    "nome",
+    "budget_totale"
+  ]
+}

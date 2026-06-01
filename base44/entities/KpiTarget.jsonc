@@ -1,0 +1,63 @@
+{
+  "name": "KpiTarget",
+  "type": "object",
+  "properties": {
+    "kpi_id": {
+      "type": "string",
+      "enum": [
+        "fatturato",
+        "marginePercentuale",
+        "ebitdaPercentuale",
+        "cassa",
+        "indiceIncasso",
+        "backlog",
+        "oreNonFatturatoPercentuale",
+        "ricavoPerOra",
+        "costiFissiSuRicavi",
+        "dividendoSostenibile"
+      ],
+      "description": "KPI identifier"
+    },
+    "period_type": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "quarterly",
+        "annual"
+      ],
+      "default": "monthly",
+      "description": "Target period type"
+    },
+    "year": {
+      "type": "number",
+      "description": "Target year"
+    },
+    "quarter": {
+      "type": "number",
+      "description": "Quarter (1-4) for quarterly targets"
+    },
+    "month": {
+      "type": "number",
+      "description": "Month (1-12) for monthly targets"
+    },
+    "target_ok": {
+      "type": "number",
+      "description": "OK threshold value"
+    },
+    "target_attention": {
+      "type": "number",
+      "description": "Attention threshold value"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "kpi_id",
+    "period_type",
+    "year",
+    "target_ok",
+    "target_attention"
+  ]
+}

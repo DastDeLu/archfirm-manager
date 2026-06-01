@@ -3,6 +3,7 @@ import { Bell, AlertCircle, Calendar, TrendingDown, X } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
+import { useInstallments, useFees, useObjectives } from '../../hooks/entities';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -64,21 +65,10 @@ export default function NotificationCenter() {
   }, []);
 
   // Fetch scadenze - sincronizzato con objectives principal
-   const { data: objectives = [] } = useQuery({
-     queryKey: ['objectives-notifications'],
-     queryFn: () => base44.entities.Objective.list(),
-     refetchInterval: 10000,
-   });
-
-  const { data: installments = [] } = useQuery({
-    queryKey: ['installments-notifications'],
-    queryFn: () => base44.entities.Installment.list(),
-  });
-
-  const { data: fees = [] } = useQuery({
-    queryKey: ['fees-notifications'],
-    queryFn: () => base44.entities.Fee.list(),
-  });
+  // Riusa la cache condivisa (zero fetch duplicati)
+  const { data: objectives = [] }   = useObjectives();
+  const { data: installments = [] } = useInstallments();
+  const { data: fees = [] }         = useFees();
 
   const feeMap = React.useMemo(() => new Map(fees.map(f => [f.id, f])), [fees]);
 

@@ -1,0 +1,91 @@
+{
+  "name": "WBS",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Reference to project"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "Parent WBS item for hierarchy"
+    },
+    "name": {
+      "type": "string",
+      "description": "WBS item name"
+    },
+    "code": {
+      "type": "string",
+      "description": "WBS code (e.g., 1.1.2)"
+    },
+    "level": {
+      "type": "number",
+      "description": "Hierarchy level (1=Phase, 2=SubPhase, 3=Task)"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "phase",
+        "subphase",
+        "task"
+      ],
+      "default": "task"
+    },
+    "estimated_hours": {
+      "type": "number",
+      "description": "Estimated hours"
+    },
+    "actual_hours": {
+      "type": "number",
+      "description": "Actual hours spent"
+    },
+    "estimated_cost": {
+      "type": "number",
+      "description": "Estimated cost in EUR"
+    },
+    "actual_cost": {
+      "type": "number",
+      "description": "Actual cost in EUR"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "completed"
+      ],
+      "default": "not_started"
+    },
+    "assigned_to_id": {
+      "type": "string",
+      "description": "Primary assignee (legacy)"
+    },
+    "assigned_to_name": {
+      "type": "string",
+      "description": "Primary assignee name (legacy)"
+    },
+    "assignees": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "List of assigned employees (supports multiple)"
+    },
+    "order_index": {
+      "type": "number",
+      "description": "Sort order within parent"
+    }
+  },
+  "required": [
+    "project_id",
+    "name"
+  ]
+}

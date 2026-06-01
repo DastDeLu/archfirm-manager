@@ -1,0 +1,65 @@
+{
+  "name": "Revenue",
+  "type": "object",
+  "properties": {
+    "amount": {
+      "type": "number",
+      "description": "Revenue amount in EUR"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Revenue date"
+    },
+    "description": {
+      "type": "string",
+      "description": "Revenue description"
+    },
+    "tag": {
+      "type": "string",
+      "enum": [
+        "Progettazione",
+        "Direzione Lavori",
+        "Provvigione",
+        "Burocrazia",
+        "Incasso Clienti",
+        "Other"
+      ],
+      "description": "Revenue tag category"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "bank_transfer",
+        "cash"
+      ],
+      "description": "Payment method (Bank or Cash)"
+    },
+    "cash_account_id": {
+      "type": "string",
+      "description": "Reference to cash account"
+    },
+    "cash_account_name": {
+      "type": "string",
+      "description": "Cash account name for display"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Reference to project"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "Project name for display"
+    },
+    "fee_id": {
+      "type": "string",
+      "description": "Reference to the Fee this revenue is associated with"
+    }
+  },
+  "required": [
+    "amount",
+    "date",
+    "tag",
+    "payment_method"
+  ]
+}

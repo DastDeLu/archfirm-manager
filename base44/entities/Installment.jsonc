@@ -1,0 +1,75 @@
+{
+  "name": "Installment",
+  "type": "object",
+  "properties": {
+    "fee_id": {
+      "type": "string",
+      "description": "Reference to fee"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Installment amount in EUR"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Payment due date"
+    },
+    "paid_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Actual payment date"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "bank",
+        "cash",
+        "other"
+      ],
+      "description": "Payment method"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "overdue",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "acconto",
+        "rata",
+        "saldo"
+      ],
+      "default": "rata",
+      "description": "Tipo di pagamento: acconto, rata ordinaria o saldo finale"
+    },
+    "installment_number": {
+      "type": "number",
+      "description": "Installment sequence number"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "google_event_id": {
+      "type": "string",
+      "description": "Google Calendar event ID for this installment"
+    },
+    "calendar_sync_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this installment is synced to Google Calendar"
+    }
+  },
+  "required": [
+    "fee_id",
+    "amount",
+    "due_date"
+  ]
+}

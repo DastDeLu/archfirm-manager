@@ -1,0 +1,102 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "amount": {
+      "type": "number",
+      "description": "Expense amount in EUR"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Expense date"
+    },
+    "description": {
+      "type": "string",
+      "description": "Expense description"
+    },
+    "tag": {
+      "type": "string",
+      "enum": [
+        "Acquisti materie prime",
+        "Costi Produttivi",
+        "Costi del Personale",
+        "Costi Generali",
+        "Costi Amministrativi",
+        "Mutui e Prestiti",
+        "Oneri Tributari"
+      ],
+      "description": "Expense tag category"
+    },
+    "expense_type": {
+      "type": "string",
+      "enum": [
+        "fixed",
+        "variable"
+      ],
+      "default": "variable",
+      "description": "Type of expense"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "bank_transfer",
+        "card",
+        "other"
+      ],
+      "description": "Payment method (required)"
+    },
+    "nature": {
+      "type": "string",
+      "description": "Nature/description of the expense (required for Fixed type)"
+    },
+    "payment_frequency": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "bimonthly",
+        "quarterly",
+        "semiannual",
+        "annual"
+      ],
+      "description": "Payment frequency (required for Fixed type)"
+    },
+    "cash_account_id": {
+      "type": "string",
+      "description": "Reference to cash account"
+    },
+    "cash_account_name": {
+      "type": "string",
+      "description": "Cash account name for display"
+    },
+    "chapter_id": {
+      "type": "string",
+      "description": "Reference to chapter (required)"
+    },
+    "chapter_name": {
+      "type": "string",
+      "description": "Chapter name for display"
+    },
+    "id_voce_spesa": {
+      "type": "string",
+      "description": "FK alla VoceSpesa per tracking budget"
+    },
+    "stato": {
+      "type": "string",
+      "enum": [
+        "Pagato",
+        "In attesa",
+        "Annullato"
+      ],
+      "description": "Stato del pagamento"
+    }
+  },
+  "required": [
+    "amount",
+    "date",
+    "tag",
+    "payment_method",
+    "chapter_id"
+  ]
+}

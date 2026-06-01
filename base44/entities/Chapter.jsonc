@@ -1,0 +1,38 @@
+{
+  "name": "Chapter",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Chapter name"
+    },
+    "code": {
+      "type": "string",
+      "description": "Chapter code"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "revenue",
+        "expense"
+      ],
+      "description": "Chapter type"
+    },
+    "description": {
+      "type": "string",
+      "description": "Chapter description"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "Parent chapter ID for hierarchical structure"
+    },
+    "level": {
+      "type": "number",
+      "description": "Hierarchy level (1=Macro, 2=Micro, etc.)"
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}

@@ -6,6 +6,8 @@ export const queryClientInstance = new QueryClient({
 		queries: {
 			refetchOnWindowFocus: false,
 			retry: 1,
+			staleTime: 60 * 1000,        // 1 minuto: evita ri-fetch ad ogni navigazione
+			gcTime: 5 * 60 * 1000,       // 5 minuti: mantiene in cache i dati inutilizzati
 		},
 	},
 });

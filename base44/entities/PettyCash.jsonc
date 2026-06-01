@@ -1,0 +1,35 @@
+{
+  "name": "PettyCash",
+  "type": "object",
+  "properties": {
+    "amount": {
+      "type": "number",
+      "description": "Transaction amount in EUR"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Transaction date"
+    },
+    "description": {
+      "type": "string",
+      "description": "Transaction description"
+    },
+    "category": {
+      "type": "string",
+      "description": "Transaction category"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "in",
+        "out"
+      ],
+      "default": "in"
+    }
+  },
+  "required": [
+    "amount",
+    "date"
+  ]
+}

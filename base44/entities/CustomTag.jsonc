@@ -1,0 +1,27 @@
+{
+  "name": "CustomTag",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "expense",
+        "revenue"
+      ],
+      "description": "Tag type: expense or revenue"
+    },
+    "name": {
+      "type": "string",
+      "description": "Tag name"
+    },
+    "color": {
+      "type": "string",
+      "description": "Tag color (hex or palette key)"
+    }
+  },
+  "required": [
+    "type",
+    "name",
+    "color"
+  ]
+}

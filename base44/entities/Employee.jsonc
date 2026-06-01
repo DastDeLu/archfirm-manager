@@ -1,0 +1,35 @@
+{
+  "name": "Employee",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome completo"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email"
+    },
+    "role": {
+      "type": "string",
+      "description": "Ruolo"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefono"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active",
+      "description": "Stato"
+    }
+  },
+  "required": [
+    "name",
+    "email"
+  ]
+}

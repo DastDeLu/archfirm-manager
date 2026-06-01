@@ -1,0 +1,67 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Titolo della notifica"
+    },
+    "message": {
+      "type": "string",
+      "description": "Messaggio della notifica"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "error",
+        "success"
+      ],
+      "default": "info",
+      "description": "Tipo di notifica"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "budget",
+        "deadline",
+        "payment",
+        "kpi",
+        "project",
+        "system"
+      ],
+      "description": "Categoria della notifica"
+    },
+    "recipient_email": {
+      "type": "string",
+      "description": "Email del destinatario"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se la notifica \u00e8 stata letta"
+    },
+    "related_entity_type": {
+      "type": "string",
+      "description": "Tipo di entit\u00e0 correlata"
+    },
+    "related_entity_id": {
+      "type": "string",
+      "description": "ID dell'entit\u00e0 correlata"
+    },
+    "automation_rule_id": {
+      "type": "string",
+      "description": "ID della regola di automazione che ha generato questa notifica"
+    },
+    "action_url": {
+      "type": "string",
+      "description": "URL per azione rapida"
+    }
+  },
+  "required": [
+    "title",
+    "message",
+    "recipient_email"
+  ]
+}

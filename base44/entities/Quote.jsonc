@@ -1,0 +1,80 @@
+{
+  "name": "Quote",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "Reference to client"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client name for display"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "Proposed project name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Quote description"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Quote amount in EUR"
+    },
+    "tag": {
+      "type": "string",
+      "enum": [
+        "Progettazione",
+        "Direzione Lavori",
+        "Pratiche Burocratiche",
+        "Provvigione"
+      ],
+      "description": "Categoria del preventivo"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "negotiation",
+        "won",
+        "lost"
+      ],
+      "default": "draft",
+      "description": "Quote status"
+    },
+    "sent_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date quote was sent"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date",
+      "description": "Quote validity date"
+    },
+    "won_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date quote was won"
+    },
+    "lost_reason": {
+      "type": "string",
+      "description": "Reason for losing the quote"
+    },
+    "converted_project_id": {
+      "type": "string",
+      "description": "Project ID if converted"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "client_id",
+    "project_name",
+    "amount"
+  ]
+}

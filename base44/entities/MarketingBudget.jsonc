@@ -1,0 +1,54 @@
+{
+  "name": "MarketingBudget",
+  "type": "object",
+  "properties": {
+    "month": {
+      "type": "number",
+      "description": "Month (1-12)"
+    },
+    "year": {
+      "type": "number",
+      "description": "Year"
+    },
+    "yearly_budget": {
+      "type": "number",
+      "description": "Budget annuale in EUR"
+    },
+    "budget": {
+      "type": "number",
+      "description": "Allocated budget in EUR"
+    },
+    "spent": {
+      "type": "number",
+      "description": "Amount spent in EUR"
+    },
+    "conversions": {
+      "type": "number",
+      "description": "Number of conversions/leads"
+    },
+    "channel": {
+      "type": "string",
+      "description": "Marketing channel"
+    },
+    "social_media_type": {
+      "type": "string",
+      "enum": [
+        "facebook",
+        "instagram",
+        "linkedin",
+        "twitter",
+        "tiktok",
+        "youtube",
+        "other"
+      ],
+      "description": "Tipo di social media"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "year"
+  ]
+}

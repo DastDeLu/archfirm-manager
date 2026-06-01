@@ -1,0 +1,33 @@
+{
+  "name": "OpeningBalance",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "bank",
+        "petty",
+        "marketing_budget"
+      ],
+      "description": "Type of balance (bank, petty cash, or marketing budget)"
+    },
+    "year": {
+      "type": "number",
+      "description": "Year for this opening balance"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Opening balance amount in EUR"
+    },
+    "updated_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date"
+    }
+  },
+  "required": [
+    "type",
+    "year",
+    "amount"
+  ]
+}

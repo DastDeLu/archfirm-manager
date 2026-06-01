@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BudgetService } from './BudgetService';
 import { useCurrentUserId } from '../../hooks/useCurrentUserId';
+import { useExpenses } from '../../hooks/entities';
 
 const BudgetContext = createContext(undefined);
 
@@ -30,11 +31,8 @@ export const BudgetProvider = ({ children }) => {
     queryFn: () => base44.entities.VoceSpesa.list('-data_aggiornamento'),
   });
 
-  // Fetch tutte le spese per calcolare speso_reale in tempo reale
-  const { data: tutteLeSpese = [] } = useQuery({
-    queryKey: ['expenses', uid],
-    queryFn: () => base44.entities.Expense.list(),
-  });
+  // Riusa la cache condivisa delle spese (nessun fetch duplicato)
+  const { data: tutteLeSpese = [] } = useExpenses();
 
   // Calcola speso_reale per ogni voce direttamente dalle spese collegate
   const spesoPerVoce = React.useMemo(() => {
