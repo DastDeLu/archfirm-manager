@@ -1,28 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Plus, CheckCircle, Clock, Calendar, Layers, Pencil, Trash2, Banknote } from 'lucide-react';
+import { ChevronDown, Plus, CheckCircle, Clock, Layers } from 'lucide-react';
 import { formatCurrency } from '../lib/formatters';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
-import InstallmentDialog from './InstallmentDialog';
+import InstallmentsTableDialog from './InstallmentsTableDialog';
 import RegisterIncassoDialog from './RegisterIncassoDialog';
 
 /**
@@ -31,67 +19,23 @@ import RegisterIncassoDialog from './RegisterIncassoDialog';
  */
 export default function FeeRevenueDropdown({ fee, onAddIncasso, targetInstallmentId, onTargetInstallmentHandled }) {
   const [open, setOpen] = useState(false);
-  const [installmentDialogOpen, setInstallmentDialogOpen] = useState(false);
-  const [editingInstallment, setEditingInstallment] = useState(null);
-  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [tableDialogOpen, setTableDialogOpen] = useState(false);
   const [incassoInstallment, setIncassoInstallment] = useState(null);
-  const deepLinkConsumed = React.useRef(false);
 
-  const queryClient = useQueryClient();
+  // Deep-link: se c'è un targetInstallmentId apri il table dialog
+  useEffect(() => {
+    if (targetInstallmentId) {
+      setOpen(true);
+      setTableDialogOpen(true);
+    }
+  }, [targetInstallmentId]);
 
-  // Deep-link: apri automaticamente la rata target quando installments sono caricati
-  const { data: installments = [], isSuccess: installmentsLoaded } = useQuery({
+  const { data: installments = [] } = useQuery({
     queryKey: ['installments-by-fee', fee.id],
     queryFn: () => base44.entities.Installment.filter({ fee_id: fee.id }),
   });
 
-  // Reset del flag ad ogni nuovo deep-link, così un secondo click su una notifica
-  // (anche dalla stessa pagina Fees) riapre correttamente il dialog.
-  useEffect(() => {
-    if (targetInstallmentId) {
-      deepLinkConsumed.current = false;
-    }
-  }, [targetInstallmentId]);
 
-  useEffect(() => {
-    if (!targetInstallmentId || deepLinkConsumed.current || !installmentsLoaded) return;
-    const target = installments.find(i => i.id === targetInstallmentId);
-    if (target) {
-      deepLinkConsumed.current = true;
-      setOpen(true);
-      setEditingInstallment(target);
-      setInstallmentDialogOpen(true);
-      onTargetInstallmentHandled?.();
-    }
-  }, [targetInstallmentId, installmentsLoaded, installments, onTargetInstallmentHandled]);
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      const res = await base44.functions.invoke('syncInstallmentRevenuePair', {
-        action: 'delete_installment',
-        installment_id: id,
-      });
-      const body = res?.data ?? res;
-      if (body?.error) throw new Error(typeof body.error === 'string' ? body.error : JSON.stringify(body.error));
-      return body;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['installments'] });
-      queryClient.invalidateQueries({ queryKey: ['installments-notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['installments-by-fee', fee.id] });
-      queryClient.invalidateQueries({ queryKey: ['revenues'] });
-      queryClient.invalidateQueries({ queryKey: ['revenues-by-fee', fee.id] });
-      queryClient.invalidateQueries({ queryKey: ['all-revenues-for-fees'] });
-      queryClient.invalidateQueries({ queryKey: ['fees'] });
-      queryClient.invalidateQueries({ queryKey: ['cashData'] });
-      toast.success('Rata e ricavo collegato eliminati');
-      setDeleteConfirmId(null);
-    },
-    onError: (err) => {
-      toast.error('Errore durante l\'eliminazione della rata: ' + (err?.message || 'Errore sconosciuto'));
-      setDeleteConfirmId(null);
-    },
-  });
 
   const { data: revenues = [] } = useQuery({
     queryKey: ['revenues-by-fee', fee.id],
@@ -140,76 +84,48 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso, targetInstallmen
             <Layers className="h-3 w-3 text-blue-600" />
             <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Rate / Acconti</span>
           </div>
+          {/* Mini preview delle rate */}
           {installments.length === 0 ? (
             <p className="text-xs text-slate-400 px-3 py-3 text-center">Nessuna rata</p>
           ) : (
-            installments
-              .sort((a, b) => {
-                if (a.kind === 'acconto' && b.kind !== 'acconto') return -1;
-                if (b.kind === 'acconto' && a.kind !== 'acconto') return 1;
-                return (a.due_date || '').localeCompare(b.due_date || '');
-              })
+            [...installments]
+              .sort((a, b) => (a.installment_number ?? 999) - (b.installment_number ?? 999))
               .map(inst => (
                 <div key={inst.id} className="flex items-center justify-between px-3 py-2 border-b border-slate-100 last:border-0">
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <span className={cn(
-                        "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
-                        inst.kind === 'acconto' ? 'bg-blue-100 text-blue-700' :
-                        inst.kind === 'saldo' ? 'bg-purple-100 text-purple-700' :
-                        'bg-slate-100 text-slate-600'
-                      )}>
-                        {inst.kind === 'acconto' ? 'Acconto' : inst.kind === 'saldo' ? 'Saldo' : 'Rata'}
-                      </span>
-                      {inst.google_event_id && (
-                        <Calendar className="h-3 w-3 text-blue-400" title="Sync Calendar attivo" />
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-0.5">{inst.due_date || '—'}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-slate-800">{formatCurrency(inst.amount || 0)}</p>
-                      <span className={cn(
-                        "text-[10px] font-medium",
-                        inst.status === 'paid' ? 'text-emerald-600' :
-                        inst.status === 'overdue' ? 'text-red-600' : 'text-amber-600'
-                      )}>
-                        {inst.status === 'paid' ? 'Pagata' : inst.status === 'overdue' ? 'Scaduta' : 'Da pagare'}
-                      </span>
-                    </div>
-                    {inst.status !== 'paid' && (
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-emerald-500 hover:text-emerald-700" onClick={(e) => { e.stopPropagation(); setIncassoInstallment(inst); }} title="Segna Pagato">
-                        <Banknote className="h-3 w-3" />
-                      </Button>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "h-2 w-2 rounded-full flex-shrink-0",
+                      inst.status === 'paid' ? 'bg-emerald-500' :
+                      inst.status === 'overdue' ? 'bg-red-500' : 'bg-amber-400'
+                    )} />
+                    <span className="text-xs text-slate-600 truncate max-w-[120px]">
+                      {inst.notes || (inst.kind === 'acconto' ? 'Acconto' : inst.kind === 'saldo' ? 'Saldo' : `Rata ${inst.installment_number || ''}`)}
+                    </span>
+                    {inst.due_date && (
+                      <span className="text-[10px] text-slate-400">{inst.due_date}</span>
                     )}
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setEditingInstallment(inst); setInstallmentDialogOpen(true); }}>
-                      <Pencil className="h-3 w-3 text-slate-400" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-red-400 hover:text-red-600" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(inst.id); }}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
                   </div>
+                  <span className="text-xs font-semibold text-slate-700">{formatCurrency(inst.amount || 0)}</span>
                 </div>
               ))
           )}
 
           {/* Action buttons */}
-          {!isFullyCollected && (
-            <div className="p-2 border-t border-slate-200 flex gap-1">
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 gap-1.5 text-blue-700 border-blue-200 hover:bg-blue-50 text-xs"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setOpen(false);
-                  setInstallmentDialogOpen(true);
-                }}
-              >
-                <Layers className="h-3 w-3" />
-                Aggiungi Rata
-              </Button>
+          <div className="p-2 border-t border-slate-200 flex gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 gap-1.5 text-blue-700 border-blue-200 hover:bg-blue-50 text-xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(false);
+                setTableDialogOpen(true);
+              }}
+            >
+              <Layers className="h-3 w-3" />
+              Gestisci Rate
+            </Button>
+            {!isFullyCollected && (
               <Button
                 size="sm"
                 variant="outline"
@@ -223,22 +139,18 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso, targetInstallmen
                 <Plus className="h-3 w-3" />
                 Incasso
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </CollapsibleContent>
     </Collapsible>
 
-    <InstallmentDialog
-      open={installmentDialogOpen}
-      onOpenChange={(v) => { setInstallmentDialogOpen(v); if (!v) setEditingInstallment(null); }}
+    <InstallmentsTableDialog
+      open={tableDialogOpen}
+      onOpenChange={setTableDialogOpen}
       fee={fee}
-      installment={editingInstallment}
-      onSuccess={() => {
-        queryClient.invalidateQueries({ queryKey: ['installments'] });
-        queryClient.invalidateQueries({ queryKey: ['installments-by-fee', fee.id] });
-        setEditingInstallment(null);
-      }}
+      targetInstallmentId={targetInstallmentId}
+      onTargetHandled={onTargetInstallmentHandled}
     />
 
     <RegisterIncassoDialog
@@ -247,31 +159,6 @@ export default function FeeRevenueDropdown({ fee, onAddIncasso, targetInstallmen
       installment={incassoInstallment}
       fee={fee}
     />
-
-    <AlertDialog open={!!deleteConfirmId} onOpenChange={(v) => !v && setDeleteConfirmId(null)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Eliminare questa rata?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Questa azione non può essere annullata. La rata verrà rimossa definitivamente.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleteMutation.isPending}>Annulla</AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-red-600 hover:bg-red-700"
-            disabled={deleteMutation.isPending || !deleteConfirmId}
-            onClick={() => {
-              if (deleteConfirmId && !deleteMutation.isPending) {
-                deleteMutation.mutate(deleteConfirmId);
-              }
-            }}
-          >
-            {deleteMutation.isPending ? 'Eliminando...' : 'Elimina'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
     </>
   );
 }
