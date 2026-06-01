@@ -225,6 +225,10 @@ export default function InstallmentsTableDialog({ open, onOpenChange, fee, targe
   };
 
   const saveEdit = (id) => {
+    if (!editDraft.notes || !editDraft.notes.trim()) {
+      toast.error('La descrizione della rata è obbligatoria');
+      return;
+    }
     updateMutation.mutate({
       id,
       patch: {
@@ -238,6 +242,10 @@ export default function InstallmentsTableDialog({ open, onOpenChange, fee, targe
   const handleStatusClick = (inst) => {
     const newStatus = nextStatus(inst.status || 'pending');
     if (newStatus === 'paid') {
+      if (!inst.notes || !inst.notes.trim()) {
+        toast.error('Aggiungi una descrizione alla rata prima di segnarla come pagata');
+        return;
+      }
       setPendingStatusChange({ inst, newStatus });
     } else {
       statusMutation.mutate({ inst, newStatus });
@@ -347,7 +355,7 @@ export default function InstallmentsTableDialog({ open, onOpenChange, fee, targe
                                       <Input
                                         value={editDraft.notes}
                                         onChange={e => setEditDraft(d => ({ ...d, notes: e.target.value }))}
-                                        placeholder="Descrizione..."
+                                        placeholder="Descrizione (obbligatoria)..."
                                         className="h-7 text-xs"
                                         autoFocus
                                       />

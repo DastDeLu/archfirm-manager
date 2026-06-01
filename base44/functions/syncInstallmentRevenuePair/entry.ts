@@ -21,13 +21,32 @@ function toRevenuePaymentMethod(installmentMethod) {
   return 'bank_transfer';
 }
 
-function buildRevenueDescription(installment, fee) {
+function formatEuro(amount) {
+  const n = parseFloat(amount) || 0;
+  return new Intl.NumberFormat('it-IT', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+  }).format(n);
+}
+
+function formatDateIt(isoDate) {
+  if (!isoDate) return '';
+  const d = new Date(isoDate);
+  if (isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('it-IT').format(d);
+}
+
+function buildRevenueDescription(installment, fee, amount, paymentDate) {
+  // Formato: Descrizione rata · Progetto/Categoria · Importo · Data
   const parts = [];
-  if (fee?.category) parts.push(fee.category);
-  if (fee?.client_name) parts.push(fee.client_name);
-  if (fee?.project_name) parts.push(fee.project_name);
-  if (installment?.installment_number) parts.push(`Rata ${installment.installment_number}`);
-  return parts.join(' - ') || 'Pagamento';
+  if (installment?.notes) parts.push(installment.notes);
+  const projectOrCategory = fee?.project_name || fee?.category;
+  if (projectOrCategory) parts.push(projectOrCategory);
+  parts.push(formatEuro(amount));
+  const dateStr = formatDateIt(paymentDate);
+  if (dateStr) parts.push(dateStr);
+  return parts.join(' · ') || 'Pagamento';
 }
 
 function resolveDefaultRevenueTag(fee) {
@@ -263,9 +282,8 @@ Deno.serve(async (req) => {
     }
 
     if (resolvedInstallmentStatus === 'paid') {
-      const resolvedDescription = revenuePatch.description
-        || revenue?.description
-        || buildRevenueDescription(installment, fee);
+      const resolvedDescription =
+        buildRevenueDescription(installment, fee, resolvedAmount, resolvedRevenueDate);
       const resolvedTag = revenuePatch.tag || revenue?.tag || defaultTag;
 
       const revenuePayload = {
