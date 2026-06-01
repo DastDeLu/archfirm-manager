@@ -54,6 +54,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
+import { useFees, useProjects } from '../hooks/entities';
 import {
   assertFunctionResponse,
   deleteRevenueByCloudFunction,
@@ -101,16 +102,9 @@ export default function Revenues() {
     queryFn: () => base44.entities.Revenue.list('-date'),
   });
 
-  // Carica Fee e Installment per costruire righe sintetiche UI-only
-  const { data: fees = [] } = useQuery({
-    queryKey: ['fees-for-revenues'],
-    queryFn: () => base44.entities.Fee.list(),
-  });
-
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects', uid],
-    queryFn: () => base44.entities.Project.list(),
-  });
+  // Riusa la cache condivisa — zero fetch duplicati
+  const { data: fees = [] } = useFees();
+  const { data: projects = [] } = useProjects();
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Revenue.create(withOwner(data, uid)),

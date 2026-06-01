@@ -40,6 +40,7 @@ import YearSelect from '../components/ui/YearSelect';
 import FeeGroupCompletionBar from '../components/forecast/FeeGroupCompletionBar';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
+import { useRevenues, useClients, useProjects } from '../hooks/entities';
 import { useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 
@@ -100,6 +101,7 @@ export default function Fees() {
   const uid = useCurrentUserId();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // fees: query locale con sort specifico (non in entities.js shared)
   const { data: fees = [], isLoading } = useQuery({
     queryKey: ['fees', uid],
     queryFn: () => base44.entities.Fee.list('-created_date'),
@@ -116,20 +118,10 @@ export default function Fees() {
   const colorComplete = userPrefs?.fee_color_complete || '#22c55e';
   const colorIncomplete = userPrefs?.fee_color_incomplete || '#FF0000';
 
-  const { data: allRevenues = [] } = useQuery({
-    queryKey: ['all-revenues-for-fees'],
-    queryFn: () => base44.entities.Revenue.list('-created_date', 500),
-  });
-
-  const { data: clients = [] } = useQuery({
-    queryKey: ['clients', uid],
-    queryFn: () => base44.entities.Client.list(),
-  });
-
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects', uid],
-    queryFn: () => base44.entities.Project.list(),
-  });
+  // Riusa la cache condivisa — zero fetch duplicati
+  const { data: allRevenues = [] } = useRevenues();
+  const { data: clients = [] } = useClients();
+  const { data: projects = [] } = useProjects();
 
   const createFeeMutation = useMutation({
     mutationFn: async (data) => {

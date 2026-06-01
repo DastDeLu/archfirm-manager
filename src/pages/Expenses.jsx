@@ -44,6 +44,7 @@ import YearSelect from '../components/ui/YearSelect';
 import { useCustomTags, getTagStyle } from '../components/hooks/useCustomTags';
 import { useCurrentUserId } from '../hooks/useCurrentUserId';
 import { withOwner } from '../lib/withOwner';
+import { useExpenses } from '../hooks/entities';
 import MobileExpenseCard from '../components/expenses/MobileExpenseCard';
 
 export default function Expenses() {
@@ -74,10 +75,8 @@ export default function Expenses() {
   const uid = useCurrentUserId();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const { data: expenses = [], isLoading } = useQuery({
-    queryKey: ['expenses', uid],
-    queryFn: () => base44.entities.Expense.list('-date')
-  });
+  // Riusa la cache condivisa — zero fetch duplicati
+  const { data: expenses = [], isLoading } = useExpenses();
 
   const { data: chapters = [] } = useQuery({
     queryKey: ['expense-chapters', uid],
