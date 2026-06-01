@@ -38,14 +38,11 @@ function formatDateIt(isoDate) {
 }
 
 function buildRevenueDescription(installment, fee, amount, paymentDate) {
-  // Formato: Rata N · Descrizione Rata · Nome Compenso (categoria)
+  // Formato: Rata N · Descrizione Rata · Nome Cliente
   const parts = [];
   if (installment?.installment_number) parts.push(`Rata ${installment.installment_number}`);
   if (installment?.notes) parts.push(installment.notes);
-  const feeLabel = fee?.project_name
-    ? `${fee.category || ''} - ${fee.project_name}`.replace(/^- /, '')
-    : fee?.category;
-  if (feeLabel) parts.push(feeLabel);
+  if (fee?.client_name) parts.push(fee.client_name);
   return parts.join(' · ') || 'Pagamento';
 }
 
