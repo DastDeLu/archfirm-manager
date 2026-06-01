@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
-import { base44 } from '@/api/base44Client';
 import {
   Dialog,
   DialogContent,
@@ -14,8 +13,8 @@ import {
   Receipt,
   Wallet,
   ArrowRight,
-  Loader2
 } from 'lucide-react';
+import { useClients, useProjects, useFees, useRevenues, useExpenses } from '../../hooks/entities';
 
 const entityConfig = {
   Client: {
@@ -48,57 +47,37 @@ const entityConfig = {
 export default function GlobalSearch({ open, onOpenChange }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState({});
-  const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const dataRef = useRef(null);
   const navigate = useNavigate();
+
+  // Legge dalla cache condivisa — zero fetch aggiuntivi
+  const { data: clients = [] }  = useClients();
+  const { data: projects = [] } = useProjects();
+  const { data: fees = [] }     = useFees();
+  const { data: revenues = [] } = useRevenues();
+  const { data: expenses = [] } = useExpenses();
 
   useEffect(() => {
     if (!open) {
       setQuery('');
       setResults({});
       setSelectedIndex(0);
-      return;
     }
-
-    // Carica i dati una sola volta all'apertura del dialog
-    let cancelled = false;
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const [clients, projects, fees, revenues, expenses] = await Promise.all([
-          base44.entities.Client.list('-created_date', 500),
-          base44.entities.Project.list('-created_date', 500),
-          base44.entities.Fee.list('-created_date', 500),
-          base44.entities.Revenue.list('-created_date', 500),
-          base44.entities.Expense.list('-created_date', 500),
-        ]);
-        if (cancelled) return;
-        dataRef.current = { clients, projects, fees, revenues, expenses };
-      } catch (e) {
-        if (!cancelled) console.error('Errore caricamento ricerca:', e);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    loadData();
-    return () => { cancelled = true; };
   }, [open]);
 
   useEffect(() => {
-    if (query.length < 2 || !dataRef.current) {
+    if (query.length < 2) {
       setResults({});
       setSelectedIndex(0);
       return;
     }
 
     const debounce = setTimeout(() => {
-      const { clients, projects, fees, revenues, expenses } = dataRef.current;
       const lowerQuery = query.toLowerCase();
       const filtered = {
-        Client: clients.filter(c => c.name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
+        Client:  clients.filter(c => c.name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
         Project: projects.filter(p => p.name?.toLowerCase().includes(lowerQuery) || p.client_name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
-        Fee: fees.filter(f => f.project_name?.toLowerCase().includes(lowerQuery) || f.client_name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
+        Fee:     fees.filter(f => f.project_name?.toLowerCase().includes(lowerQuery) || f.client_name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
         Revenue: revenues.filter(r => r.description?.toLowerCase().includes(lowerQuery) || r.project_name?.toLowerCase().includes(lowerQuery)).slice(0, 5),
         Expense: expenses.filter(e => e.description?.toLowerCase().includes(lowerQuery) || e.nature?.toLowerCase().includes(lowerQuery)).slice(0, 5),
       };
@@ -107,7 +86,7 @@ export default function GlobalSearch({ open, onOpenChange }) {
     }, 200);
 
     return () => clearTimeout(debounce);
-  }, [query]);
+  }, [query, clients, projects, fees, revenues, expenses]);
 
   const flatResults = Object.entries(results).flatMap(([type, items]) =>
     items.map(item => ({ type, item }))
@@ -148,7 +127,7 @@ export default function GlobalSearch({ open, onOpenChange }) {
             className="border-0 focus-visible:ring-0 text-base py-4 px-0"
             autoFocus
           />
-          {loading && <Loader2 className="h-4 w-4 animate-spin text-slate-400" />}
+
         </div>
 
         <div className="max-h-[400px] overflow-y-auto">
@@ -157,7 +136,7 @@ export default function GlobalSearch({ open, onOpenChange }) {
               <Search className="h-8 w-8 mx-auto mb-3 text-slate-300" />
               <p className="text-sm">Digita almeno 2 caratteri per cercare</p>
             </div>
-          ) : flatResults.length === 0 && !loading ? (
+          ) : flatResults.length === 0 ? (
             <div className="p-8 text-center text-slate-500">
               <p className="text-sm">Nessun risultato trovato per "{query}"</p>
             </div>

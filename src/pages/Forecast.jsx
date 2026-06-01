@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useRevenues, useExpenses, useInstallments, useFees } from '../hooks/entities';
 import PageHeader from '../components/ui/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,32 +58,17 @@ export default function Forecast() {
   });
 
   const queryClient = useQueryClient();
-  const uid = useCurrentUserId();
+  const uid = useCurrentUserId(); // ancora usato per forecasts query key
 
   const { data: forecasts = [], isLoading } = useQuery({
     queryKey: ['forecasts', uid, selectedYear],
     queryFn: () => base44.entities.Forecast.filter({ year: selectedYear }),
   });
 
-  const { data: revenues = [] } = useQuery({
-    queryKey: ['revenues', uid],
-    queryFn: () => base44.entities.Revenue.list(),
-  });
-
-  const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses', uid],
-    queryFn: () => base44.entities.Expense.list(),
-  });
-
-  const { data: installments = [] } = useQuery({
-    queryKey: ['installments', uid],
-    queryFn: () => base44.entities.Installment.list(),
-  });
-
-  const { data: fees = [] } = useQuery({
-    queryKey: ['fees', uid],
-    queryFn: () => base44.entities.Fee.list(),
-  });
+  const { data: revenues = [] }     = useRevenues();
+  const { data: expenses = [] }     = useExpenses();
+  const { data: installments = [] } = useInstallments();
+  const { data: fees = [] }         = useFees();
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Forecast.create(withOwner(data, uid)),
