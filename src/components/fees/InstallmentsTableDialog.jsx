@@ -84,14 +84,9 @@ export default function InstallmentsTableDialog({ open, onOpenChange, fee, targe
   }, []);
 
   const invalidateAll = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['installments'] });
-    queryClient.invalidateQueries({ queryKey: ['installments-notifications'] });
     queryClient.invalidateQueries({ queryKey: ['installments-by-fee', fee.id] });
-    queryClient.invalidateQueries({ queryKey: ['revenues'] });
-    queryClient.invalidateQueries({ queryKey: ['revenues-by-fee', fee.id] });
     queryClient.invalidateQueries({ queryKey: ['all-revenues-for-fees'] });
     queryClient.invalidateQueries({ queryKey: ['fees'] });
-    queryClient.invalidateQueries({ queryKey: ['cashData'] });
   }, [queryClient, fee.id]);
 
   const { data: installments = [], isLoading } = useQuery({
