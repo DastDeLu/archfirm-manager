@@ -101,14 +101,15 @@ export default function InstallmentsTableDialog({ open, onOpenChange, fee, targe
   });
 
   // Sync remote data -> local rows (sorted by installment_number)
+  // Non sovrascrivere se c'è una riga in editing per non perdere il draft
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !editingId) {
       const sorted = [...installments].sort(
         (a, b) => (a.installment_number ?? 999) - (b.installment_number ?? 999)
       );
       setRows(sorted);
     }
-  }, [installments, isLoading]);
+  }, [installments, isLoading, editingId]);
 
   // Deep-link: open target in edit mode
   useEffect(() => {
@@ -140,11 +141,13 @@ export default function InstallmentsTableDialog({ open, onOpenChange, fee, targe
       return base44.entities.Installment.create(data);
     },
     onSuccess: (newInst) => {
-      invalidateAll();
-      // Immediately enter edit mode for the new row
+      // Aggiungi ottimisticamente in fondo prima del refetch
+      setRows(prev => [...prev, newInst]);
+      // Entra subito in modalità edit
       setEditingId(newInst.id);
       setEditDraft({ notes: newInst.notes || '', due_date: newInst.due_date || '', amount: newInst.amount || '' });
       toast.success('Rata aggiunta');
+      invalidateAll();
     },
     onError: (err) => toast.error('Errore: ' + err.message),
   });
@@ -154,9 +157,9 @@ export default function InstallmentsTableDialog({ open, onOpenChange, fee, targe
       await base44.entities.Installment.update(id, patch);
     },
     onSuccess: () => {
-      invalidateAll();
       setEditingId(null);
       setEditDraft({});
+      invalidateAll();
     },
     onError: (err) => toast.error('Errore aggiornamento: ' + err.message),
   });
